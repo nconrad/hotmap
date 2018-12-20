@@ -1,0 +1,24 @@
+{
+  "name": "heatmap",
+  "version": "1.0.0",
+  "description": "WebGL Based Heatmap for Bioinformatics and Big Data",
+  "main": "index.js",
+  "dependencies": {
+    "eslint": "^5.10.0",
+    "pixi.js": "^4.8.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nconrad/heatmap.git"
+  },
+  "author": "nconrad",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nconrad/heatmap/issues"
+  },
+  "homepage": "https://github.com/nconrad/heatmap#readme"
+}
