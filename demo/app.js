@@ -1,14 +1,13 @@
 
 import Heatmap from '../src/heatmap';
-[]
+[];
 
 document.addEventListener('DOMContentLoaded', () => {
     let ele = document.getElementById('chart');
     let statusHandle = loading(ele);
 
-    let heatmap = new Heatmap({ele})
+    let heatmap = new Heatmap({ele});
     clearInterval(statusHandle);
-
 });
 
 

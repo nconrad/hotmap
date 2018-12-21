@@ -14,6 +14,10 @@ module.exports = {
         "space-in-parens": 0,
         "eqeqeq": 0,
         "no-unused-vars": 0, // relying on editor for this one
-        "no-multiple-empty-lines":  ["error", {"max": 2}]
+        "no-multiple-empty-lines":  ["error", {"max": 2}],
+        "new-cap": 0 // ignore for Pixi.js
+    },
+    "globals": {
+        "PIXI": true,
     }
 };

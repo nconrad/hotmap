@@ -7,11 +7,12 @@
     "build": "webpack -p",
     "start": "webpack-dev-server --hot --inline",
     "start:server": "http-server -o",
-    "lint": "/node_modules/eslint/bin/eslint.js src/*.js demo/*.js",
-    "lint:fix": "/node_modules/eslint/bin/eslint.js --fix src/*.js demo/*.js",
+    "lint": "node_modules/eslint/bin/eslint.js src/*.js demo/*.js",
+    "lint:fix": "node_modules/eslint/bin/eslint.js --fix src/*.js demo/*.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "eslint-plugin-import": "^2.14.0",
     "pixi.js": "^4.8.3"
   },
   "devDependencies": {
@@ -20,6 +21,10 @@
     "@babel/preset-env": "^7.2.3",
     "babel-loader": "^8.0.4",
     "eslint": "^5.10.0",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-plugin-node": "^8.0.0",
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-standard": "^4.0.0",
     "uglifyjs-webpack-plugin": "^2.0.1",
     "webpack": "^4.28.1",
     "webpack-cli": "^3.1.2",
