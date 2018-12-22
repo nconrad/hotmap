@@ -2,7 +2,7 @@ import 'pixi.js/dist/pixi.min';
 
 import template from './container.html';
 
-import ScaleCtrl from './scale-ctrl'
+import ScaleCtrl from './scale-ctrl';
 import { getRandomColorMatrix } from './colors';
 
 // manually set framerate (ms) - for testing

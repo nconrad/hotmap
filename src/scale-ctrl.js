@@ -9,7 +9,6 @@ export default class ScaleCtrl {
         this.init();
     }
 
-
     init() {
         let self = this;
 
@@ -23,5 +22,4 @@ export default class ScaleCtrl {
             self.onYChange(parseInt(this.value));
         };
     }
-
 }
