@@ -1,9 +1,7 @@
 import 'pixi.js/dist/pixi.min';
 
 import template from './container.html';
-
 import ScaleCtrl from './scale-ctrl';
-import { getRandomColorMatrix } from './colors';
 
 // manually set framerate (ms) - for testing
 // requestAnimationFrame is used if not set
@@ -12,22 +10,24 @@ const FRAME_RATE = null;
 const margin = {top: 150, left: 200};
 let boxXLength = 20;
 let boxYLength = 20;
+const boxColor = 0xff0000;
 const xLength = 15;
 const yLength = 15;
-const colors = getRandomColorMatrix(xLength, yLength);
 
 
-export default class Heamap {
-    constructor({ele}) {
+export default class Heatmap {
+    constructor({ele, matrix}) {
         this.ele = ele;
+        this.matrix = matrix;
+
         this.ele.innerHTML = template;
 
         this.rects = [];
         this.labels = {x: [], y: []};
 
         this.start();
+        return this;
     }
-
 
     start() {
         let canvasWidth = window.innerWidth,
@@ -69,6 +69,7 @@ export default class Heamap {
         });
     }
 
+
     renderChart() {
         let xOffSet = boxXLength + 1,
             yOffSet = boxYLength + 1;
@@ -83,7 +84,7 @@ export default class Heamap {
             for (let j = 0; j < yLength; j++) {
                 let y = margin.top + yOffSet * j;
 
-                this.createRect(x, y, boxXLength, boxYLength, colors[j][i], {i, j});
+                this.createRect(x, y, boxXLength, boxYLength, this.matrix[i][j], {i, j});
 
                 if (i == 0) {
                     this.createLabel(`This is row ${j}`, margin.left - 10, y + 3, null, 'y');
@@ -116,23 +117,22 @@ export default class Heamap {
     }
 
 
-    createRect(x, y, w, h, color, data) {
+    createRect(x, y, w, h, val, data) {
         let self = this;
         let g = new PIXI.Graphics();
 
-        g.beginFill(color);
+        g.beginFill(boxColor);
+        g.alpha = val;
         g.hitArea = new PIXI.Rectangle(x, y, w, h);
         g.interactive = true;
         g.drawRect(x, y, w, h);
 
         g.mouseover = function(ev) {
-            this.alpha = 0.5;
             self.labels.x[data.i].fontWeight = 'bold';
             self.labels.y[data.j].fontWeight = 'bold';
         };
 
         g.mouseout = function(ev) {
-            this.alpha = 1;
             self.labels.x[data.i].fontWeight = 'normal';
             self.labels.y[data.j].fontWeight = 'normal';
         };
@@ -140,6 +140,7 @@ export default class Heamap {
         this.rects.push(g);
         this.stage.addChild(g);
     }
+
 
     clearStage() {
         // Todo: perf test
