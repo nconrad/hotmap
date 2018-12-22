@@ -18,6 +18,7 @@ module.exports = {
         "new-cap": 0 // ignore for Pixi.js
     },
     "globals": {
-        "PIXI": true,
+        "PIXI": 1,
+        "requestAnimationFrame": 1
     }
 };

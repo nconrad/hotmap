@@ -1,6 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
-//const CopyWebpackPlugin = require('copy-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 
@@ -46,14 +46,12 @@ module.exports = {
         new webpack.optimize.LimitChunkCountPlugin({
             maxChunks: 1
         }),
-        /*
         new CopyWebpackPlugin([
             {
-                from: 'src/mauve-viewer.css',
-                to: 'mauve-viewer.css'
+                from: 'src/heatmap.css',
+                to: 'heatmap.css'
             }
         ])
-        */
     ],
     stats: {
         colors: true
