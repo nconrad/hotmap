@@ -15,6 +15,7 @@ module.exports = {
         "eqeqeq": 0,
         "no-unused-vars": 0, // relying on editor for this one
         "no-multiple-empty-lines":  ["error", {"max": 2}],
+        "padded-blocks": 0,
         "new-cap": 0 // ignore for Pixi.js
     },
     "globals": {

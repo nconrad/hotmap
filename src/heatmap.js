@@ -1,18 +1,32 @@
-import 'pixi.js/dist/pixi.min';
+import 'pixi.js/dist/pixi';
 
-import template from './container.html';
+import container from './container.html';
 import ScaleCtrl from './scale-ctrl';
+import ScrollBar from './scrollbar';
+
 
 // manually set framerate (ms) - for testing
 // requestAnimationFrame is used if not set
 const FRAME_RATE = null;
+const FORCE_CANVAS = false;
+const PARTICLE_CONTAINER = true;
 
-const margin = {top: 150, left: 200};
-let boxXLength = 20;
-let boxYLength = 20;
+// default view sizes (height & width)
+
+const canvasWidth = 2500; // window.innerWidth,
+const canvasHeight = 500; // window.innerHeight;
+const yViewSize = 10;
+const xViewSize = 1000;
+
+// color/size of chart boxes
 const boxColor = 0xff0000;
-const xLength = 15;
-const yLength = 15;
+
+// general chart settings
+const scrollWidth = 1200;
+const margin = {top: 165, left: 200};
+const spritePath = '../src/assets/red-box.png';
+const svgNS = 'http://www.w3.org/2000/svg';
+// const spriteLoader = new PIXI.loaders.Loader();
 
 
 export default class Heatmap {
@@ -20,135 +34,244 @@ export default class Heatmap {
         this.ele = ele;
         this.matrix = matrix;
 
-        this.ele.innerHTML = template;
+        // m and n (row and cols) dimensions
 
-        this.rects = [];
-        this.labels = {x: [], y: []};
+        this.size = {
+            y: matrix.length,
+            x: matrix[0].length
+        };
+
+        // default cell size
+        this.boxXLength = 1;
+        this.boxYLength = 20;
+
+        // start coordinates for viewbox
+        this.xStart = 0;
+        this.yStart = 0;
+
+        this.ele.innerHTML = container;
+        this.labelNames = this.getMockLabelNames(this.size.y, this.size.x);
+        this.sprites = this.loadSprites(matrix);
+
+        // spriteLoader.load((loader, resources) => this.start);
 
         this.start();
+
         return this;
     }
 
     start() {
-        let canvasWidth = window.innerWidth,
-            canvasHeight = window.innerHeight;
-
-        let renderer = new PIXI.autoDetectRenderer(canvasWidth, canvasHeight, {
-            transparent: false,
-            backgroundColor: '0xf2f2f2'
-        });
+        // create renderer
+        let renderer = this.renderer(canvasWidth, canvasHeight);
 
         this.ele.querySelector('.chart')
             .appendChild(renderer.view);
 
-        let stage = this.stage = new PIXI.Container();
-        this.renderChart();
+        if (PARTICLE_CONTAINER) {
+            this.stage = new PIXI.particles.ParticleContainer();
+            this.stage._maxSize = xViewSize * yViewSize;
+        } else {
+            this.stage = new PIXI.Container();
+        }
 
+        this.svg = this.createSVGContainer(canvasWidth, canvasHeight);
+
+        this.renderChart();
         let render = () => {
             renderer.render(this.stage);
             if (!FRAME_RATE) requestAnimationFrame(render);
         };
 
-        if (FRAME_RATE) { setInterval(render, FRAME_RATE); }
-
-        render();
+        // Manual framerate for testing
+        if (FRAME_RATE) {
+            setInterval(render, FRAME_RATE);
+        } else {
+            render();
+        }
 
         // initialize scale x/y width controls
         new ScaleCtrl({
             ele: this.ele,
+            xValue: this.boxXLength,
+            yValue: this.boxYLength,
             onXChange: val => {
                 this.clearStage();
-                boxXLength = val;
+                this.boxXLength = val;
                 this.renderChart();
             },
             onYChange: val => {
                 this.clearStage();
-                boxYLength = val;
+                this.boxYLength = val;
                 this.renderChart();
             },
         });
+
+        new ScrollBar({
+            ele: document.querySelector('.scrollbar'),
+            max: scrollWidth,
+            onMove: this.onHorizontalScroll.bind(this)
+        });
     }
 
+    renderer(width, height) {
+        let renderer;
+        if (FORCE_CANVAS) {
+            renderer = new PIXI.CanvasRenderer(width, height);
+        } else {
+            renderer = new PIXI.autoDetectRenderer(width, height, {
+                transparent: true
+            });
+        }
+        renderer.transparent = true;
+        return renderer;
+    }
 
+    /**
+     * rendering experiment
+     */
     renderChart() {
-        let xOffSet = boxXLength + 1,
-            yOffSet = boxYLength + 1;
+        let self = this;
+        // space between boxes
+        let xOffSet = this.boxXLength,
+            yOffSet = this.boxYLength;
 
-        // for each column
-        for (let i = 0; i < xLength; i++) {
-            let x = margin.left + xOffSet * i;
+        let xStart = this.xStart,
+            yStart = this.yStart;
 
-            this.createLabel(`This is column ${i}`, x + 2, margin.top - 10, -0.8, 'x');
+        // for each row
+        for (let i = 0; i < yViewSize; i++) {
+            let y = margin.top + yOffSet * i;
+            let rowIdx = yStart + i;
 
-            // for each row
-            for (let j = 0; j < yLength; j++) {
-                let y = margin.top + yOffSet * j;
+            this.createSVGLabel(this.labelNames.y[rowIdx], margin.top - 10, y + 3, 'y');
 
-                this.createRect(x, y, boxXLength, boxYLength, this.matrix[i][j], {i, j});
+            // for each column
+            for (let j = 0; j < xViewSize; j++) {
+                let x = margin.top + xOffSet * j,
+                    colIdx = xStart + j;
 
-                if (i == 0) {
-                    this.createLabel(`This is row ${j}`, margin.left - 10, y + 3, null, 'y');
+                let sprite = this.sprites[rowIdx][colIdx];
+                sprite.x = x;
+                sprite.y = y;
+                sprite.height = yOffSet;
+                sprite.width = xOffSet;
+                // Todo: set on texture? (optimize)
+                sprite.alpha = this.matrix[rowIdx][colIdx];
+
+                this.stage.addChild(sprite);
+
+                if (i == 0 && xOffSet > 5) {
+                    this.createSVGLabel(this.labelNames.x[colIdx], x + 2, margin.top - 10, 'x');
                 }
             }
         }
     }
 
+    createSVGContainer(width, height) {
+        this.svg = document.createElementNS(svgNS, 'svg');
+        this.svg.style.position = 'absolute';
+        this.svg.style.top = 0;
+        this.svg.style.left = 0;
+        this.svg.setAttribute('width', width);
+        this.svg.setAttribute('height', height);
+        this.ele.querySelector('.chart').appendChild(this.svg);
 
-    createLabel(text, x, y, rotation, axis) {
-        let style = new PIXI.TextStyle({
-            fontSize: 12,
-            fill: '#000000'
-        });
+        return this.svg;
+    }
 
-        let g = new PIXI.Text(text, style);
+    // Todo: optimize
+    createSVGLabel(text, x, y, axis) {
+        let ele = document.createElementNS(svgNS, 'text');
+        if (axis == 'y') {
+            ele.innerHTML = text;
+            ele.setAttribute('fill', '#666');
+            ele.setAttribute('x', x);
+            ele.setAttribute('y', y + this.boxYLength / 2 + 1 );
+            this.svg.appendChild(ele);
 
-        if (axis === 'y') {
-            let textWidth = PIXI.TextMetrics.measureText(text, style).width;
-            g.position.x = x - textWidth;
-        } else {
-            g.position.x = x;
+            let width = ele.getBBox().width;
+            ele.setAttribute('transform', `translate(-${width})`);
+        } else if (axis == 'x') {
+            ele.innerHTML = text;
+            ele.setAttribute('fill', '#666');
+            ele.setAttribute('x', x);
+            ele.setAttribute('y', y);
+            this.svg.appendChild(ele);
+
+            ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
+        }
+    }
+
+
+    getMockLabelNames(m, n) {
+        let labels = { x: [], y: [] };
+        for (let i = 0; i < m; i++) {
+            labels.y.push(`This is row ${i}`);
         }
 
-        g.position.y = y;
-        g.rotation = rotation || 0;
-
-        this.labels[axis].push(style);
-        this.stage.addChild(g);
+        for (let j = 0; j < n; j++) {
+            labels.x.push(`This is column ${j}`)
+        }
+        return labels;
     }
 
 
-    createRect(x, y, w, h, val, data) {
-        let self = this;
+    loadSprites() {
+        let sprites = [];
+
+        // for each row
+        for (let i = 0; i < this.size.y; i++) {
+            let y = margin.top + this.boxYLength * i;
+
+            let row = [];
+            // for each column
+            for (let j = 0; j < this.size.x; j++) {
+                let x = margin.top + this.boxXLength * j;
+
+                let sprite = this.loadSprite(x, y, this.boxXLength, this.boxYLength);
+                row.push(sprite);
+            }
+            sprites.push(row);
+        }
+
+        return sprites;
+    }
+
+
+    loadSprite(x, y, w, h) {
+        let texture = new PIXI.Sprite.fromImage(spritePath);
+        return texture;
+    }
+
+    // deprecated
+    createTextureFromGraphic(x, y, w, h) {
         let g = new PIXI.Graphics();
-
         g.beginFill(boxColor);
-        g.alpha = val;
-        g.hitArea = new PIXI.Rectangle(x, y, w, h);
-        g.interactive = true;
         g.drawRect(x, y, w, h);
-
-        g.mouseover = function(ev) {
-            self.labels.x[data.i].fontWeight = 'bold';
-            self.labels.y[data.j].fontWeight = 'bold';
-        };
-
-        g.mouseout = function(ev) {
-            self.labels.x[data.i].fontWeight = 'normal';
-            self.labels.y[data.j].fontWeight = 'normal';
-        };
-
-        this.rects.push(g);
-        this.stage.addChild(g);
+        let texture = new PIXI.Sprite(g.generateCanvasTexture());
+        return texture;
     }
-
 
     clearStage() {
-        // Todo: perf test
-        this.labels = {x: [], y: []};
+        // Todo: optimize
+        while (this.svg.hasChildNodes()) {
+            this.svg.removeChild(this.svg.firstChild);
+        }
 
         let i = this.stage.children.length;
         while (i--) {
             this.stage.removeChild(this.stage.children[i]);
         };
+    }
+
+    onHorizontalScroll(xPos) {
+        let ratio = xPos / scrollWidth;
+        let xStart = parseInt(ratio * this.size.x);
+
+        if (xStart === this.xStart) return;
+        this.xStart = xStart;
+
+        this.clearStage();
+        this.renderChart();
     }
 }

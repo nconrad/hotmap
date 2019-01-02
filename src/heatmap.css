@@ -1,5 +1,16 @@
 
 
+@import url('https://fonts.googleapis.com/css?family=Rubik');
+
+.heatmap text {
+  font-family: 'Rubik', sans-serif;
+
+}
+
+.heatmap .chart {
+  position: relative;
+}
+
 .heatmap .scale-ctrls {
   position: absolute;
   top: 20px;
@@ -48,3 +59,31 @@
   left: 75px;
 }
 
+
+.heatmap .scrollbar {
+  position: absolute;
+  height: 10px;
+  background: #f2f2f2;
+}
+
+.heatmap .scroll-handle {
+  position: absolute;
+  width: 10%;
+  height: 10px;
+  background: #222;
+  user-select: none;
+}
+
+.heatmap .loading-bar {
+  height: 25px;
+  background: #f2f2f2;
+  border: 1px solid #ddd;
+  margin-bottom: 25px;
+}
+
+.heatmap .loading-bar .loading-bar-progress {
+  position: relative;
+  height: 100%;
+  width: 20px;
+  background: #606666;
+}

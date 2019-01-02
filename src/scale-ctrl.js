@@ -1,8 +1,11 @@
 
 export default class ScaleCtrl {
-    constructor({ele, onXChange, onYChange}) {
+    constructor({ele, xValue, yValue, onXChange, onYChange}) {
         this.ele = ele;
 
+        // set default value
+        this.xValue = xValue;
+        this.yValue = yValue;
         this.onXChange = onXChange;
         this.onYChange = onYChange;
 
@@ -13,11 +16,13 @@ export default class ScaleCtrl {
         let self = this;
 
         let xSlider = this.ele.querySelector('.x-slider');
+        xSlider.value = this.value;
         xSlider.oninput = function() {
             self.onXChange(parseInt(this.value));
         };
 
         let ySlider = this.ele.querySelector('.y-slider');
+        ySlider.value = this.value;
         ySlider.oninput = function() {
             self.onYChange(parseInt(this.value));
         };
