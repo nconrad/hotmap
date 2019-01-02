@@ -35,7 +35,6 @@ export default class Heatmap {
         this.matrix = matrix;
 
         // m and n (row and cols) dimensions
-
         this.size = {
             y: matrix.length,
             x: matrix[0].length
@@ -192,6 +191,7 @@ export default class Heatmap {
             let width = ele.getBBox().width;
             ele.setAttribute('transform', `translate(-${width})`);
         } else if (axis == 'x') {
+            x += this.boxXLength / 2 + 1;
             ele.innerHTML = text;
             ele.setAttribute('fill', '#666');
             ele.setAttribute('x', x);
@@ -210,7 +210,7 @@ export default class Heatmap {
         }
 
         for (let j = 0; j < n; j++) {
-            labels.x.push(`This is column ${j}`)
+            labels.x.push(`This is column ${j}`);
         }
         return labels;
     }
@@ -228,7 +228,7 @@ export default class Heatmap {
             for (let j = 0; j < this.size.x; j++) {
                 let x = margin.top + this.boxXLength * j;
 
-                let sprite = this.loadSprite(x, y, this.boxXLength, this.boxYLength);
+                let sprite = this.loadSprite();
                 row.push(sprite);
             }
             sprites.push(row);
@@ -238,12 +238,12 @@ export default class Heatmap {
     }
 
 
-    loadSprite(x, y, w, h) {
+    loadSprite() {
         let texture = new PIXI.Sprite.fromImage(spritePath);
         return texture;
     }
 
-    // deprecated
+    // Deprecated
     createTextureFromGraphic(x, y, w, h) {
         let g = new PIXI.Graphics();
         g.beginFill(boxColor);
