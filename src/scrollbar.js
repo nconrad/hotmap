@@ -26,7 +26,7 @@ export default class ScrollBar {
 
         // events
         handle.addEventListener('mousedown', this.drag.bind(this));
-        handle.addEventListener('mouseup', this.stop.bind(this));
+        document.addEventListener('mouseup', this.stop.bind(this));
     }
 
     drag(evt) {
@@ -35,7 +35,7 @@ export default class ScrollBar {
         let handle = evt.target;
         let width = handle.offsetWidth / 2; // move via center of handle
 
-        document.addEventListener('mousemove', function(evt) {
+        this.mousemoveHandle = document.addEventListener('mousemove', function(evt) {
             if (!self._moving) return;
 
             let x = evt.clientX - width;
@@ -51,6 +51,7 @@ export default class ScrollBar {
 
     stop() {
         this._moving = false;
+        document.removeEventListener('mousemove', this.mousemoveHandle);
     }
 
 }

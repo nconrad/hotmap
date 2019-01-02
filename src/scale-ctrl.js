@@ -16,13 +16,14 @@ export default class ScaleCtrl {
         let self = this;
 
         let xSlider = this.ele.querySelector('.x-slider');
-        xSlider.value = this.value;
+
+        xSlider.value = this.xValue;
         xSlider.oninput = function() {
             self.onXChange(parseInt(this.value));
         };
 
         let ySlider = this.ele.querySelector('.y-slider');
-        ySlider.value = this.value;
+        ySlider.value = this.yValue;
         ySlider.oninput = function() {
             self.onYChange(parseInt(this.value));
         };

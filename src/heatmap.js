@@ -12,8 +12,7 @@ const FORCE_CANVAS = false;
 const PARTICLE_CONTAINER = true;
 
 // default view sizes (height & width)
-
-const canvasWidth = 2500; // window.innerWidth,
+const canvasWidth = 1500; // window.innerWidth,
 const canvasHeight = 500; // window.innerHeight;
 const yViewSize = 10;
 const xViewSize = 1000;
@@ -44,7 +43,7 @@ export default class Heatmap {
         this.boxXLength = 1;
         this.boxYLength = 20;
 
-        // start coordinates for viewbox
+        // start coordinates for "viewbox"
         this.xStart = 0;
         this.yStart = 0;
 
