@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let ele = document.getElementById('chart');
     let statusHandle = loading(ele);
 
-    let matrix = getTestData(10, 5000);
+    let matrix = getTestData(10, 2000);
     let heatmap = new Heatmap({ele, matrix});
     clearInterval(statusHandle);
 });

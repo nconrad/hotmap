@@ -1,23 +1,28 @@
 
-
 export default class ScrollBar {
 
-    constructor({ele, type, min, max, onMove}) {
+    constructor({ele, type, x, y, width, max, onMove}) {
         this.ele = ele;
         this.type = type || 'vertical';
-        this.min = min || 0;
-        this.max = max || 500;
+        this.x = x;
+        this.y = null;
+        this.width = width || '100%';
+
         this.onMove = onMove;
 
         this._moving = false;
+        this._min = 0;
         this._x;
         this.init();
+
+        return this;
     }
 
 
     init() {
         // setup scroll container
-        this.ele.style.width = `${this.max}px`;
+        this.ele.style.width = this.width;
+        this.ele.style.marginLeft = this.x;
 
         // add handle
         let handle = document.createElement('div');
@@ -33,20 +38,18 @@ export default class ScrollBar {
         let self = this;
         this._moving = true;
         let handle = evt.target;
-        let width = handle.offsetWidth / 2; // move via center of handle
 
         this.mousemoveHandle = document.addEventListener('mousemove', function(evt) {
             if (!self._moving) return;
 
-            let x = evt.clientX - width;
+            let xPos = evt.clientX - self.x - (handle.offsetWidth / 2);
 
-            if (x > self.max - handle.offsetWidth) return;
-            if (x < self.min) return;
+            if (xPos > self.max - handle.offsetWidth) return;
+            if (xPos < self._min) return;
 
-            self.onMove(x);
-            handle.setAttribute('style', `left: ${x}px;`);
+            self.onMove(xPos);
+            handle.setAttribute('style', `left: ${xPos}px;`);
         });
-
     }
 
     stop() {

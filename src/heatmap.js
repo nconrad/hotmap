@@ -1,3 +1,9 @@
+/**
+ * heatmap.js
+ *
+ * Author: https://github.com/nconrad
+ *
+ */
 import 'pixi.js/dist/pixi';
 
 import container from './container.html';
@@ -12,17 +18,23 @@ const FORCE_CANVAS = false;
 const PARTICLE_CONTAINER = true;
 
 // default view sizes (height & width)
-const canvasWidth = 1500; // window.innerWidth,
+const canvasWidth = 1200; // window.innerWidth,
 const canvasHeight = 500; // window.innerHeight;
-const yViewSize = 10;
-const xViewSize = 1000;
+let yViewSize = 10;
+let xViewSize = 1000;
 
 // color/size of chart boxes
 const boxColor = 0xff0000;
 
 // general chart settings
-const scrollWidth = 1200;
-const margin = {top: 165, left: 200};
+
+const margin = {
+    top: 165,
+    left: 165,
+    right: 100 // here we are essentially using right margin for angled text
+};
+
+
 const spritePath = '../src/assets/red-box.png';
 const svgNS = 'http://www.w3.org/2000/svg';
 // const spriteLoader = new PIXI.loaders.Loader();
@@ -39,9 +51,9 @@ export default class Heatmap {
             x: matrix[0].length
         };
 
-        // default cell size
-        this.boxXLength = 1;
-        this.boxYLength = 20;
+        // cell size
+        this.cellXDim = 1;
+        this.cellYDim = 20;
 
         // start coordinates for "viewbox"
         this.xStart = 0;
@@ -50,8 +62,6 @@ export default class Heatmap {
         this.ele.innerHTML = container;
         this.labelNames = this.getMockLabelNames(this.size.y, this.size.x);
         this.sprites = this.loadSprites(matrix);
-
-        // spriteLoader.load((loader, resources) => this.start);
 
         this.start();
 
@@ -72,9 +82,12 @@ export default class Heatmap {
             this.stage = new PIXI.Container();
         }
 
-        this.svg = this.createSVGContainer(canvasWidth, canvasHeight);
+        let obj = this.createSVGContainers(canvasWidth, canvasHeight);
+        this.svg = obj.svg;
+        this.xAxis = obj.xAxis;
+        this.yAxis = obj.yAxis;
 
-        this.renderChart();
+        this.renderChart(true, true);
         let render = () => {
             renderer.render(this.stage);
             if (!FRAME_RATE) requestAnimationFrame(render);
@@ -90,25 +103,26 @@ export default class Heatmap {
         // initialize scale x/y width controls
         new ScaleCtrl({
             ele: this.ele,
-            xValue: this.boxXLength,
-            yValue: this.boxYLength,
+            xValue: this.cellXDim,
+            yValue: this.cellYDim,
             onXChange: val => {
-                this.clearStage();
-                this.boxXLength = val;
-                this.renderChart();
+                this.cellXDim = val;
+                this.renderChart(true);
             },
             onYChange: val => {
-                this.clearStage();
-                this.boxYLength = val;
-                this.renderChart();
+                this.cellYDim = val;
+                this.renderChart(false, true);
             },
         });
 
-        new ScrollBar({
-            ele: document.querySelector('.scrollbar'),
-            max: scrollWidth,
-            onMove: this.onHorizontalScroll.bind(this)
+        this.xScrollBar = new ScrollBar({
+            type: 'horizontal',
+            ele: document.querySelector('.x-scrollbar'),
+            onMove: this.onHorizontalScroll.bind(this),
+            x: margin.left,
+            width: xViewSize
         });
+
     }
 
     renderer(width, height) {
@@ -127,25 +141,31 @@ export default class Heatmap {
     /**
      * rendering experiment
      */
-    renderChart() {
-        let self = this;
-        // space between boxes
-        let xOffSet = this.boxXLength,
-            yOffSet = this.boxYLength;
+    renderChart(scaleX, scaleY) {
+        this.clearStage(scaleX, scaleY);
+
+        let xOffSet = this.cellXDim,
+            yOffSet = this.cellYDim;
 
         let xStart = this.xStart,
             yStart = this.yStart;
+
+        // use cell size to compute "view box" of sorts
+        xViewSize = (canvasWidth - margin.left - margin.right) / this.cellXDim;
+        // yViewSize = (canvasHeight - margin.top) / this.cellYDim;
 
         // for each row
         for (let i = 0; i < yViewSize; i++) {
             let y = margin.top + yOffSet * i;
             let rowIdx = yStart + i;
 
-            this.createSVGLabel(this.labelNames.y[rowIdx], margin.top - 10, y + 3, 'y');
+            if (yOffSet > 6 && scaleY) {
+                this.addSVGLabel(this.labelNames.y[rowIdx], margin.top - 10, y + 3, 'y');
+            }
 
             // for each column
             for (let j = 0; j < xViewSize; j++) {
-                let x = margin.top + xOffSet * j,
+                let x = margin.left + xOffSet * j,
                     colIdx = xStart + j;
 
                 let sprite = this.sprites[rowIdx][colIdx];
@@ -158,47 +178,59 @@ export default class Heatmap {
 
                 this.stage.addChild(sprite);
 
-                if (i == 0 && xOffSet > 5) {
-                    this.createSVGLabel(this.labelNames.x[colIdx], x + 2, margin.top - 10, 'x');
+                if (i == 0 && xOffSet > 5 && scaleX) {
+                    this.addSVGLabel(this.labelNames.x[colIdx], x + 2, margin.top - 10, 'x');
                 }
             }
         }
     }
 
-    createSVGContainer(width, height) {
-        this.svg = document.createElementNS(svgNS, 'svg');
-        this.svg.style.position = 'absolute';
-        this.svg.style.top = 0;
-        this.svg.style.left = 0;
-        this.svg.setAttribute('width', width);
-        this.svg.setAttribute('height', height);
-        this.ele.querySelector('.chart').appendChild(this.svg);
+    createSVGContainers(width, height) {
+        let svg = document.createElementNS(svgNS, 'svg');
+        svg.style.position = 'absolute';
+        svg.style.top = 0;
+        svg.style.left = 0;
+        svg.setAttribute('width', width);
+        svg.setAttribute('height', height);
 
-        return this.svg;
+        let xAxis = document.createElementNS(svgNS, 'g');
+        xAxis.setAttribute('class', 'x-axis');
+        let yAxis = document.createElementNS(svgNS, 'g');
+        yAxis.setAttribute('class', 'y-axis');
+
+        svg.appendChild(xAxis);
+        svg.appendChild(yAxis);
+        this.ele.querySelector('.chart').appendChild(svg);
+
+        return {svg, xAxis, yAxis};
     }
 
     // Todo: optimize
-    createSVGLabel(text, x, y, axis) {
+    addSVGLabel(text, x, y, axis) {
         let ele = document.createElementNS(svgNS, 'text');
         if (axis == 'y') {
             ele.innerHTML = text;
+
+            ele.setAttribute('font-size', `${this.cellYDim <= 16 ? this.cellYDim - 2 : 16}px`);
             ele.setAttribute('fill', '#666');
             ele.setAttribute('x', x);
-            ele.setAttribute('y', y + this.boxYLength / 2 + 1 );
-            this.svg.appendChild(ele);
+            ele.setAttribute('y', y + this.cellYDim / 2 + 1 );
+            this.yAxis.appendChild(ele);
 
             let width = ele.getBBox().width;
             ele.setAttribute('transform', `translate(-${width})`);
-        } else if (axis == 'x') {
-            x += this.boxXLength / 2 + 1;
-            ele.innerHTML = text;
-            ele.setAttribute('fill', '#666');
-            ele.setAttribute('x', x);
-            ele.setAttribute('y', y);
-            this.svg.appendChild(ele);
-
-            ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
+            return;
         }
+
+        x += this.cellXDim / 2 + 1;
+        ele.innerHTML = text;
+        ele.setAttribute('font-size', `${this.cellXDim <= 16 ? this.cellXDim - 2 : 16}px`);
+        ele.setAttribute('fill', '#666');
+        ele.setAttribute('x', x);
+        ele.setAttribute('y', y);
+        this.xAxis.appendChild(ele);
+
+        ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
     }
 
 
@@ -220,12 +252,12 @@ export default class Heatmap {
 
         // for each row
         for (let i = 0; i < this.size.y; i++) {
-            let y = margin.top + this.boxYLength * i;
+            let y = margin.top + this.cellYDim * i;
 
             let row = [];
             // for each column
             for (let j = 0; j < this.size.x; j++) {
-                let x = margin.top + this.boxXLength * j;
+                let x = margin.top + this.cellXDim * j;
 
                 let sprite = this.loadSprite();
                 row.push(sprite);
@@ -251,10 +283,16 @@ export default class Heatmap {
         return texture;
     }
 
-    clearStage() {
-        // Todo: optimize
-        while (this.svg.hasChildNodes()) {
-            this.svg.removeChild(this.svg.firstChild);
+    clearStage(scaleX, scaleY) {
+        if (scaleX) {
+            while (this.xAxis.hasChildNodes()) {
+                this.xAxis.removeChild(this.xAxis.firstChild);
+            }
+        }
+        if (scaleY) {
+            while (this.yAxis.hasChildNodes()) {
+                this.yAxis.removeChild(this.yAxis.firstChild);
+            }
         }
 
         let i = this.stage.children.length;
@@ -264,13 +302,12 @@ export default class Heatmap {
     }
 
     onHorizontalScroll(xPos) {
-        let ratio = xPos / scrollWidth;
+        let ratio = xPos / this.xScrollBar.width;
         let xStart = parseInt(ratio * this.size.x);
 
         if (xStart === this.xStart) return;
         this.xStart = xStart;
 
-        this.clearStage();
-        this.renderChart();
+        this.renderChart(true);
     }
 }
