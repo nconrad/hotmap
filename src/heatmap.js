@@ -18,8 +18,8 @@ const FORCE_CANVAS = false;
 const PARTICLE_CONTAINER = true;
 
 // default view sizes (height & width)
-const canvasWidth = 1200; // window.innerWidth,
-const canvasHeight = 500; // window.innerHeight;
+const canvasWidth = window.innerWidth;
+const canvasHeight = window.innerHeight;
 let yViewSize = 10;
 let xViewSize = 1000;
 
@@ -27,7 +27,6 @@ let xViewSize = 1000;
 const boxColor = 0xff0000;
 
 // general chart settings
-
 const margin = {
     top: 165,
     left: 165,
@@ -55,13 +54,15 @@ export default class Heatmap {
         this.cellXDim = 1;
         this.cellYDim = 20;
 
-        // start coordinates for "viewbox"
+        // start coordinates in matrix for "viewbox"
         this.xStart = 0;
         this.yStart = 0;
 
         this.ele.innerHTML = container;
         this.labelNames = this.getMockLabelNames(this.size.y, this.size.x);
         this.sprites = this.loadSprites(matrix);
+
+        this.labels = {x: [], y: []}; // store label svg objects for mouse tracking
 
         this.start();
 
@@ -70,9 +71,14 @@ export default class Heatmap {
 
     start() {
         // create renderer
+        let obj = this.createSVGContainers(canvasWidth, canvasHeight);
+        this.svg = obj.svg;
+        this.xAxis = obj.xAxis;
+        this.yAxis = obj.yAxis;
+
         let renderer = this.renderer(canvasWidth, canvasHeight);
 
-        this.ele.querySelector('.chart')
+        this.ele.querySelector('.webgl-canvas')
             .appendChild(renderer.view);
 
         if (PARTICLE_CONTAINER) {
@@ -80,24 +86,6 @@ export default class Heatmap {
             this.stage._maxSize = xViewSize * yViewSize;
         } else {
             this.stage = new PIXI.Container();
-        }
-
-        let obj = this.createSVGContainers(canvasWidth, canvasHeight);
-        this.svg = obj.svg;
-        this.xAxis = obj.xAxis;
-        this.yAxis = obj.yAxis;
-
-        this.renderChart(true, true);
-        let render = () => {
-            renderer.render(this.stage);
-            if (!FRAME_RATE) requestAnimationFrame(render);
-        };
-
-        // Manual framerate for testing
-        if (FRAME_RATE) {
-            setInterval(render, FRAME_RATE);
-        } else {
-            render();
         }
 
         // initialize scale x/y width controls
@@ -115,14 +103,29 @@ export default class Heatmap {
             },
         });
 
+        // todo: implement in webgl?
         this.xScrollBar = new ScrollBar({
             type: 'horizontal',
             ele: document.querySelector('.x-scrollbar'),
             onMove: this.onHorizontalScroll.bind(this),
+            max: this.size.x,
             x: margin.left,
+            // y: update y on render for now
             width: xViewSize
         });
 
+        this.renderChart(true, true);
+        let render = () => {
+            renderer.render(this.stage);
+            if (!FRAME_RATE) requestAnimationFrame(render);
+        };
+
+        // Manual framerate for testing
+        if (FRAME_RATE) {
+            setInterval(render, FRAME_RATE);
+        } else {
+            render();
+        }
     }
 
     renderer(width, height) {
@@ -144,8 +147,8 @@ export default class Heatmap {
     renderChart(scaleX, scaleY) {
         this.clearStage(scaleX, scaleY);
 
-        let xOffSet = this.cellXDim,
-            yOffSet = this.cellYDim;
+        let cellXDim = this.cellXDim,
+            cellYDim = this.cellYDim;
 
         let xStart = this.xStart,
             yStart = this.yStart;
@@ -156,32 +159,43 @@ export default class Heatmap {
 
         // for each row
         for (let i = 0; i < yViewSize; i++) {
-            let y = margin.top + yOffSet * i;
+            let y = margin.top + cellYDim * i;
             let rowIdx = yStart + i;
 
-            if (yOffSet > 6 && scaleY) {
+            if (cellYDim > 6 && scaleY) {
                 this.addSVGLabel(this.labelNames.y[rowIdx], margin.top - 10, y + 3, 'y');
             }
 
             // for each column
             for (let j = 0; j < xViewSize; j++) {
-                let x = margin.left + xOffSet * j,
+                let x = margin.left + cellXDim * j,
                     colIdx = xStart + j;
 
                 let sprite = this.sprites[rowIdx][colIdx];
                 sprite.x = x;
                 sprite.y = y;
-                sprite.height = yOffSet;
-                sprite.width = xOffSet;
+                sprite.height = cellYDim;
+                sprite.width = cellXDim;
                 // Todo: set on texture? (optimize)
                 sprite.alpha = this.matrix[rowIdx][colIdx];
 
                 this.stage.addChild(sprite);
 
-                if (i == 0 && xOffSet > 5 && scaleX) {
+                if (i == 0 && cellXDim > 5 && scaleX) {
                     this.addSVGLabel(this.labelNames.x[colIdx], x + 2, margin.top - 10, 'x');
                 }
             }
+        }
+
+        // also move scrollbars if needed
+        if (scaleY) {
+            let top = yViewSize * this.cellYDim + margin.top;
+            this.xScrollBar.setYPosition(top);
+        }
+
+        if (scaleX) {
+            let width = xViewSize * this.cellXDim;
+            this.xScrollBar.setWidth(width);
         }
     }
 
@@ -200,7 +214,7 @@ export default class Heatmap {
 
         svg.appendChild(xAxis);
         svg.appendChild(yAxis);
-        this.ele.querySelector('.chart').appendChild(svg);
+        this.ele.querySelector('.svg-canvas').appendChild(svg);
 
         return {svg, xAxis, yAxis};
     }
@@ -310,4 +324,5 @@ export default class Heatmap {
 
         this.renderChart(true);
     }
+
 }

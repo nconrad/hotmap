@@ -2,9 +2,19 @@
 
 @import url('https://fonts.googleapis.com/css?family=Rubik');
 
+
+/* have body act as component container */
+body {
+  margin: 0;
+}
+
 .heatmap text {
   font-family: 'Rubik', sans-serif;
+}
 
+.heatmap .info {
+  height: 100px;
+  background: #333;
 }
 
 .heatmap .chart {
@@ -15,6 +25,7 @@
   position: absolute;
   top: 20px;
   left: 0;
+  z-index: 10;
 }
 
 .heatmap .slider {

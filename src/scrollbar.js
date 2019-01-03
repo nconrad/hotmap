@@ -4,8 +4,9 @@ export default class ScrollBar {
     constructor({ele, type, x, y, width, max, onMove}) {
         this.ele = ele;
         this.type = type || 'vertical';
+        this.max = max; // largest possible value
         this.x = x;
-        this.y = null;
+        this.y = y;
         this.width = width || '100%';
 
         this.onMove = onMove;
@@ -21,8 +22,9 @@ export default class ScrollBar {
 
     init() {
         // setup scroll container
-        this.ele.style.width = this.width;
-        this.ele.style.marginLeft = this.x;
+        this.setWidth(this.width);
+        this.setXPosition(this.x);
+        this.setYPosition(this.y);
 
         // add handle
         let handle = document.createElement('div');
@@ -32,6 +34,18 @@ export default class ScrollBar {
         // events
         handle.addEventListener('mousedown', this.drag.bind(this));
         document.addEventListener('mouseup', this.stop.bind(this));
+    }
+
+    setXPosition(x) {
+        this.ele.style.left = x;
+    }
+
+    setYPosition(y) {
+        this.ele.style.top = y;
+    }
+
+    setWidth(width) {
+        this.ele.style.width = width;
     }
 
     drag(evt) {
