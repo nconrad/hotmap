@@ -8,14 +8,30 @@ body {
   margin: 0;
 }
 
-.heatmap text {
+.heatmap {
   font-family: 'Rubik', sans-serif;
 }
 
-.heatmap .info {
-  height: 100px;
+.heatmap > .header {
   background: #333;
+  color: #d8d8d8;
+
 }
+
+.heatmap > .header > .logo {
+  padding: 20px 55px;
+  font-size: 1.5em;
+  display: inline-block;
+}
+
+.heatmap > .header > .info {
+  position:absolute;
+  margin-left: 200px;
+  display: inline-block;
+  font-size: .8em;
+  top: 10px;
+}
+
 
 .heatmap .chart {
   position: relative;

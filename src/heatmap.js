@@ -33,7 +33,6 @@ const margin = {
     right: 100 // here we are essentially using right margin for angled text
 };
 
-
 const spritePath = '../src/assets/red-box.png';
 const svgNS = 'http://www.w3.org/2000/svg';
 // const spriteLoader = new PIXI.loaders.Loader();
@@ -51,8 +50,8 @@ export default class Heatmap {
         };
 
         // cell size
-        this.cellXDim = 1;
-        this.cellYDim = 20;
+        this.cellXDim = 15;
+        this.cellYDim = 15;
 
         // start coordinates in matrix for "viewbox"
         this.xStart = 0;
@@ -163,7 +162,7 @@ export default class Heatmap {
             let rowIdx = yStart + i;
 
             if (cellYDim > 6 && scaleY) {
-                this.addSVGLabel(this.labelNames.y[rowIdx], margin.top - 10, y + 3, 'y');
+                this.addSVGLabel(rowIdx, margin.top - 10, y + 3, i, 'y');
             }
 
             // for each column
@@ -182,12 +181,12 @@ export default class Heatmap {
                 this.stage.addChild(sprite);
 
                 if (i == 0 && cellXDim > 5 && scaleX) {
-                    this.addSVGLabel(this.labelNames.x[colIdx], x + 2, margin.top - 10, 'x');
+                    this.addSVGLabel(colIdx, x + 2, margin.top - 10, j, 'x');
                 }
             }
         }
 
-        // also move scrollbars if needed
+        // also adjust scrollbars if needed
         if (scaleY) {
             let top = yViewSize * this.cellYDim + margin.top;
             this.xScrollBar.setYPosition(top);
@@ -197,6 +196,8 @@ export default class Heatmap {
             let width = xViewSize * this.cellXDim;
             this.xScrollBar.setWidth(width);
         }
+
+        this.mouseTracker();
     }
 
     createSVGContainers(width, height) {
@@ -220,12 +221,13 @@ export default class Heatmap {
     }
 
     // Todo: optimize
-    addSVGLabel(text, x, y, axis) {
+    addSVGLabel(matIdx, x, y, cellIdx, axis) {
         let ele = document.createElementNS(svgNS, 'text');
         if (axis == 'y') {
-            ele.innerHTML = text;
+            ele.innerHTML = this.labelNames[axis][matIdx];
 
             ele.setAttribute('font-size', `${this.cellYDim <= 16 ? this.cellYDim - 2 : 16}px`);
+            ele.setAttribute('class', `row-${cellIdx}`);
             ele.setAttribute('fill', '#666');
             ele.setAttribute('x', x);
             ele.setAttribute('y', y + this.cellYDim / 2 + 1 );
@@ -237,7 +239,8 @@ export default class Heatmap {
         }
 
         x += this.cellXDim / 2 + 1;
-        ele.innerHTML = text;
+        ele.innerHTML = this.labelNames[axis][matIdx];
+        ele.setAttribute('class', `col-${cellIdx}`);
         ele.setAttribute('font-size', `${this.cellXDim <= 16 ? this.cellXDim - 2 : 16}px`);
         ele.setAttribute('fill', '#666');
         ele.setAttribute('x', x);
@@ -325,4 +328,75 @@ export default class Heatmap {
         this.renderChart(true);
     }
 
+    mouseTracker() {
+        let cellXStart = margin.left,
+            cellYStart = margin.top;
+
+        let width = xViewSize * this.cellXDim,
+            height = yViewSize * this.cellYDim;
+
+        // add a container for tracking
+        let container;
+        if (!this.mouseContainer) {
+            container = document.createElement('div');
+            container.className = 'mouse-tracker';
+            container.style.position = 'absolute';
+            container.style.top = cellXStart;
+            container.style.left = cellYStart;
+            container.style.width = width;
+            container.style.height = height;
+            this.ele.querySelector('.chart').appendChild(container);
+            this.mouseContainer = container;
+        } else {
+            container = this.mouseContainer;
+            container.removeEventListener('mousemove', this.hoverEvent);
+        }
+
+        let coordinates = [null, null];
+
+        let self = this;
+        this.hoverEvent = evt => {
+            let x = evt.offsetX,
+                y = evt.offsetY;
+
+            let rowIdx = parseInt(y / this.cellYDim);
+            let colIdx = parseInt(x / this.cellXDim);
+
+            let oldRowIdx = coordinates[0],
+                oldColIdx = coordinates[1];
+
+            if (rowIdx !== oldRowIdx && oldRowIdx && this.yAxis.childNodes.length) {
+                this.yAxis.querySelector(`.row-${oldRowIdx}`)
+                    .setAttribute('fill', '#666');
+                this.yAxis.querySelector(`.row-${rowIdx}`)
+                    .setAttribute('fill', '#000');
+            }
+
+            if (colIdx !== oldColIdx && oldColIdx && this.xAxis.childNodes.length) {
+                this.xAxis.querySelector(`.col-${oldColIdx}`)
+                    .setAttribute('fill', '#666');
+                this.xAxis.querySelector(`.col-${colIdx}`)
+                    .setAttribute('fill', '#000');
+            }
+
+            let i = this.yStart + rowIdx,
+                j = this.xStart + colIdx,
+                value = self.matrix[i][j],
+                xLabel = this.labelNames.x[j],
+                yLabel = this.labelNames.y[i];
+
+            this.showHoverInfo(xLabel, yLabel, value);
+
+            coordinates = [rowIdx, colIdx];
+        };
+
+        container.addEventListener('mousemove', this.hoverEvent);
+    }
+
+    showHoverInfo(xLabel, yLabel, value) {
+        this.ele.querySelector('.header .info').innerHTML =
+            `<div><b>x:</b> ${xLabel}<div>` +
+            `<div><b>y:</b> ${yLabel}</div>` +
+            `<div><b>value:</b> ${value}</div>`;
+    }
 }
