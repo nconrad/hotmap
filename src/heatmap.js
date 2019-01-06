@@ -39,9 +39,14 @@ const svgNS = 'http://www.w3.org/2000/svg';
 
 
 export default class Heatmap {
-    constructor({ele, matrix}) {
+    constructor({ele, matrix, colLabels, rowLabels}) {
         this.ele = ele;
         this.matrix = matrix;
+
+        this.labelNames = {
+            x: colLabels,
+            y: rowLabels
+        };
 
         // m and n (row and cols) dimensions
         this.size = {
@@ -58,7 +63,6 @@ export default class Heatmap {
         this.yStart = 0;
 
         this.ele.innerHTML = container;
-        this.labelNames = this.getMockLabelNames(this.size.y, this.size.x);
         this.sprites = this.loadSprites(matrix);
 
         this.labels = {x: [], y: []}; // store label svg objects for mouse tracking
@@ -250,20 +254,6 @@ export default class Heatmap {
         ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
     }
 
-
-    getMockLabelNames(m, n) {
-        let labels = { x: [], y: [] };
-        for (let i = 0; i < m; i++) {
-            labels.y.push(`This is row ${i}`);
-        }
-
-        for (let j = 0; j < n; j++) {
-            labels.x.push(`This is column ${j}`);
-        }
-        return labels;
-    }
-
-
     loadSprites() {
         let sprites = [];
 
@@ -400,3 +390,5 @@ export default class Heatmap {
             `<div><b>value:</b> ${value}</div>`;
     }
 }
+
+

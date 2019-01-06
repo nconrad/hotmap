@@ -1,16 +1,36 @@
 
 import Heatmap from '../src/heatmap';
+import data from './data/large.json';
 
 document.addEventListener('DOMContentLoaded', () => {
     let ele = document.getElementById('chart');
     let statusHandle = loading(ele);
 
-    let matrix = getTestData(10, 2000);
-    let heatmap = new Heatmap({ele, matrix});
+    // let {colLabels, rowLabels, matrix} = parseRealData();
+    let {colLabels, rowLabels, matrix} = getMockData(10, 2000);
+
+    let heatmap = new Heatmap({
+        ele,
+        matrix,
+        rowLabels,
+        colLabels
+    });
     clearInterval(statusHandle);
 });
 
-function getTestData(m, n) {
+
+function loading(ele) {
+    let i = 0;
+    let handle = setInterval(() => {
+        ele.innerHTML = `<br>loading${'.'.repeat(i % 4)}`;
+        i += 1;
+    }, 300);
+
+    return handle;
+}
+
+
+function getMockData(m, n) {
     let matrix = [];
     for (let i = 0; i < m; i++) {
         let row = [];
@@ -21,15 +41,38 @@ function getTestData(m, n) {
         }
         matrix.push(row);
     }
-    return matrix;
+
+    let labels = getMockLabelNames(m, n);
+
+    return {rowLabels: labels.y, colLabels: labels.x, matrix};
 }
 
-function loading(ele) {
-    let i = 0;
-    let handle = setInterval(() => {
-        ele.innerHTML = `<br>loading${'.'.repeat(i % 4)}`;
-        i += 1;
-    }, 300);
+function getMockLabelNames(m, n) {
+    let labels = { x: [], y: [] };
+    for (let i = 0; i < m; i++) {
+        labels.y.push(`This is row ${i}`);
+    }
 
-    return handle;
+    for (let j = 0; j < n; j++) {
+        labels.x.push(`This is column ${j}`);
+    }
+    return labels;
+}
+
+function parseRealData() {
+    let colLabels = data.col_nodes.filter(obj => obj.name);
+    let rowLabels = data.row_nodes.filter(obj => obj.name)
+    let matrix = data.mat;
+
+    let max = 0;
+    matrix.forEach(row =>{
+        let m = Math.max(...row);
+        if (m > max) max = m;
+    })
+
+    matrix = matrix.map(row => {
+        return row.map(val => (val / max + .2 < 1.0 ? val / max + .2 : val / max))
+    })
+
+    return {colLabels, rowLabels, matrix};
 }
