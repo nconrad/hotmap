@@ -10,6 +10,13 @@ import container from './container.html';
 import ScaleCtrl from './scale-ctrl';
 import ScrollBar from './scrollbar';
 
+import {
+    labelColor,
+    labelHoverColor,
+    svgNS,
+    boxColor
+} from './consts';
+
 
 // manually set framerate (ms) - for testing
 // requestAnimationFrame is used if not set
@@ -23,9 +30,6 @@ const canvasHeight = window.innerHeight;
 let yViewSize = 10;
 let xViewSize = 1000;
 
-// color/size of chart boxes
-const boxColor = 0xff0000;
-
 // general chart settings
 const margin = {
     top: 165,
@@ -34,7 +38,6 @@ const margin = {
 };
 
 const spritePath = '../src/assets/red-box.png';
-const svgNS = 'http://www.w3.org/2000/svg';
 // const spriteLoader = new PIXI.loaders.Loader();
 
 
@@ -335,7 +338,8 @@ export default class Heatmap {
             this.mouseContainer = container;
         } else {
             container = this.mouseContainer;
-            container.removeEventListener('mousemove', this.hoverEvent);
+            container.removeEventListener('mousemove', this.onMove);
+            container.removeEventListener('mouseout', this.onMouseOut);
         }
 
         // update container on scaling
@@ -344,10 +348,10 @@ export default class Heatmap {
         container.style.width = width;
         container.style.height = height;
 
-        let coordinates = {};
+        // here we use -1 since new to old cell comparison is made
+        let coordinates = {x: -1, y: -1};
 
-        let self = this;
-        this.hoverEvent = evt => {
+        this.onMove = evt => {
             let xPos = evt.offsetX,
                 yPos = evt.offsetY;
 
@@ -361,35 +365,63 @@ export default class Heatmap {
             // ignore boundaries
             if (x > xViewSize - 1 || y > yViewSize - 1 ) return;
 
-            if (y !== oldY && oldY && this.yAxis.childNodes.length) {
-                this.yAxis.querySelector(`.row-${oldY}`)
-                    .setAttribute('fill', '#666');
-                this.yAxis.querySelector(`.row-${y}`)
-                    .setAttribute('fill', '#000');
+            if (y !== oldY && this.yAxis.childNodes.length) {
+                let label;
+                // old cell hover styling
+                if (oldY !== -1) {
+                    label = this.yAxis.querySelector(`.row-${oldY}`);
+                    label.setAttribute('fill', labelColor);
+                    label.setAttribute('font-weight', 'normal');
+                }
+                // new cell hover styling
+                label = this.yAxis.querySelector(`.row-${y}`);
+                label.setAttribute('fill', labelHoverColor);
+                label.setAttribute('font-weight', 'bold');
             }
 
-            if (x !== oldX && oldX && this.xAxis.childNodes.length) {
-                this.xAxis.querySelector(`.col-${oldX}`)
-                    .setAttribute('fill', '#666');
-                this.xAxis.querySelector(`.col-${x}`)
-                    .setAttribute('fill', '#000');
+            if (x !== oldX && this.xAxis.childNodes.length) {
+                let label;
+                if (oldX !== -1) {
+                    label = this.xAxis.querySelector(`.col-${oldX}`);
+                    label.setAttribute('fill', labelColor);
+                    label.setAttribute('font-weight', 'normal');
+                }
+                label = this.xAxis.querySelector(`.col-${x}`);
+                label.setAttribute('fill', labelHoverColor);
+                label.setAttribute('font-weight', 'bold');
             }
 
             let i = this.yStart + y,
                 j = this.xStart + x,
-                value = self.matrix[i][j],
+                value = this.matrix[i][j],
                 xLabel = this.labelNames.x[j],
                 yLabel = this.labelNames.y[i];
 
-            this.showHoverInfo(xLabel, yLabel, value);
+            this.setHoverInfo(xLabel, yLabel, value);
 
             coordinates = {x, y};
         };
 
-        container.addEventListener('mousemove', this.hoverEvent);
+        this.onMouseOut = () => {
+            this.yAxis.childNodes.forEach(node => {
+                node.setAttribute('fill', labelColor);
+                node.setAttribute('font-weight', 'normal');
+            });
+
+            this.xAxis.childNodes.forEach(node => {
+                node.setAttribute('fill', labelColor);
+                node.setAttribute('font-weight', 'normal');
+            });
+
+            this.setHoverInfo('-', '-', '-');
+            coordinates = {x: -1, y: -1};
+        };
+
+        container.addEventListener('mousemove', this.onMove);
+        container.addEventListener('mouseout', this.onMouseOut);
     }
 
-    showHoverInfo(xLabel, yLabel, value) {
+    setHoverInfo(xLabel, yLabel, value) {
         this.ele.querySelector('.header .info').innerHTML =
             `<div><b>x:</b> ${xLabel}<div>` +
             `<div><b>y:</b> ${yLabel}</div>` +
