@@ -60,19 +60,19 @@ function getMockLabelNames(m, n) {
 }
 
 function parseRealData() {
-    let colLabels = data.col_nodes.filter(obj => obj.name);
-    let rowLabels = data.row_nodes.filter(obj => obj.name)
+    let colLabels = data.col_nodes.map(obj => obj.name);
+    let rowLabels = data.row_nodes.map(obj => obj.name);
     let matrix = data.mat;
 
     let max = 0;
-    matrix.forEach(row =>{
-        let m = Math.max(...row);
-        if (m > max) max = m;
-    })
+    matrix.forEach(row => {
+        let rowMax = Math.max(...row);
+        if (rowMax > max) max = rowMax;
+    });
 
     matrix = matrix.map(row => {
-        return row.map(val => (val / max + .2 < 1.0 ? val / max + .2 : val / max))
-    })
+        return row.map(val => (val / max + 0.2 < 1.0 ? val / max + 0.2 : val / max));
+    });
 
     return {colLabels, rowLabels, matrix};
 }

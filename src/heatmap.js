@@ -325,16 +325,12 @@ export default class Heatmap {
         let width = xViewSize * this.cellXDim,
             height = yViewSize * this.cellYDim;
 
-        // add a container for tracking
+        // add a container for tracking (if needed)
         let container;
         if (!this.mouseContainer) {
             container = document.createElement('div');
             container.className = 'mouse-tracker';
             container.style.position = 'absolute';
-            container.style.top = cellXStart;
-            container.style.left = cellYStart;
-            container.style.width = width;
-            container.style.height = height;
             this.ele.querySelector('.chart').appendChild(container);
             this.mouseContainer = container;
         } else {
@@ -342,42 +338,52 @@ export default class Heatmap {
             container.removeEventListener('mousemove', this.hoverEvent);
         }
 
-        let coordinates = [null, null];
+        // update container on scaling
+        container.style.top = cellXStart;
+        container.style.left = cellYStart;
+        container.style.width = width;
+        container.style.height = height;
+
+        let coordinates = {};
 
         let self = this;
         this.hoverEvent = evt => {
-            let x = evt.offsetX,
-                y = evt.offsetY;
+            let xPos = evt.offsetX,
+                yPos = evt.offsetY;
 
-            let rowIdx = parseInt(y / this.cellYDim);
-            let colIdx = parseInt(x / this.cellXDim);
+            // relative position on visible cells
+            let x = parseInt(xPos / this.cellXDim),
+                y = parseInt(yPos / this.cellYDim);
 
-            let oldRowIdx = coordinates[0],
-                oldColIdx = coordinates[1];
+            let oldX = coordinates.x,
+                oldY = coordinates.y;
 
-            if (rowIdx !== oldRowIdx && oldRowIdx && this.yAxis.childNodes.length) {
-                this.yAxis.querySelector(`.row-${oldRowIdx}`)
+            // ignore boundaries
+            if (x > xViewSize - 1 || y > yViewSize - 1 ) return;
+
+            if (y !== oldY && oldY && this.yAxis.childNodes.length) {
+                this.yAxis.querySelector(`.row-${oldY}`)
                     .setAttribute('fill', '#666');
-                this.yAxis.querySelector(`.row-${rowIdx}`)
+                this.yAxis.querySelector(`.row-${y}`)
                     .setAttribute('fill', '#000');
             }
 
-            if (colIdx !== oldColIdx && oldColIdx && this.xAxis.childNodes.length) {
-                this.xAxis.querySelector(`.col-${oldColIdx}`)
+            if (x !== oldX && oldX && this.xAxis.childNodes.length) {
+                this.xAxis.querySelector(`.col-${oldX}`)
                     .setAttribute('fill', '#666');
-                this.xAxis.querySelector(`.col-${colIdx}`)
+                this.xAxis.querySelector(`.col-${x}`)
                     .setAttribute('fill', '#000');
             }
 
-            let i = this.yStart + rowIdx,
-                j = this.xStart + colIdx,
+            let i = this.yStart + y,
+                j = this.xStart + x,
                 value = self.matrix[i][j],
                 xLabel = this.labelNames.x[j],
                 yLabel = this.labelNames.y[i];
 
             this.showHoverInfo(xLabel, yLabel, value);
 
-            coordinates = [rowIdx, colIdx];
+            coordinates = {x, y};
         };
 
         container.addEventListener('mousemove', this.hoverEvent);
