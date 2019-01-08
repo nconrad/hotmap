@@ -339,8 +339,8 @@ export default class Heatmap {
         }
 
         // update container on scaling
-        container.style.top = cellXStart;
-        container.style.left = cellYStart;
+        container.style.top = cellYStart;
+        container.style.left = cellXStart;
         container.style.width = width;
         container.style.height = height;
 
