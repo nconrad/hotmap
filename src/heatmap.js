@@ -53,8 +53,8 @@ export default class Heatmap {
 
         // m and n (row and cols) dimensions
         this.size = {
-            y: matrix.length,
-            x: matrix[0].length
+            x: matrix[0].length,
+            y: matrix.length
         };
 
         // cell size
@@ -89,7 +89,7 @@ export default class Heatmap {
 
         if (PARTICLE_CONTAINER) {
             this.stage = new PIXI.particles.ParticleContainer();
-            this.stage._maxSize = xViewSize * yViewSize;
+            this.stage._maxSize = this.size.x * this.size.y;
         } else {
             this.stage = new PIXI.Container();
         }
@@ -160,7 +160,7 @@ export default class Heatmap {
             yStart = this.yStart;
 
         // use cell size to compute "view box" of sorts
-        xViewSize = (canvasWidth - margin.left - margin.right) / this.cellXDim;
+        xViewSize = parseInt((canvasWidth - margin.left - margin.right) / this.cellXDim);
         // yViewSize = (canvasHeight - margin.top) / this.cellYDim;
 
         // for each row
@@ -168,7 +168,7 @@ export default class Heatmap {
             let y = margin.top + cellYDim * i;
             let rowIdx = yStart + i;
 
-            if (cellYDim > 6 && scaleY) {
+            if (cellYDim > 5 && scaleY) {
                 this.addSVGLabel(rowIdx, margin.top - 10, y + 3, i, 'y');
             }
 
@@ -178,6 +178,8 @@ export default class Heatmap {
                     colIdx = xStart + j;
 
                 let sprite = this.sprites[rowIdx][colIdx];
+                if (!sprite) continue; // enforces bounds
+
                 sprite.x = x;
                 sprite.y = y;
                 sprite.height = cellYDim;
@@ -262,13 +264,9 @@ export default class Heatmap {
 
         // for each row
         for (let i = 0; i < this.size.y; i++) {
-            let y = margin.top + this.cellYDim * i;
-
             let row = [];
             // for each column
             for (let j = 0; j < this.size.x; j++) {
-                let x = margin.top + this.cellXDim * j;
-
                 let sprite = this.loadSprite();
                 row.push(sprite);
             }
@@ -277,7 +275,6 @@ export default class Heatmap {
 
         return sprites;
     }
-
 
     loadSprite() {
         let texture = new PIXI.Sprite.fromImage(spritePath);
@@ -311,9 +308,8 @@ export default class Heatmap {
         };
     }
 
-    onHorizontalScroll(xPos) {
-        let ratio = xPos / this.xScrollBar.width;
-        let xStart = parseInt(ratio * this.size.x);
+    onHorizontalScroll(percent) {
+        let xStart = parseInt(percent * this.size.x);
 
         if (xStart === this.xStart) return;
         this.xStart = xStart;

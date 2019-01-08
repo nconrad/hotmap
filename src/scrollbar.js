@@ -13,7 +13,6 @@ export default class ScrollBar {
 
         this._moving = false;
         this._min = 0;
-        this._x;
         this.init();
 
         return this;
@@ -37,14 +36,17 @@ export default class ScrollBar {
     }
 
     setXPosition(x) {
+        this.x = x;
         this.ele.style.left = x;
     }
 
     setYPosition(y) {
+        this.y = y;
         this.ele.style.top = y;
     }
 
     setWidth(width) {
+        this.width = width;
         this.ele.style.width = width;
     }
 
@@ -56,13 +58,18 @@ export default class ScrollBar {
         this.mousemoveHandle = document.addEventListener('mousemove', function(evt) {
             if (!self._moving) return;
 
-            let xPos = evt.clientX - self.x - (handle.offsetWidth / 2);
+            // subtract scroll bar position and use center of handle
+            let mouseX = evt.clientX - self.x - (handle.offsetWidth / 2);
 
-            if (xPos > self.max - handle.offsetWidth) return;
-            if (xPos < self._min) return;
+            // enforce boundaries
+            if (mouseX > self.width - handle.offsetWidth) return;
+            if (mouseX < self._min) return;
 
-            self.onMove(xPos);
-            handle.setAttribute('style', `left: ${xPos}px;`);
+            // subtract handle width from scrollbar width
+            let percent = mouseX / (self.width - handle.offsetWidth);
+
+            self.onMove(percent);
+            handle.setAttribute('style', `left: ${mouseX}px;`);
         });
     }
 
