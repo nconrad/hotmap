@@ -1,10 +1,9 @@
 
 export default class ScrollBar {
 
-    constructor({ele, type, x, y, length, max, onMove}) {
+    constructor({ele, type, x, y, length, onMove}) {
         this.ele = ele;
         this.type = type || 'vertical';
-        this.max = max; // largest possible value
         this.x = x;
         this.y = y;
         this.length = length || '100%';
@@ -38,7 +37,6 @@ export default class ScrollBar {
             handle.addEventListener('mousedown', this.horizontalDrag.bind(this));
             document.addEventListener('mouseup', this.horizontalStop.bind(this));
         }
-
     }
 
     setXPosition(x) {
@@ -95,7 +93,7 @@ export default class ScrollBar {
 
         this.verticalMove = document.addEventListener('mousemove', function(evt) {
             if (!self._moving) return;
-            console.log('self.y', self.y)
+
             // subtract scroll bar position and use center of handle
             let mouseY = evt.clientY - self.y - handle.offsetHeight;
 

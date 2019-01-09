@@ -98,7 +98,7 @@ body {
 
 .heatmap .scrollbar .scroll-handle {
   position: absolute;
-  background: #222;
+  background: #444;
   user-select: none;
 }
 

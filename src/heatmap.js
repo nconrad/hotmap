@@ -59,8 +59,8 @@ export default class Heatmap {
         };
 
         // cell size
-        this.cellXDim = 10;
-        this.cellYDim = 10;
+        this.cellXDim = 10; // (canvasWidth - margin.left - margin.right) / this.size.x;
+        this.cellYDim = 10; // (canvasWidth - margin.top - margin.bottom) / this.size.y;
 
         // start coordinates in matrix for "viewbox"
         this.xStart = 0;
@@ -185,6 +185,9 @@ export default class Heatmap {
             let y = margin.top + cellYDim * i;
             let rowIdx = yStart + i;
 
+            // enforce bounds
+            if (rowIdx >= this.size.y) continue;
+
             if (cellYDim > 5 && scaleY) {
                 this.addSVGLabel(rowIdx, margin.left - 10, y + 3, i, 'y');
             }
@@ -195,7 +198,7 @@ export default class Heatmap {
                     colIdx = xStart + j;
 
                 // enforce bounds
-                if (rowIdx >= this.size.y || colIdx >= this.size.x) continue;
+                if (colIdx >= this.size.x) continue;
 
                 let sprite = this.sprites[rowIdx][colIdx];
                 sprite.x = x;
@@ -257,7 +260,6 @@ export default class Heatmap {
         let ele = document.createElementNS(svgNS, 'text');
         if (axis == 'y') {
             ele.innerHTML = this.labelNames[axis][matIdx];
-
             ele.setAttribute('font-size', `${this.cellYDim <= 16 ? this.cellYDim - 2 : 16}px`);
             ele.setAttribute('class', `row-${cellIdx}`);
             ele.setAttribute('fill', '#666');
@@ -347,7 +349,7 @@ export default class Heatmap {
         if (yStart === this.yStart) return;
         this.yStart = yStart;
 
-        this.renderChart(true);
+        this.renderChart(false, true);
     }
 
     mouseTracker() {
