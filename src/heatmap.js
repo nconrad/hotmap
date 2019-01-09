@@ -27,13 +27,14 @@ const PARTICLE_CONTAINER = true;
 // default view sizes (height & width)
 const canvasWidth = window.innerWidth;
 const canvasHeight = window.innerHeight;
-let yViewSize = 10;
-let xViewSize = 1000;
+let yViewSize;
+let xViewSize;
 
 // general chart settings
 const margin = {
     top: 165,
-    left: 165,
+    bottom: 150,
+    left: 200,
     right: 100 // here we are essentially using right margin for angled text
 };
 
@@ -58,8 +59,8 @@ export default class Heatmap {
         };
 
         // cell size
-        this.cellXDim = 15;
-        this.cellYDim = 15;
+        this.cellXDim = 10;
+        this.cellYDim = 10;
 
         // start coordinates in matrix for "viewbox"
         this.xStart = 0;
@@ -120,6 +121,17 @@ export default class Heatmap {
             width: xViewSize
         });
 
+        this.yScrollBar = new ScrollBar({
+            type: 'vertical',
+            ele: document.querySelector('.y-scrollbar'),
+            onMove: this.onVerticalScroll.bind(this),
+            max: this.size.y,
+            y: margin.top,
+            // x: update y on render for now
+            height: yViewSize
+        });
+
+        this.rendering = false;
         this.renderChart(true, true);
         let render = () => {
             renderer.render(this.stage);
@@ -132,6 +144,8 @@ export default class Heatmap {
         } else {
             render();
         }
+
+
     }
 
     renderer(width, height) {
@@ -151,6 +165,7 @@ export default class Heatmap {
      * rendering experiment
      */
     renderChart(scaleX, scaleY) {
+        if (this.rendering) return;
         this.clearStage(scaleX, scaleY);
 
         let cellXDim = this.cellXDim,
@@ -160,8 +175,10 @@ export default class Heatmap {
             yStart = this.yStart;
 
         // use cell size to compute "view box" of sorts
+        // Todo: optimize, moving into resize event
         xViewSize = parseInt((canvasWidth - margin.left - margin.right) / this.cellXDim);
-        // yViewSize = (canvasHeight - margin.top) / this.cellYDim;
+        yViewSize = parseInt((canvasHeight - margin.top - margin.bottom) / this.cellYDim);
+        if (yViewSize > this.size.y) yViewSize = this.size.y;
 
         // for each row
         for (let i = 0; i < yViewSize; i++) {
@@ -177,15 +194,14 @@ export default class Heatmap {
                 let x = margin.left + cellXDim * j,
                     colIdx = xStart + j;
 
-                let sprite = this.sprites[rowIdx][colIdx];
-                if (!sprite) continue; // enforces bounds
+                // enforce bounds
+                if (rowIdx >= this.size.y || colIdx >= this.size.x) continue;
 
+                let sprite = this.sprites[rowIdx][colIdx];
                 sprite.x = x;
                 sprite.y = y;
                 sprite.height = cellYDim;
                 sprite.width = cellXDim;
-                // Todo: set on texture? (optimize)
-                sprite.alpha = this.matrix[rowIdx][colIdx];
 
                 this.stage.addChild(sprite);
 
@@ -199,12 +215,19 @@ export default class Heatmap {
         if (scaleY) {
             let top = yViewSize * this.cellYDim + margin.top;
             this.xScrollBar.setYPosition(top);
+
+            let height = yViewSize * this.cellYDim;
+            this.yScrollBar.setLength(height);
         }
 
         if (scaleX) {
             let width = xViewSize * this.cellXDim;
-            this.xScrollBar.setWidth(width);
+            this.xScrollBar.setLength(width);
+
+            let left = xViewSize * this.cellXDim + margin.left;
+            this.yScrollBar.setXPosition(left);
         }
+
 
         this.mouseTracker();
     }
@@ -267,7 +290,7 @@ export default class Heatmap {
             let row = [];
             // for each column
             for (let j = 0; j < this.size.x; j++) {
-                let sprite = this.loadSprite();
+                let sprite = this.loadSprite(i, j);
                 row.push(sprite);
             }
             sprites.push(row);
@@ -276,8 +299,9 @@ export default class Heatmap {
         return sprites;
     }
 
-    loadSprite() {
+    loadSprite(i, j) {
         let texture = new PIXI.Sprite.fromImage(spritePath);
+        texture.alpha = this.matrix[i][j];
         return texture;
     }
 
@@ -313,6 +337,15 @@ export default class Heatmap {
 
         if (xStart === this.xStart) return;
         this.xStart = xStart;
+
+        this.renderChart(true);
+    }
+
+    onVerticalScroll(percent) {
+        let yStart = parseInt(percent * this.size.y);
+
+        if (yStart === this.yStart) return;
+        this.yStart = yStart;
 
         this.renderChart(true);
     }

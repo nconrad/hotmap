@@ -1,13 +1,13 @@
 
 export default class ScrollBar {
 
-    constructor({ele, type, x, y, width, max, onMove}) {
+    constructor({ele, type, x, y, length, max, onMove}) {
         this.ele = ele;
         this.type = type || 'vertical';
         this.max = max; // largest possible value
         this.x = x;
         this.y = y;
-        this.width = width || '100%';
+        this.length = length || '100%';
 
         this.onMove = onMove;
 
@@ -21,7 +21,7 @@ export default class ScrollBar {
 
     init() {
         // setup scroll container
-        this.setWidth(this.width);
+        this.setLength(this.length);
         this.setXPosition(this.x);
         this.setYPosition(this.y);
 
@@ -31,8 +31,14 @@ export default class ScrollBar {
         this.ele.appendChild(handle);
 
         // events
-        handle.addEventListener('mousedown', this.drag.bind(this));
-        document.addEventListener('mouseup', this.stop.bind(this));
+        if (this.type === 'vertical') {
+            handle.addEventListener('mousedown', this.verticalDrag.bind(this));
+            document.addEventListener('mouseup', this.verticalStop.bind(this));
+        } else { // horizontal
+            handle.addEventListener('mousedown', this.horizontalDrag.bind(this));
+            document.addEventListener('mouseup', this.horizontalStop.bind(this));
+        }
+
     }
 
     setXPosition(x) {
@@ -45,37 +51,70 @@ export default class ScrollBar {
         this.ele.style.top = y;
     }
 
-    setWidth(width) {
-        this.width = width;
-        this.ele.style.width = width;
+    setLength(length) {
+        this.length = length;
+        if (this.type === 'vertical') {
+            this.ele.style.height = length;
+        } else {
+            this.ele.style.width = length;
+        }
     }
 
-    drag(evt) {
+    horizontalDrag(evt) {
         let self = this;
         this._moving = true;
         let handle = evt.target;
 
-        this.mousemoveHandle = document.addEventListener('mousemove', function(evt) {
+        this.horizontalMove = document.addEventListener('mousemove', function(evt) {
             if (!self._moving) return;
 
             // subtract scroll bar position and use center of handle
             let mouseX = evt.clientX - self.x - (handle.offsetWidth / 2);
 
             // enforce boundaries
-            if (mouseX > self.width - handle.offsetWidth) return;
+            if (mouseX > self.length - handle.offsetWidth) return;
             if (mouseX < self._min) return;
 
-            // subtract handle width from scrollbar width
-            let percent = mouseX / (self.width - handle.offsetWidth);
+            // subtract handle length/width from scrollbar width
+            let percent = mouseX / (self.length - handle.offsetWidth);
 
             self.onMove(percent);
             handle.setAttribute('style', `left: ${mouseX}px;`);
         });
     }
 
-    stop() {
+    horizontalStop() {
         this._moving = false;
-        document.removeEventListener('mousemove', this.mousemoveHandle);
+        document.removeEventListener('mousemove', this.horizontalMove);
     }
+
+    verticalDrag(evt) {
+        let self = this;
+        this._moving = true;
+        let handle = evt.target;
+
+        this.verticalMove = document.addEventListener('mousemove', function(evt) {
+            if (!self._moving) return;
+            console.log('self.y', self.y)
+            // subtract scroll bar position and use center of handle
+            let mouseY = evt.clientY - self.y - handle.offsetHeight;
+
+            // enforce boundaries
+            if (mouseY > self.length - handle.offsetHeight) return;
+            if (mouseY < self._min) return;
+
+            // subtract handle length/width from scrollbar width
+            let percent = mouseY / (self.length - handle.offsetHeight);
+
+            self.onMove(percent);
+            handle.setAttribute('style', `top: ${mouseY}px;`);
+        });
+    }
+
+    verticalStop() {
+        this._moving = false;
+        document.removeEventListener('mousemove', this.verticalMove);
+    }
+
 
 }

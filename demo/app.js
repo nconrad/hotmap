@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let statusHandle = loading(ele);
 
     // let {colLabels, rowLabels, matrix} = parseRealData();
-    let {colLabels, rowLabels, matrix} = getMockData(10, 2000);
+    let {colLabels, rowLabels, matrix} = getMockData(100, 5000);
 
     let heatmap = new Heatmap({
         ele,
@@ -28,7 +28,6 @@ function loading(ele) {
 
     return handle;
 }
-
 
 function getMockData(m, n) {
     let matrix = [];

@@ -87,19 +87,42 @@ body {
 }
 
 
+/**
+ * scrollbar
+ */
+
 .heatmap .scrollbar {
   position: absolute;
-  height: 10px;
   background: #f2f2f2;
 }
 
-.heatmap .scroll-handle {
+.heatmap .scrollbar .scroll-handle {
   position: absolute;
-  width: 10%;
-  height: 10px;
   background: #222;
   user-select: none;
 }
+
+.heatmap .x-scrollbar {
+  height: 13px;
+}
+
+.heatmap .x-scrollbar .scroll-handle {
+  width: 10%;
+  height: 13px;
+}
+
+.heatmap .y-scrollbar {
+  width: 13px;
+}
+
+.heatmap .y-scrollbar .scroll-handle {
+  height: 10%;
+  width: 13px;
+}
+
+/**
+ *  progress bar
+ */
 
 .heatmap .loading-bar {
   height: 25px;
