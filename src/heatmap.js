@@ -169,7 +169,7 @@ export default class Heatmap {
             let rowIdx = yStart + i;
 
             if (cellYDim > 5 && scaleY) {
-                this.addSVGLabel(rowIdx, margin.top - 10, y + 3, i, 'y');
+                this.addSVGLabel(rowIdx, margin.left - 10, y + 3, i, 'y');
             }
 
             // for each column
