@@ -43,13 +43,13 @@ const spritePath = '../src/assets/red-box.png';
 
 
 export default class Heatmap {
-    constructor({ele, matrix, colLabels, rowLabels}) {
+    constructor({ele, matrix, xLabels, yLabels}) {
         this.ele = ele;
         this.matrix = matrix;
 
         this.labelNames = {
-            x: colLabels,
-            y: rowLabels
+            x: xLabels,
+            y: yLabels
         };
 
         // m and n (row and cols) dimensions
