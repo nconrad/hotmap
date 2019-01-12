@@ -137,3 +137,9 @@ body {
   width: 20px;
   background: #606666;
 }
+
+
+.heatmap .x-axis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

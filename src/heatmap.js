@@ -32,10 +32,10 @@ let xViewSize;
 
 // general chart settings
 const margin = {
-    top: 165,
+    top: 200,
     bottom: 150,
-    left: 200,
-    right: 100 // here we are essentially using right margin for angled text
+    left: 220,
+    right: 125 // here we are essentially using right margin for angled text
 };
 
 const spritePath = '../src/assets/red-box.png';
@@ -60,7 +60,7 @@ export default class Heatmap {
 
         // cell size
         this.cellXDim = 10; // (canvasWidth - margin.left - margin.right) / this.size.x;
-        this.cellYDim = 10; // (canvasWidth - margin.top - margin.bottom) / this.size.y;
+        this.cellYDim = (canvasWidth - margin.top - margin.bottom) / this.size.y;
 
         // start coordinates in matrix for "viewbox"
         this.xStart = 0;
@@ -189,7 +189,7 @@ export default class Heatmap {
             if (rowIdx >= this.size.y) continue;
 
             if (cellYDim > 5 && scaleY) {
-                this.addSVGLabel(rowIdx, margin.left - 10, y + 3, i, 'y');
+                this.addSVGLabel('y', rowIdx, margin.left - 10, y + 3, i);
             }
 
             // for each column
@@ -205,11 +205,12 @@ export default class Heatmap {
                 sprite.y = y;
                 sprite.height = cellYDim;
                 sprite.width = cellXDim;
+                sprite.alpha = this.matrix[rowIdx][colIdx];
 
                 this.stage.addChild(sprite);
 
                 if (i == 0 && cellXDim > 5 && scaleX) {
-                    this.addSVGLabel(colIdx, x + 2, margin.top - 10, j, 'x');
+                    this.addSVGLabel('x', colIdx, x + 2, margin.top - 10, j);
                 }
             }
         }
@@ -245,6 +246,7 @@ export default class Heatmap {
 
         let xAxis = document.createElementNS(svgNS, 'g');
         xAxis.setAttribute('class', 'x-axis');
+        xAxis.style.height = margin.top - 50;
         let yAxis = document.createElementNS(svgNS, 'g');
         yAxis.setAttribute('class', 'y-axis');
 
@@ -256,10 +258,20 @@ export default class Heatmap {
     }
 
     // Todo: optimize
-    addSVGLabel(matIdx, x, y, cellIdx, axis) {
+    /**
+     *
+     * @param {string} axis the axis to append to
+     * @param {number} matIdx the row or col index for the provided matrix
+     * @param {number} x the x position of the text element
+     * @param {number} y the y position of the text element
+     * @param {number} cellIdx the row or col index in the "viewbox" the user sees
+     *                    this is currently used for classes
+     */
+    addSVGLabel(axis, matIdx, x, y, cellIdx) {
         let ele = document.createElementNS(svgNS, 'text');
+        let text = this.labelNames[axis][matIdx];
+
         if (axis == 'y') {
-            ele.innerHTML = this.labelNames[axis][matIdx];
             ele.setAttribute('font-size', `${this.cellYDim <= 16 ? this.cellYDim - 2 : 16}px`);
             ele.setAttribute('class', `row-${cellIdx}`);
             ele.setAttribute('fill', '#666');
@@ -267,13 +279,20 @@ export default class Heatmap {
             ele.setAttribute('y', y + this.cellYDim / 2 + 1 );
             this.yAxis.appendChild(ele);
 
+            // add ellipsis
+            if (text.length > 28 ) {
+                text = text.slice(0, 28) + '...';
+            }
+
+            ele.innerHTML = text;
+
             let width = ele.getBBox().width;
             ele.setAttribute('transform', `translate(-${width})`);
             return;
         }
 
         x += this.cellXDim / 2 + 1;
-        ele.innerHTML = this.labelNames[axis][matIdx];
+        ele.innerHTML = text;
         ele.setAttribute('class', `col-${cellIdx}`);
         ele.setAttribute('font-size', `${this.cellXDim <= 16 ? this.cellXDim - 2 : 16}px`);
         ele.setAttribute('fill', '#666');
@@ -281,6 +300,18 @@ export default class Heatmap {
         ele.setAttribute('y', y);
         this.xAxis.appendChild(ele);
 
+        let width = ele.getBBox().width;
+
+        // add ellipsis
+        if (width > margin.top) {
+            text = text.slice(0, 28) + '...';
+            ele.innerHTML = text;
+        }
+
+        // add optional super pretty ellipsis?
+        // this.textEllipsis(ele, text, margin.top + 10); // add some for angle
+
+        ele.setAttribute('transform', `translate(-${width})`);
         ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
     }
 
@@ -303,7 +334,6 @@ export default class Heatmap {
 
     loadSprite(i, j) {
         let texture = new PIXI.Sprite.fromImage(spritePath);
-        texture.alpha = this.matrix[i][j];
         return texture;
     }
 
@@ -458,6 +488,19 @@ export default class Heatmap {
             `<div><b>y:</b> ${yLabel}</div>` +
             `<div><b>value:</b> ${value}</div>`;
     }
+
+
+    // not optimal
+    textEllipsis(ele, text, width) {
+        // fixed bug in from the following:
+        // https://stackoverflow.com/questions/15975440/add-ellipses-to-overflowing-text-in-svg
+        ele.textContent = text;
+        let len = text.length;
+        while (ele.getSubStringLength(0, len--) > width) {
+            ele.textContent = text.slice(0, len) + '...';
+        }
+    }
+
 }
 
 
