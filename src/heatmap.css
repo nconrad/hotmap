@@ -138,8 +138,20 @@ body {
   background: #606666;
 }
 
-
 .heatmap .x-axis {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/**
+ * tooltip
+ */
+
+.heatmap .tooltip {
+  position: absolute;
+  background: #444;
+  color: #fff;
+  padding: 10px;
+  font-size: .75em;
+  border-radius: 5px;
 }

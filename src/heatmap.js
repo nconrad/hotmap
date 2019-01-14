@@ -38,19 +38,18 @@ const margin = {
     right: 125 // here we are essentially using right margin for angled text
 };
 
-const spritePath = '../src/assets/red-box.png';
+// const cellPadding = 1;
+
+const spritePath = '../src/assets/ff0000.png';
 // const spriteLoader = new PIXI.loaders.Loader();
 
 
 export default class Heatmap {
-    constructor({ele, matrix, xLabels, yLabels}) {
+    constructor({ele, matrix, xLabels, yLabels, onHover}) {
         this.ele = ele;
         this.matrix = matrix;
-
-        this.labelNames = {
-            x: xLabels,
-            y: yLabels
-        };
+        this.labelNames = { x: xLabels, y: yLabels };
+        this.onHover = onHover;
 
         // m and n (row and cols) dimensions
         this.size = {
@@ -60,7 +59,7 @@ export default class Heatmap {
 
         // cell size
         this.cellXDim = 10; // (canvasWidth - margin.left - margin.right) / this.size.x;
-        this.cellYDim = (canvasWidth - margin.top - margin.bottom) / this.size.y;
+        this.cellYDim = (canvasWidth - margin.top - margin.bottom) / this.size.y * 0.5;
 
         // start coordinates in matrix for "viewbox"
         this.xStart = 0;
@@ -68,8 +67,6 @@ export default class Heatmap {
 
         this.ele.innerHTML = container;
         this.sprites = this.loadSprites(matrix);
-
-        this.labels = {x: [], y: []}; // store label svg objects for mouse tracking
 
         this.start();
 
@@ -90,7 +87,7 @@ export default class Heatmap {
 
         if (PARTICLE_CONTAINER) {
             this.stage = new PIXI.particles.ParticleContainer();
-            this.stage._maxSize = this.size.x * this.size.y;
+            this.stage._maxSize = this.size.x * this.size.y * 2;
         } else {
             this.stage = new PIXI.Container();
         }
@@ -110,6 +107,7 @@ export default class Heatmap {
             },
         });
 
+        // add scrollbars.  note we most update positions on rendering
         // todo: implement in webgl?
         this.xScrollBar = new ScrollBar({
             type: 'horizontal',
@@ -117,7 +115,6 @@ export default class Heatmap {
             onMove: this.onHorizontalScroll.bind(this),
             max: this.size.x,
             x: margin.left,
-            // y: update y on render for now
             width: xViewSize
         });
 
@@ -127,7 +124,6 @@ export default class Heatmap {
             onMove: this.onVerticalScroll.bind(this),
             max: this.size.y,
             y: margin.top,
-            // x: update y on render for now
             height: yViewSize
         });
 
@@ -144,8 +140,6 @@ export default class Heatmap {
         } else {
             render();
         }
-
-
     }
 
     renderer(width, height) {
@@ -176,8 +170,8 @@ export default class Heatmap {
 
         // use cell size to compute "view box" of sorts
         // Todo: optimize, moving into resize event
-        xViewSize = parseInt((canvasWidth - margin.left - margin.right) / this.cellXDim);
-        yViewSize = parseInt((canvasHeight - margin.top - margin.bottom) / this.cellYDim);
+        xViewSize = parseInt((canvasWidth - margin.left - margin.right) / cellXDim);
+        yViewSize = parseInt((canvasHeight - margin.top - margin.bottom) / cellYDim);
         if (yViewSize > this.size.y) yViewSize = this.size.y;
 
         // for each row
@@ -188,7 +182,7 @@ export default class Heatmap {
             // enforce bounds
             if (rowIdx >= this.size.y) continue;
 
-            if (cellYDim > 5 && scaleY) {
+            if (cellYDim > 4 && scaleY) {
                 this.addSVGLabel('y', rowIdx, margin.left - 10, y + 3, i);
             }
 
@@ -206,10 +200,9 @@ export default class Heatmap {
                 sprite.height = cellYDim;
                 sprite.width = cellXDim;
                 sprite.alpha = this.matrix[rowIdx][colIdx];
-
                 this.stage.addChild(sprite);
 
-                if (i == 0 && cellXDim > 5 && scaleX) {
+                if (i == 0 && cellXDim > 4 && scaleX) {
                     this.addSVGLabel('x', colIdx, x + 2, margin.top - 10, j);
                 }
             }
@@ -257,7 +250,6 @@ export default class Heatmap {
         return {svg, xAxis, yAxis};
     }
 
-    // Todo: optimize
     /**
      *
      * @param {string} axis the axis to append to
@@ -413,6 +405,7 @@ export default class Heatmap {
         let coordinates = {x: -1, y: -1};
 
         this.onMove = evt => {
+            // position of mouse
             let xPos = evt.offsetX,
                 yPos = evt.offsetY;
 
@@ -426,7 +419,8 @@ export default class Heatmap {
             // ignore boundaries
             if (x > xViewSize - 1 || y > yViewSize - 1 ) return;
 
-            if (y !== oldY && this.yAxis.childNodes.length) {
+            // if there even is y axis labels and we're changing cells
+            if (this.yAxis.childNodes.length && y !== oldY) {
                 let label;
                 // old cell hover styling
                 if (oldY !== -1) {
@@ -440,7 +434,8 @@ export default class Heatmap {
                 label.setAttribute('font-weight', 'bold');
             }
 
-            if (x !== oldX && this.xAxis.childNodes.length) {
+            // if there even is x axis labels and we're changing cells
+            if (this.xAxis.childNodes.length && x !== oldX) {
                 let label;
                 if (oldX !== -1) {
                     label = this.xAxis.querySelector(`.col-${oldX}`);
@@ -452,13 +447,16 @@ export default class Heatmap {
                 label.setAttribute('font-weight', 'bold');
             }
 
-            let i = this.yStart + y,
-                j = this.xStart + x,
-                value = this.matrix[i][j],
-                xLabel = this.labelNames.x[j],
-                yLabel = this.labelNames.y[i];
+            if (x !== oldX || y !== oldY) {
+                let i = this.yStart + y,
+                    j = this.xStart + x,
+                    value = this.matrix[i][j],
+                    xLabel = this.labelNames.x[j],
+                    yLabel = this.labelNames.y[i];
 
-            this.setHoverInfo(xLabel, yLabel, value);
+                this.setHoverInfo(xLabel, yLabel, value, y, x);
+            }
+
 
             coordinates = {x, y};
         };
@@ -476,21 +474,63 @@ export default class Heatmap {
 
             this.setHoverInfo('-', '-', '-');
             coordinates = {x: -1, y: -1};
+
+            let tooltip = this.ele.querySelector('.tooltip');
+            tooltip.style.display = 'none';
+            this.ele.querySelectorAll('.hover-box').forEach(el => el.remove());
         };
 
         container.addEventListener('mousemove', this.onMove);
         container.addEventListener('mouseout', this.onMouseOut);
     }
 
-    setHoverInfo(xLabel, yLabel, value) {
-        this.ele.querySelector('.header .info').innerHTML =
+    setHoverInfo(xLabel, yLabel, value, i, j) {
+        let cellXDim = this.cellXDim,
+            cellYDim = this.cellYDim,
+            x = margin.left + j * cellXDim,
+            y = margin.top + i * cellYDim;
+
+        let content =
             `<div><b>x:</b> ${xLabel}<div>` +
             `<div><b>y:</b> ${yLabel}</div>` +
             `<div><b>value:</b> ${value}</div>`;
+
+        // add tooltip
+        this.ele.querySelector('.header .info').innerHTML = content;
+        let tooltip = this.ele.querySelector('.tooltip');
+        tooltip.style.display = 'block';
+        tooltip.style.top = y + cellYDim; // place at bottom right
+        tooltip.style.left = x + cellXDim;
+        tooltip.innerHTML = this.onHover(xLabel, yLabel, value);
+
+        // add hover box
+        if (x && y) {
+            this.ele.querySelectorAll('.hover-box').forEach(el => el.remove());
+            this.svg.appendChild( this.svgRect(x, y, cellXDim, cellYDim) );
+        }
     }
 
 
-    // not optimal
+    svgRect(x, y, w, h, fill = 'none') {
+        let ele = document.createElementNS(svgNS, 'rect');
+
+        ele.setAttribute('class', `hover-box`);
+        ele.setAttribute('x', x);
+        ele.setAttribute('y', y);
+        ele.setAttribute('width', w);
+        ele.setAttribute('height', h);
+        ele.setAttribute('fill', fill);
+        ele.setAttribute('stroke-width', 1);
+        ele.setAttribute('stroke', 'rgb(0,0,0)');
+
+        return ele;
+    }
+
+
+    /**
+     * very pretty ellipsis, but
+     * not currently used since there's a performance hit
+     **/
     textEllipsis(ele, text, width) {
         // fixed bug in from the following:
         // https://stackoverflow.com/questions/15975440/add-ellipses-to-overflowing-text-in-svg
