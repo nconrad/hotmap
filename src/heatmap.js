@@ -41,8 +41,6 @@ const margin = {
 // const cellPadding = 1;
 
 const spritePath = '../src/assets/ff0000.png';
-// const spriteLoader = new PIXI.loaders.Loader();
-
 
 export default class Heatmap {
     constructor({ele, matrix, xLabels, yLabels, onHover}) {
@@ -66,9 +64,11 @@ export default class Heatmap {
         this.yStart = 0;
 
         this.ele.innerHTML = container;
-        this.sprites = this.loadSprites(matrix);
 
-        this.start();
+        PIXI.loader.add('redCell', spritePath).load((ldr, resources) => {
+            this.sprites = resources;
+            this.start();
+        });
 
         return this;
     }
@@ -194,7 +194,7 @@ export default class Heatmap {
                 // enforce bounds
                 if (colIdx >= this.size.x) continue;
 
-                let sprite = this.sprites[rowIdx][colIdx];
+                let sprite = new PIXI.Sprite(this.sprites.redCell.texture);
                 sprite.x = x;
                 sprite.y = y;
                 sprite.height = cellYDim;
@@ -501,7 +501,7 @@ export default class Heatmap {
         tooltip.style.display = 'block';
         tooltip.style.top = y + cellYDim; // place at bottom right
         tooltip.style.left = x + cellXDim;
-        tooltip.innerHTML = this.onHover(xLabel, yLabel, value);
+        tooltip.innerHTML = this.onHover({xLabel, yLabel, value});
 
         // add hover box
         if (x && y) {

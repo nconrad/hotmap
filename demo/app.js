@@ -16,13 +16,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let {xLabels, yLabels, matrix} = parseRealData(data);
     matrix = transpose(matrix);
-    let subset = false;
+    let subset = 20;
     new Heatmap({
         ele,
         xLabels: yLabels, // also transpose labels
         yLabels: subset ? xLabels.splice(0, subset) : xLabels,
         matrix: subset ? matrix.splice(0, subset) : matrix,
-        onHover: onHover
+        onHover: info =>
+            `<div><b>x:</b> ${info.xLabel}<div>
+             <div><b>y:</b> ${info.yLabel}</div>
+             <div><b>value:</b> ${info.value}</div>`
     });
 
     clearInterval(statusHandle);
@@ -126,10 +129,4 @@ function matAbsMax(matrix) {
         if (absVal > max) max = absVal;
     });
     return max;
-}
-
-function onHover(xLabel, yLabel, value) {
-    return `<div><b>x:</b> ${xLabel}<div>` +
-           `<div><b>y:</b> ${yLabel}</div>` +
-           `<div><b>value:</b> ${value}</div>`;
 }
