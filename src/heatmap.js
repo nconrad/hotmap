@@ -22,7 +22,7 @@ import {
 // requestAnimationFrame is used if not set
 const FRAME_RATE = null;
 const FORCE_CANVAS = false;
-const PARTICLE_CONTAINER = true;
+const PARTICLE_CONTAINER = false;
 
 // default view sizes (height & width)
 const canvasWidth = window.innerWidth;
@@ -56,7 +56,7 @@ export default class Heatmap {
         };
 
         // cell size
-        this.cellXDim = 10; // (canvasWidth - margin.left - margin.right) / this.size.x;
+        this.cellXDim = 5; // (canvasWidth - margin.left - margin.right) / this.size.x;
         this.cellYDim = (canvasWidth - margin.top - margin.bottom) / this.size.y * 0.5;
 
         // start coordinates in matrix for "viewbox"
@@ -87,9 +87,11 @@ export default class Heatmap {
 
         if (PARTICLE_CONTAINER) {
             this.stage = new PIXI.particles.ParticleContainer();
-            this.stage._maxSize = this.size.x * this.size.y * 2;
+            this.stage.alpha = true;
+            this.stage._maxSize = this.size.x * this.size.y;
         } else {
             this.stage = new PIXI.Container();
+            this.stage._maxSize = this.size.x * this.size.y;
         }
 
         // initialize scale x/y width controls
@@ -99,11 +101,11 @@ export default class Heatmap {
             yValue: this.cellYDim,
             onXChange: val => {
                 this.cellXDim = val;
-                this.renderChart(true);
+                this.renderChart(true, false, true);
             },
             onYChange: val => {
                 this.cellYDim = val;
-                this.renderChart(false, true);
+                this.renderChart(false, true, true);
             },
         });
 
@@ -127,7 +129,6 @@ export default class Heatmap {
             height: yViewSize
         });
 
-        this.rendering = false;
         this.renderChart(true, true);
         let render = () => {
             renderer.render(this.stage);
@@ -146,21 +147,23 @@ export default class Heatmap {
         let renderer;
         if (FORCE_CANVAS) {
             renderer = new PIXI.CanvasRenderer(width, height);
+            renderer.transparent = true;
         } else {
             renderer = new PIXI.autoDetectRenderer(width, height, {
                 transparent: true
             });
         }
-        renderer.transparent = true;
         return renderer;
     }
 
     /**
      * rendering experiment
+     * todo: break into stage and update alpha
      */
-    renderChart(scaleX, scaleY) {
-        if (this.rendering) return;
-        this.clearStage(scaleX, scaleY);
+    renderChart(renderX, renderY, scale) {
+        this.clearStage(renderX, renderY, scale);
+
+        if (scale) this.isStaged = false;
 
         let cellXDim = this.cellXDim,
             cellYDim = this.cellYDim;
@@ -180,9 +183,11 @@ export default class Heatmap {
             let rowIdx = yStart + i;
 
             // enforce bounds
-            if (rowIdx >= this.size.y) continue;
+            if (rowIdx >= this.size.y) {
+                continue;
+            }
 
-            if (cellYDim > 4 && scaleY) {
+            if (cellYDim > 4 && renderY) {
                 this.addSVGLabel('y', rowIdx, margin.left - 10, y + 3, i);
             }
 
@@ -192,24 +197,33 @@ export default class Heatmap {
                     colIdx = xStart + j;
 
                 // enforce bounds
-                if (colIdx >= this.size.x) continue;
+                if (colIdx >= this.size.x) {
+                    this.stage.children[i * xViewSize + j].alpha = 0;
+                    continue;
+                }
 
-                let sprite = new PIXI.Sprite(this.sprites.redCell.texture);
-                sprite.x = x;
-                sprite.y = y;
-                sprite.height = cellYDim;
-                sprite.width = cellXDim;
-                sprite.alpha = this.matrix[rowIdx][colIdx];
-                this.stage.addChild(sprite);
+                // if sprites rendered, just change alpha
+                if (this.isStaged) {
+                    let sprite = this.stage.children[i * xViewSize + j];
+                    sprite.alpha = this.matrix[rowIdx][colIdx];
+                } else {
+                    let sprite = new PIXI.Sprite(this.sprites.redCell.texture);
+                    sprite.x = x;
+                    sprite.y = y;
+                    sprite.height = cellYDim;
+                    sprite.width = cellXDim;
+                    sprite.alpha = this.matrix[rowIdx][colIdx];
+                    this.stage.addChild(sprite);
+                }
 
-                if (i == 0 && cellXDim > 4 && scaleX) {
+                if (i == 0 && cellXDim > 4 && renderX) {
                     this.addSVGLabel('x', colIdx, x + 2, margin.top - 10, j);
                 }
             }
         }
 
         // also adjust scrollbars if needed
-        if (scaleY) {
+        if (renderY) {
             let top = yViewSize * this.cellYDim + margin.top;
             this.xScrollBar.setYPosition(top);
 
@@ -217,7 +231,7 @@ export default class Heatmap {
             this.yScrollBar.setLength(height);
         }
 
-        if (scaleX) {
+        if (renderX) {
             let width = xViewSize * this.cellXDim;
             this.xScrollBar.setLength(width);
 
@@ -225,7 +239,7 @@ export default class Heatmap {
             this.yScrollBar.setXPosition(left);
         }
 
-
+        this.isStaged = true;
         this.mouseTracker();
     }
 
@@ -307,7 +321,7 @@ export default class Heatmap {
         ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
     }
 
-    loadSprites() {
+    stageSprites() {
         let sprites = [];
 
         // for each row
@@ -324,7 +338,7 @@ export default class Heatmap {
         return sprites;
     }
 
-    loadSprite(i, j) {
+    stageSprite(i, j) {
         let texture = new PIXI.Sprite.fromImage(spritePath);
         return texture;
     }
@@ -338,22 +352,27 @@ export default class Heatmap {
         return texture;
     }
 
-    clearStage(scaleX, scaleY) {
-        if (scaleX) {
+    clearStage(clearX, clearY, clearStage) {
+        if (clearX) {
             while (this.xAxis.hasChildNodes()) {
                 this.xAxis.removeChild(this.xAxis.firstChild);
             }
         }
-        if (scaleY) {
+        if (clearY) {
             while (this.yAxis.hasChildNodes()) {
                 this.yAxis.removeChild(this.yAxis.firstChild);
             }
         }
 
-        let i = this.stage.children.length;
-        while (i--) {
-            this.stage.removeChild(this.stage.children[i]);
-        };
+        //this.stage.children.forEach(child => { child.alpha = 0 });
+
+        if (clearStage) {
+            let i = this.stage.children.length;
+            while (i--) {
+                this.stage.removeChild(this.stage.children[i]);
+            };
+        }
+
     }
 
     onHorizontalScroll(percent) {
