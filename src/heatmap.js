@@ -9,12 +9,12 @@ import 'pixi.js/dist/pixi';
 import container from './container.html';
 import ScaleCtrl from './scale-ctrl';
 import ScrollBar from './scrollbar';
+import { getCategoryColors } from './colors';
 
 import {
     labelColor,
     labelHoverColor,
-    svgNS,
-    boxColor
+    svgNS
 } from './consts';
 
 
@@ -34,30 +34,51 @@ let xViewSize;
 const margin = {
     top: 200,
     bottom: 150,
-    left: 220,
+    left: 320,
     right: 125 // here we are essentially using right margin for angled text
 };
 
+const minTextW = 2;
+const maxTextW = 16;
+const categoryWidth = 40;
+
 // const cellPadding = 1;
 
-const spritePath = '../src/assets/ff0000.png';
+const spritePath = '../src/assets/sprites/ff0000.png';
+
+let hashCode = function(s) {
+    let h = 0, l = s.length, i = 0;
+    if ( l > 0 )
+        while (i < l)
+            h = (h << 5) - h + s.charCodeAt(i++) | 0;
+    return h;
+};
 
 export default class Heatmap {
-    constructor({ele, matrix, xLabels, yLabels, onHover}) {
-        this.ele = ele;
-        this.matrix = matrix;
-        this.labelNames = { x: xLabels, y: yLabels };
-        this.onHover = onHover;
+    constructor(params) {
+        this.ele = params.ele;
+        this.matrix = params.matrix;
+        this.labelNames = {
+            x: params.xLabels,
+            y: params.yLabels
+        };
+        this.xCategories = params.xCategories;
+        this.xCategoryLabels = params.xCategoryLabels;
+        this.onHover = params.onHover;
+
+        // get category colors
+        // Todo: optimize?
+        this.xCategoryColors = getCategoryColors(this.xCategories);
 
         // m and n (row and cols) dimensions
         this.size = {
-            x: matrix[0].length,
-            y: matrix.length
+            x: params.matrix[0].length,
+            y: params.matrix.length
         };
 
         // cell size
         this.cellXDim = 5; // (canvasWidth - margin.left - margin.right) / this.size.x;
-        this.cellYDim = (canvasWidth - margin.top - margin.bottom) / this.size.y * 0.5;
+        this.cellYDim = 10; (canvasWidth - margin.top - margin.bottom) / this.size.y * 0.5;
 
         // start coordinates in matrix for "viewbox"
         this.xStart = 0;
@@ -92,6 +113,8 @@ export default class Heatmap {
         } else {
             this.stage = new PIXI.Container();
             this.stage._maxSize = this.size.x * this.size.y;
+            this.catStage = new PIXI.Container();
+            this.stage.addChild(this.catStage);
         }
 
         // initialize scale x/y width controls
@@ -128,6 +151,7 @@ export default class Heatmap {
             y: margin.top,
             height: yViewSize
         });
+
 
         this.renderChart(true, true);
         let render = () => {
@@ -187,8 +211,11 @@ export default class Heatmap {
                 continue;
             }
 
-            if (cellYDim > 4 && renderY) {
-                this.addSVGLabel('y', rowIdx, margin.left - 10, y + 3, i);
+            if (cellYDim > minTextW && renderY) {
+                this.addSVGLabel('y', this.labelNames.y[rowIdx], margin.left - categoryWidth - 10, y + 3, i);
+            }
+            if (renderY) {
+                this.addCategories('y', rowIdx, margin.left - categoryWidth, y);
             }
 
             // for each column
@@ -196,15 +223,18 @@ export default class Heatmap {
                 let x = margin.left + cellXDim * j,
                     colIdx = xStart + j;
 
+
                 // enforce bounds
                 if (colIdx >= this.size.x) {
-                    this.stage.children[i * xViewSize + j].alpha = 0;
+                    // must add 1 to ignore category container stage
+                    this.stage.children[i * xViewSize + j + 1].alpha = 0;
                     continue;
                 }
 
                 // if sprites rendered, just change alpha
                 if (this.isStaged) {
-                    let sprite = this.stage.children[i * xViewSize + j];
+                    // must add 1 to ignore category container stage
+                    let sprite = this.stage.children[i * xViewSize + j + 1];
                     sprite.alpha = this.matrix[rowIdx][colIdx];
                 } else {
                     let sprite = new PIXI.Sprite(this.sprites.redCell.texture);
@@ -216,8 +246,8 @@ export default class Heatmap {
                     this.stage.addChild(sprite);
                 }
 
-                if (i == 0 && cellXDim > 4 && renderX) {
-                    this.addSVGLabel('x', colIdx, x + 2, margin.top - 10, j);
+                if (i == 0 && cellXDim > minTextW && renderX) {
+                    this.addSVGLabel('x', this.labelNames.x[colIdx], x + 2, margin.top - 10, j);
                 }
             }
         }
@@ -267,18 +297,17 @@ export default class Heatmap {
     /**
      *
      * @param {string} axis the axis to append to
-     * @param {number} matIdx the row or col index for the provided matrix
+     * @param {number} index the row or col index for the provided matrix
      * @param {number} x the x position of the text element
      * @param {number} y the y position of the text element
      * @param {number} cellIdx the row or col index in the "viewbox" the user sees
      *                    this is currently used for classes
      */
-    addSVGLabel(axis, matIdx, x, y, cellIdx) {
+    addSVGLabel(axis, text, x, y, cellIdx) {
         let ele = document.createElementNS(svgNS, 'text');
-        let text = this.labelNames[axis][matIdx];
 
         if (axis == 'y') {
-            ele.setAttribute('font-size', `${this.cellYDim <= 16 ? this.cellYDim - 2 : 16}px`);
+            ele.setAttribute('font-size', `${this.cellYDim <= maxTextW ? this.cellYDim - 2 : 16}px`);
             ele.setAttribute('class', `row-${cellIdx}`);
             ele.setAttribute('fill', '#666');
             ele.setAttribute('x', x);
@@ -300,7 +329,7 @@ export default class Heatmap {
         x += this.cellXDim / 2 + 1;
         ele.innerHTML = text;
         ele.setAttribute('class', `col-${cellIdx}`);
-        ele.setAttribute('font-size', `${this.cellXDim <= 16 ? this.cellXDim - 2 : 16}px`);
+        ele.setAttribute('font-size', `${this.cellXDim <= maxTextW ? this.cellXDim - 2 : 16}px`);
         ele.setAttribute('fill', '#666');
         ele.setAttribute('x', x);
         ele.setAttribute('y', y);
@@ -321,6 +350,34 @@ export default class Heatmap {
         ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
     }
 
+    addCategories(axis, index, x, y) {
+        let categories = this.xCategories[index];
+
+        // compute width of each category from: total / number-of-cateogries
+        let width = parseInt(categoryWidth / categories.length);
+
+        for (let i = 0; i < categories.length; i++) {
+            let sprite = this.textureRect( this.xCategoryColors[index][i] );
+            sprite.x = x;
+            sprite.y = y;
+            sprite.height = this.cellYDim;
+            sprite.width = width;
+
+            this.catStage.addChild(sprite);
+            x += width;
+        }
+    }
+
+    // Todo: (optimize) cache textures
+    textureRect(color) {
+        let g = new PIXI.Graphics();
+        g.beginFill(color);
+        g.drawRect(1, 1, 10, 10);
+        g.endFill();
+        return new PIXI.Sprite(g.generateCanvasTexture());
+    }
+
+    // not currently used
     stageSprites() {
         let sprites = [];
 
@@ -338,19 +395,12 @@ export default class Heatmap {
         return sprites;
     }
 
+    // not currently used
     stageSprite(i, j) {
-        let texture = new PIXI.Sprite.fromImage(spritePath);
-        return texture;
+        // implement
+        return null;
     }
 
-    // Deprecated
-    createTextureFromGraphic(x, y, w, h) {
-        let g = new PIXI.Graphics();
-        g.beginFill(boxColor);
-        g.drawRect(x, y, w, h);
-        let texture = new PIXI.Sprite(g.generateCanvasTexture());
-        return texture;
-    }
 
     clearStage(clearX, clearY, clearStage) {
         if (clearX) {
@@ -362,17 +412,21 @@ export default class Heatmap {
             while (this.yAxis.hasChildNodes()) {
                 this.yAxis.removeChild(this.yAxis.firstChild);
             }
-        }
 
-        //this.stage.children.forEach(child => { child.alpha = 0 });
+            let i = this.catStage.children.length;
+            while (i--) {
+                if (this.catStage.children[i].pluginName == 'sprite')
+                    this.catStage.removeChild(this.catStage.children[i]);
+            };
+        }
 
         if (clearStage) {
             let i = this.stage.children.length;
             while (i--) {
-                this.stage.removeChild(this.stage.children[i]);
+                if (this.stage.children[i].pluginName == 'sprite')
+                    this.stage.removeChild(this.stage.children[i]);
             };
         }
-
     }
 
     onHorizontalScroll(percent) {

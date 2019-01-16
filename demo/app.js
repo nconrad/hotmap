@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     */
 
-    let {xLabels, yLabels, matrix} = parseRealData(data);
+    let {xLabels, yLabels, matrix, categories} = parseRealData(data);
     matrix = transpose(matrix);
     let subset = 20;
     new Heatmap({
@@ -22,6 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
         xLabels: yLabels, // also transpose labels
         yLabels: subset ? xLabels.splice(0, subset) : xLabels,
         matrix: subset ? matrix.splice(0, subset) : matrix,
+        xCategories: categories,
+        xCategoryLabels: ['Isolation Country', 'Host', 'Genome Group'],
         onHover: info =>
             `<div><b>x:</b> ${info.xLabel}<div>
              <div><b>y:</b> ${info.yLabel}</div>
@@ -90,12 +92,21 @@ function parseRealData(data) {
     let yLabels = data.row_nodes.map(obj => obj.name);
     let matrix = data.mat;
 
+    // get some categories for testings
+    let categories = data.col_nodes.map(obj => {
+        return [
+            obj['cat-1'].split(': ')[1],
+            obj['cat-2'].split(': ')[1],
+            obj['cat-3'].split(': ')[1]
+        ];
+    });
+
     let max = matAbsMax(matrix);
     matrix = matrix.map(row => {
         return row.map(val => val / max); // unitize
     });
 
-    return {xLabels, yLabels, matrix};
+    return {xLabels, yLabels, matrix, categories};
 }
 
 

@@ -24,6 +24,10 @@ body {
   display: inline-block;
 }
 
+.heatmap > .header > .logo small {
+  font-size: 0.5em;
+}
+
 .heatmap > .header > .info {
   position:absolute;
   margin-left: 200px;
