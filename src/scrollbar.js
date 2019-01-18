@@ -62,16 +62,23 @@ export default class ScrollBar {
         let self = this;
         this._moving = true;
         let handle = evt.target;
+        let containerX = this.ele.parentNode.getBoundingClientRect().x;
 
         this.horizontalMove = document.addEventListener('mousemove', function(evt) {
             if (!self._moving) return;
 
             // subtract scroll bar position and use center of handle
-            let mouseX = evt.clientX - self.x - (handle.offsetWidth / 2);
+            // <mouse position> - <scrollbar position> - <absolute position> - <handleW / 2>
+            let mouseX = evt.clientX - self.x - containerX - (handle.offsetWidth / 2);
 
-            // enforce boundaries
+            // enforce boundaries (improve)
             if (mouseX > self.length - handle.offsetWidth) return;
-            if (mouseX < self._min) return;
+
+            if (mouseX < self._min) {
+                self.onMove(0);
+                handle.setAttribute('style', `left: 0px;`);
+                return;
+            }
 
             // subtract handle length/width from scrollbar width
             let percent = mouseX / (self.length - handle.offsetWidth);
@@ -90,16 +97,22 @@ export default class ScrollBar {
         let self = this;
         this._moving = true;
         let handle = evt.target;
+        let containerY = this.ele.parentNode.getBoundingClientRect().y;
 
         this.verticalMove = document.addEventListener('mousemove', function(evt) {
             if (!self._moving) return;
 
             // subtract scroll bar position and use center of handle
-            let mouseY = evt.clientY - self.y - handle.offsetHeight;
+            let mouseY = evt.clientY - self.y - containerY - (handle.offsetHeight / 2);
 
             // enforce boundaries
             if (mouseY > self.length - handle.offsetHeight) return;
-            if (mouseY < self._min) return;
+
+            if (mouseY < self._min) {
+                self.onMove(0);
+                handle.setAttribute('style', `top: 0px;`);
+                return;
+            }
 
             // subtract handle length/width from scrollbar width
             let percent = mouseY / (self.length - handle.offsetHeight);
@@ -108,6 +121,7 @@ export default class ScrollBar {
             handle.setAttribute('style', `top: ${mouseY}px;`);
         });
     }
+
 
     verticalStop() {
         this._moving = false;
