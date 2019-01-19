@@ -41,6 +41,10 @@ body {
   position: relative;
 }
 
+/**
+ * scale control components
+ */
+
 .heatmap .scale-ctrls {
   position: absolute;
   top: 20px;
@@ -59,27 +63,27 @@ body {
   transition: opacity .2s;
 }
 
-.heatmap  .slider::-webkit-slider-thumb {
+.heatmap .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 17px;
   height: 17px;
-  border-radius: 50%;
+  border-radius: 4px;
   background: #03bfff;
   cursor: pointer;
 }
 
-.heatmap  .slider::-moz-range-thumb {
+.heatmap .slider::-moz-range-thumb {
   width: 17px;
   height: 17px;
-  border-radius: 50%;
+  border-radius: 4px;
   background: #03bfff;
   cursor: pointer;
 }
 
 .heatmap .y-slider {
   height: 5px;
-  transform-origin: 25px 40px;
+  transform-origin: 15px 40px;
   transform: rotate(90deg);
 }
 
@@ -88,6 +92,20 @@ body {
   position: absolute;
   top: 0;
   left: 75px;
+}
+
+.heatmap .lock-btn {
+  position: absolute;
+  top: -10px;
+  left: 40;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+}
+
+.heatmap .lock-btn svg {
+  margin-left: -5px;
 }
 
 

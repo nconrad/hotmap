@@ -31,7 +31,7 @@ let xViewSize;
 const margin = {
     top: 200,
     bottom: 150,
-    left: 320,
+    left: 275,
     right: 125 // here we are essentially using right margin for angled text
 };
 
@@ -83,6 +83,11 @@ export default class Heatmap {
 
         this.ele.innerHTML = container;
 
+        this.scaleCtrl;
+        this.xScrollBar;
+        this.yScrollBar;
+
+
         PIXI.loader.add('redCell', spritePath).load((ldr, resources) => {
             this.sprites = resources;
             this.start();
@@ -115,18 +120,43 @@ export default class Heatmap {
         }
 
         // initialize scale x/y width controls
-        new ScaleCtrl({
+        this.scaleCtrl = new ScaleCtrl({
             ele: this.ele,
             xValue: this.cellXDim,
             yValue: this.cellYDim,
-            onXChange: val => {
+            onXChange: (val, isLocked) => {
                 this.cellXDim = val;
-                this.renderChart(true, false, true);
+                if (isLocked) {
+                    this.cellYDim = val;
+                    this.renderChart(true, true, true);
+                } else {
+                    this.renderChart(true, false, true);
+                }
+                return {x: this.cellXDim, y: this.cellYDim};
             },
-            onYChange: val => {
+            onYChange: (val, isLocked) => {
                 this.cellYDim = val;
-                this.renderChart(false, true, true);
+                if (isLocked) {
+                    this.cellXDim = val;
+                    this.renderChart(true, true, true);
+                } else {
+                    this.renderChart(false, true, true);
+                }
+                return {x: this.cellXDim, y: this.cellYDim};
             },
+            onLockClick: lockOpen => {
+                let x = this.cellXDim,
+                    y = this.cellYDim;
+
+                if (y > x)
+                    this.cellXDim = y;
+                else
+                    this.cellYDim = x;
+
+                this.renderChart(true, true, true);
+
+                return {x: this.cellXDim, y: this.cellYDim};
+            }
         });
 
         // add scrollbars.  note we most update positions on rendering
@@ -248,7 +278,7 @@ export default class Heatmap {
         /**
          * also adjust scrollbars if needed
          **/
-        if (renderY) {
+        if (renderY || this.scaleCtrl.isLocked()) {
             let top = yViewSize * this.cellYDim + margin.top;
             this.xScrollBar.setYPosition(top);
 
@@ -256,7 +286,7 @@ export default class Heatmap {
             this.yScrollBar.setLength(height);
         }
 
-        if (renderX) {
+        if (renderX || this.scaleCtrl.isLocked()) {
             let width = xViewSize * this.cellXDim;
             this.xScrollBar.setLength(width);
 
@@ -342,7 +372,7 @@ export default class Heatmap {
             ele.innerHTML = text;
         }
 
-        // add optional super pretty ellipsis?
+        // optional super pretty ellipsis?
         // this.textEllipsis(ele, text, margin.top + 10); // add some for angle
 
         ele.setAttribute('transform', `translate(-${width})`);
