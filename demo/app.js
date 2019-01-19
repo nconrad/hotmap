@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let {xLabels, yLabels, matrix, categories} = parseRealData(data);
     matrix = transpose(matrix);
-    let subset = 20;
+    let subset = false;
     new Heatmap({
         ele,
         xLabels: yLabels, // also transpose labels
@@ -101,11 +101,6 @@ function parseRealData(data) {
         ];
     });
 
-    let max = matAbsMax(matrix);
-    matrix = matrix.map(row => {
-        return row.map(val => val / max); // unitize
-    });
-
     return {xLabels, yLabels, matrix, categories};
 }
 
@@ -131,13 +126,3 @@ function transpose(matrix) {
     return matrixT;
 }
 
-
-function matAbsMax(matrix) {
-    let max = 0;
-    matrix.forEach(row => {
-        let rowMax = Math.max(...row);
-        let absVal = Math.abs(rowMax);
-        if (absVal > max) max = absVal;
-    });
-    return max;
-}

@@ -9,6 +9,7 @@ import 'pixi.js/dist/pixi';
 import container from './container.html';
 import ScaleCtrl from './scale-ctrl';
 import ScrollBar from './scrollbar';
+import {matUnitize} from './utils';
 import { getCategoryColors } from './colors';
 
 import {
@@ -55,6 +56,8 @@ export default class Heatmap {
     constructor(params) {
         this.ele = params.ele;
         this.matrix = params.matrix;
+        this.alphaMatrix = matUnitize(params.matrix);
+
         this.labelNames = {
             x: params.xLabels,
             y: params.yLabels
@@ -258,14 +261,14 @@ export default class Heatmap {
                 if (this.isStaged) {
                     // must add 1 to ignore category container stage
                     let sprite = this.stage.children[i * xViewSize + j + 1];
-                    sprite.alpha = this.matrix[rowIdx][colIdx];
+                    sprite.alpha = this.alphaMatrix[rowIdx][colIdx];
                 } else {
                     let sprite = new PIXI.Sprite(this.sprites.redCell.texture);
                     sprite.x = x;
                     sprite.y = y;
                     sprite.height = cellYDim;
                     sprite.width = cellXDim;
-                    sprite.alpha = this.matrix[rowIdx][colIdx];
+                    sprite.alpha = this.alphaMatrix[rowIdx][colIdx];
                     this.stage.addChild(sprite);
                 }
 
