@@ -152,19 +152,13 @@ export default class Heatmap {
             height: yViewSize
         });
 
-
-        this.renderChart(true, true);
-        let render = () => {
+        // render is used by rAF when needed
+        this.render = () => {
             renderer.render(this.stage);
             if (!FRAME_RATE) requestAnimationFrame(render);
         };
-
-        // Manual framerate for testing
-        if (FRAME_RATE) {
-            setInterval(render, FRAME_RATE);
-        } else {
-            render();
-        }
+        this.renderChart(true, true);
+        this.render();
     }
 
     renderer(width, height) {
@@ -270,7 +264,7 @@ export default class Heatmap {
         }
 
         this.isStaged = true;
-        this.mouseTracker();
+        requestAnimationFrame(this.render);
     }
 
     createSVGContainers(width, height) {
