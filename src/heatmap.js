@@ -18,9 +18,6 @@ import {
 } from './consts';
 
 
-// manually set framerate (ms) - for testing
-// requestAnimationFrame is used if not set
-const FRAME_RATE = null;
 const FORCE_CANVAS = false;
 const PARTICLE_CONTAINER = false;
 
@@ -77,7 +74,7 @@ export default class Heatmap {
         };
 
         // cell size
-        this.cellXDim = 5; // (canvasWidth - margin.left - margin.right) / this.size.x;
+        this.cellXDim = 1; // (canvasWidth - margin.left - margin.right) / this.size.x;
         this.cellYDim = 10; (canvasWidth - margin.top - margin.bottom) / this.size.y * 0.5;
 
         // start coordinates in matrix for "viewbox"
@@ -140,6 +137,7 @@ export default class Heatmap {
             onMove: this.onHorizontalScroll.bind(this),
             max: this.size.x,
             x: margin.left,
+            // y: changes with y scaling
             width: xViewSize
         });
 
@@ -149,14 +147,15 @@ export default class Heatmap {
             onMove: this.onVerticalScroll.bind(this),
             max: this.size.y,
             y: margin.top,
+            // x: changes with x scaling
             height: yViewSize
         });
 
         // render is used by rAF when needed
         this.render = () => {
             renderer.render(this.stage);
-            if (!FRAME_RATE) requestAnimationFrame(render);
         };
+
         this.renderChart(true, true);
         this.render();
     }
@@ -246,7 +245,9 @@ export default class Heatmap {
             }
         }
 
-        // also adjust scrollbars if needed
+        /**
+         * also adjust scrollbars if needed
+         **/
         if (renderY) {
             let top = yViewSize * this.cellYDim + margin.top;
             this.xScrollBar.setYPosition(top);
@@ -261,8 +262,12 @@ export default class Heatmap {
 
             let left = xViewSize * this.cellXDim + margin.left;
             this.yScrollBar.setXPosition(left);
+
+            // this.xScrollBar.setHandleLength(xViewSize / this.size.x * 100);
         }
 
+        // update tracker
+        this.mouseTracker();
         this.isStaged = true;
         requestAnimationFrame(this.render);
     }
@@ -523,7 +528,6 @@ export default class Heatmap {
 
                 this.setHoverInfo(xLabel, yLabel, value, y, x);
             }
-
 
             coordinates = {x, y};
         };

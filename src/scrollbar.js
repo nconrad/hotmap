@@ -8,10 +8,13 @@ export default class ScrollBar {
         this.y = y;
         this.length = length || '100%';
 
+        // events
         this.onMove = onMove;
 
+        this._handle;
         this._moving = false;
         this._min = 0;
+
         this.init();
 
         return this;
@@ -27,6 +30,7 @@ export default class ScrollBar {
         // add handle
         let handle = document.createElement('div');
         handle.className = 'scroll-handle';
+        handle.style[this.type === 'vertical' ? 'height' : 'width'] = '10%';
         this.ele.appendChild(handle);
 
         // events
@@ -37,6 +41,8 @@ export default class ScrollBar {
             handle.addEventListener('mousedown', this.horizontalDrag.bind(this));
             document.addEventListener('mouseup', this.horizontalStop.bind(this));
         }
+
+        this._handle = handle;
     }
 
     setXPosition(x) {
@@ -61,7 +67,7 @@ export default class ScrollBar {
     horizontalDrag(evt) {
         let self = this;
         this._moving = true;
-        let handle = evt.target;
+        let handle = this._handle;
         let containerX = this.ele.parentNode.getBoundingClientRect().x;
 
         this.horizontalMove = document.addEventListener('mousemove', function(evt) {
@@ -72,11 +78,11 @@ export default class ScrollBar {
             let mouseX = evt.clientX - self.x - containerX - (handle.offsetWidth / 2);
 
             // enforce boundaries (improve)
-            if (mouseX > self.length - handle.offsetWidth) return;
+            if (mouseX > self.length + handle.offsetWidth) return;
 
             if (mouseX < self._min) {
                 self.onMove(0);
-                handle.setAttribute('style', `left: 0px;`);
+                handle.style.left = 0;
                 return;
             }
 
@@ -84,7 +90,7 @@ export default class ScrollBar {
             let percent = mouseX / (self.length - handle.offsetWidth);
 
             self.onMove(percent);
-            handle.setAttribute('style', `left: ${mouseX}px;`);
+            handle.style.left = `${mouseX}px`;
         });
     }
 
@@ -93,10 +99,10 @@ export default class ScrollBar {
         document.removeEventListener('mousemove', this.horizontalMove);
     }
 
-    verticalDrag(evt) {
+    verticalDrag() {
         let self = this;
         this._moving = true;
-        let handle = evt.target;
+        let handle = this._handle;
         let containerY = this.ele.parentNode.getBoundingClientRect().y;
 
         this.verticalMove = document.addEventListener('mousemove', function(evt) {
@@ -110,7 +116,7 @@ export default class ScrollBar {
 
             if (mouseY < self._min) {
                 self.onMove(0);
-                handle.setAttribute('style', `top: 0px;`);
+                handle.style.top = 0;
                 return;
             }
 
@@ -118,14 +124,19 @@ export default class ScrollBar {
             let percent = mouseY / (self.length - handle.offsetHeight);
 
             self.onMove(percent);
-            handle.setAttribute('style', `top: ${mouseY}px;`);
+            handle.style.top = `${mouseY}px`;
         });
     }
-
 
     verticalStop() {
         this._moving = false;
         document.removeEventListener('mousemove', this.verticalMove);
+    }
+
+    setHandleLength(percent) {
+        percent = percent < 8 ? 8 : percent * 4;
+        this._handle
+            .style[this.type === 'vertical' ? 'height' : 'width'] = `${percent}%`;
     }
 
 
