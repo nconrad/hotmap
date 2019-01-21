@@ -49,6 +49,14 @@ export default class ScrollBar {
         this._handle = handle;
     }
 
+    hide() {
+        this.ele.style.display = 'none';
+    }
+
+    show() {
+        this.ele.style.display = 'block';
+    }
+
     setXPosition(x) {
         this.x = x;
         this.ele.style.left = x;

@@ -299,6 +299,13 @@ export default class Heatmap {
 
             let height = yViewSize * this.cellYDim;
             this.yScrollBar.setLength(height);
+
+            // if y-axis is out-of-range
+            if (yViewSize < this.size.y) {
+                this.yScrollBar.show();
+            } else {
+                this.yScrollBar.hide();
+            }
         }
 
         if (renderX || this.scaleCtrl.isLocked()) {
@@ -308,7 +315,12 @@ export default class Heatmap {
             let left = xViewSize * this.cellXDim + margin.left;
             this.yScrollBar.setXPosition(left);
 
-            // this.xScrollBar.setHandleLength(xViewSize / this.size.x * 100);
+            // if x-axis is out-of-range
+            if (xViewSize < this.size.x) {
+                this.xScrollBar.show();
+            } else {
+                this.xScrollBar.hide();
+            }
         }
 
         // update tracker
