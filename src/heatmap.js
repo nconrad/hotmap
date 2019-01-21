@@ -243,8 +243,9 @@ export default class Heatmap {
             if (rowIdx >= this.size.y) {
                 // set anything below view box to 0 alpha for now
                 for (let k = 0; k < xViewSize; k++) {
-                    let idx = i * xViewSize + k + 1;
-                    this.stage.children[idx].alpha = 0;
+                    let idx = i * xViewSize + k + 1,
+                        sprite = this.stage.children[idx];
+                    if (sprite) sprite.alpha = 0;
                 }
                 continue;
             }
@@ -265,7 +266,8 @@ export default class Heatmap {
                 // enforce bounds
                 if (colIdx >= this.size.x) {
                     // must add 1 to ignore category container stage
-                    this.stage.children[i * xViewSize + j + 1].alpha = 0;
+                    let sprite = this.stage.children[i * xViewSize + j + 1];
+                    if (sprite) sprite.alpha = 0;
                     continue;
                 }
 
