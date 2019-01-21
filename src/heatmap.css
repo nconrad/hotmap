@@ -12,10 +12,17 @@ body {
   font-family: 'Rubik', sans-serif;
 }
 
+/**
+ * general
+ */
+
+.heatmap .btn svg{
+  fill: #333;
+}
+
 .heatmap > .header {
   background: #333;
   color: #d8d8d8;
-
 }
 
 .heatmap > .header > .logo {
@@ -35,7 +42,6 @@ body {
   font-size: .8em;
   top: 10px;
 }
-
 
 .heatmap .chart {
   position: relative;

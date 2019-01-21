@@ -78,7 +78,7 @@ export default class Heatmap {
 
         // cell size
         this.cellXDim = 1; // (canvasWidth - margin.left - margin.right) / this.size.x;
-        this.cellYDim = 10; (canvasWidth - margin.top - margin.bottom) / this.size.y * 0.5;
+        this.cellYDim = 1; // (canvasWidth - margin.top - margin.bottom) / this.size.y * 0.5;
 
         // start coordinates in matrix for "viewbox"
         this.xStart = 0;
@@ -190,6 +190,14 @@ export default class Heatmap {
         };
 
         this.renderChart(true, true);
+        this.isStaged = true;
+
+        // Todo: cleanup pre-render staging
+        this.cellXDim = 5;
+        this.cellYDim = 10;
+        this.scaleCtrl._setValues({x: this.cellXDim, y: this.cellYDim});
+        this.renderChart(true, true, true);
+
         this.render();
     }
 
@@ -213,8 +221,6 @@ export default class Heatmap {
     renderChart(renderX, renderY, scale) {
         this.clearStage(renderX, renderY, scale);
 
-        if (scale) this.isStaged = false;
-
         let cellXDim = this.cellXDim,
             cellYDim = this.cellYDim;
 
@@ -234,6 +240,11 @@ export default class Heatmap {
 
             // enforce bounds
             if (rowIdx >= this.size.y) {
+                // set anything below view box to 0 alpha for now
+                for (let k = 0; k < xViewSize; k++) {
+                    let idx = i * xViewSize + k + 1;
+                    this.stage.children[idx].alpha = 0;
+                }
                 continue;
             }
 
@@ -262,6 +273,10 @@ export default class Heatmap {
                     // must add 1 to ignore category container stage
                     let sprite = this.stage.children[i * xViewSize + j + 1];
                     sprite.alpha = this.alphaMatrix[rowIdx][colIdx];
+                    sprite.x = x;
+                    sprite.y = y;
+                    sprite.height = cellYDim;
+                    sprite.width = cellXDim;
                 } else {
                     let sprite = new PIXI.Sprite(this.sprites.redCell.texture);
                     sprite.x = x;
@@ -301,7 +316,6 @@ export default class Heatmap {
 
         // update tracker
         this.mouseTracker();
-        this.isStaged = true;
         requestAnimationFrame(this.render);
     }
 
@@ -453,17 +467,22 @@ export default class Heatmap {
         }
 
         if (clearStage) {
+            // must ignore category stage
+            for (let i = 1; i < this.stage.children.length; i++) {
+                this.stage.children[i].alpha = 0;
+            }
+
+            /*
             let i = this.stage.children.length;
             while (i--) {
                 if (this.stage.children[i].pluginName == 'sprite')
                     this.stage.removeChild(this.stage.children[i]);
             };
+            */
         }
     }
 
-    onHorizontalScroll(percent) {
-        let xStart = parseInt(percent * this.size.x);
-
+    onHorizontalScroll(xStart) {
         if (xStart === this.xStart) return;
         this.xStart = xStart;
 
@@ -535,8 +554,10 @@ export default class Heatmap {
                 }
                 // new cell hover styling
                 label = this.yAxis.querySelector(`.row-${y}`);
-                label.setAttribute('fill', labelHoverColor);
-                label.setAttribute('font-weight', 'bold');
+                if (label) {
+                    label.setAttribute('fill', labelHoverColor);
+                    label.setAttribute('font-weight', 'bold');
+                }
             }
 
             // if there even is x axis labels and we're changing cells
@@ -554,8 +575,12 @@ export default class Heatmap {
 
             if (x !== oldX || y !== oldY) {
                 let i = this.yStart + y,
-                    j = this.xStart + x,
-                    value = this.matrix[i][j],
+                    j = this.xStart + x;
+
+                // Todo: fix.  Enforce bounds due to scrolling
+                if (i >= this.size.y || j >= this.size.x) return;
+
+                let value = this.matrix[i][j],
                     xLabel = this.labelNames.x[j],
                     yLabel = this.labelNames.y[i];
 

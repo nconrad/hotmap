@@ -1,12 +1,13 @@
 
 export default class ScrollBar {
 
-    constructor({ele, type, x, y, length, onMove}) {
+    constructor({ele, type, x, y, length, onMove, max}) {
         this.ele = ele;
         this.type = type || 'vertical';
         this.x = x;
         this.y = y;
         this.length = length || '100%';
+        this.max = max; // number of cols or rows\eeeeee
 
         // events
         this.onMove = onMove;
@@ -14,6 +15,9 @@ export default class ScrollBar {
         this._handle;
         this._moving = false;
         this._min = 0;
+
+        this._cellW;
+        this._cellH;
 
         this.init();
 
@@ -64,7 +68,15 @@ export default class ScrollBar {
         }
     }
 
-    horizontalDrag(evt) {
+    setCellW(w) {
+        this._cellW = w;
+    }
+
+    setCellH(h) {
+        this._cellH = h;
+    }
+
+    horizontalDrag() {
         let self = this;
         this._moving = true;
         let handle = this._handle;
@@ -78,7 +90,11 @@ export default class ScrollBar {
             let mouseX = evt.clientX - self.x - containerX - (handle.offsetWidth / 2);
 
             // enforce boundaries (improve)
-            if (mouseX > self.length + handle.offsetWidth) return;
+            if (mouseX > self.length - handle.offsetWidth) {
+                self.onMove(parseInt(100 * self.max));
+                handle.style.left = self.length - handle.offsetWidth;
+                return;
+            }
 
             if (mouseX < self._min) {
                 self.onMove(0);
@@ -88,8 +104,8 @@ export default class ScrollBar {
 
             // subtract handle length/width from scrollbar width
             let percent = mouseX / (self.length - handle.offsetWidth);
-
-            self.onMove(percent);
+            let xStart = parseInt(percent * self.max);
+            self.onMove(xStart);
             handle.style.left = `${mouseX}px`;
         });
     }
@@ -112,7 +128,11 @@ export default class ScrollBar {
             let mouseY = evt.clientY - self.y - containerY - (handle.offsetHeight / 2);
 
             // enforce boundaries
-            if (mouseY > self.length - handle.offsetHeight) return;
+            if (mouseY > self.length - handle.offsetHeight) {
+                self.onMove(parseInt(100 * self.max));
+                handle.style.top = self.length - handle.offsetHeight;
+                return;
+            }
 
             if (mouseY < self._min) {
                 self.onMove(0);
