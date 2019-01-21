@@ -22,9 +22,7 @@ import {
 const FORCE_CANVAS = false;
 const PARTICLE_CONTAINER = false;
 
-// default view sizes (height & width)
-const canvasWidth = window.innerWidth;
-const canvasHeight = window.innerHeight;
+// view size (in terms of matrix)
 let yViewSize;
 let xViewSize;
 
@@ -95,13 +93,17 @@ export default class Heatmap {
     }
 
     start() {
+        // base all positioning off of parent
+        let [canvasWidth, canvasHeight] = this.getContainerSize();
+
         // create renderer
-        let obj = this.createSVGContainers(canvasWidth, canvasHeight);
+        let obj = this.initSVGContainers(canvasWidth, canvasHeight);
         this.svg = obj.svg;
         this.xAxis = obj.xAxis;
         this.yAxis = obj.yAxis;
 
         let renderer = this.getRenderer(canvasWidth, canvasHeight);
+        this.renderer = renderer;
 
         this.ele.querySelector('.webgl-canvas')
             .appendChild(renderer.view);
@@ -194,8 +196,10 @@ export default class Heatmap {
         this.cellYDim = 10;
         this.scaleCtrl._setValues({x: this.cellXDim, y: this.cellYDim});
         this.renderChart(true, true, true);
-
         this.render();
+
+        // adjust canvas to window/container
+        window.addEventListener('resize', this.resize.bind(this));
     }
 
     getRenderer(width, height) {
@@ -226,8 +230,8 @@ export default class Heatmap {
 
         // use cell size to compute "view box" of sorts
         // Todo: optimize, moving into resize event
-        xViewSize = parseInt((canvasWidth - margin.left - margin.right) / cellXDim);
-        yViewSize = parseInt((canvasHeight - margin.top - margin.bottom) / cellYDim);
+        xViewSize = parseInt((window.innerWidth - margin.left - margin.right) / cellXDim);
+        yViewSize = parseInt((window.innerHeight - margin.top - margin.bottom) / cellYDim);
         if (yViewSize > this.size.y) yViewSize = this.size.y;
 
         // for each row
@@ -328,7 +332,7 @@ export default class Heatmap {
         requestAnimationFrame(this.render);
     }
 
-    createSVGContainers(width, height) {
+    initSVGContainers(width, height) {
         let svg = document.createElementNS(svgNS, 'svg');
         svg.style.position = 'absolute';
         svg.style.top = 0;
@@ -645,6 +649,21 @@ export default class Heatmap {
         }
     }
 
+
+    getContainerSize() {
+        let parent = this.ele.parentNode;
+        return [parent.clientWidth, parent.clientHeight];
+    }
+
+    resize() {
+        let [canvasWidth, canvasHeight] = this.getContainerSize();
+
+        this.renderer.resize(canvasWidth, canvasHeight);
+        this.svg.setAttribute('width', canvasWidth);
+        this.svg.setAttribute('height', canvasHeight);
+
+        this.renderChart(true, true, true);
+    }
 
     /**
      * very pretty ellipsis, but
