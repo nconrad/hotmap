@@ -1,6 +1,7 @@
 import lock from './assets/icons/lock.svg';
 import lockOpen from './assets/icons/lock-open.svg';
 
+
 export default class ScaleCtrl {
     constructor({ele, xValue, yValue, onXChange, onYChange, onLockClick}) {
         this.ele = ele;

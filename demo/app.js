@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     */
 
     let {xLabels, yLabels, matrix, categories} = parseRealData(data);
+    let catLabels = ['Isolation Country', 'Host', 'Genome Group'];
     matrix = transpose(matrix);
     let subset = false;
     new Heatmap({
@@ -23,11 +24,18 @@ document.addEventListener('DOMContentLoaded', () => {
         yLabels: subset ? xLabels.splice(0, subset) : xLabels,
         matrix: subset ? matrix.splice(0, subset) : matrix,
         xCategories: categories,
-        xCategoryLabels: ['Isolation Country', 'Host', 'Genome Group'],
-        onHover: info =>
-            `<div><b>x:</b> ${info.xLabel}<div>
-             <div><b>y:</b> ${info.yLabel}</div>
-             <div><b>value:</b> ${info.value}</div>`
+        xCategoryLabels: catLabels,
+        onHover: info => {
+            let cs = info.xCategories;
+            return `
+             <div><b>Genome:</b> ${info.yLabel}</div>
+             <div><b>Protein Family:</b> ${info.xLabel}<div><br>
+             <div><b>${catLabels[0]}:</b> ${cs && cs[0] != 'undefined' ? cs[0] : 'N/A'}</div>
+             <div><b>${catLabels[1]}:</b> ${cs && cs[1] != 'undefined' ? cs[1] : 'N/A'}</div>
+             <div><b>${catLabels[2]}:</b> ${cs && cs[2] != 'undefined' ? cs[2] : 'N/A'}</div><br>
+             <div><b>Value:</b> ${info.value}</div>
+            `;
+        }
     });
 
     clearInterval(statusHandle);

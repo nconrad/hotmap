@@ -9,7 +9,7 @@ import 'pixi.js/dist/pixi';
 import container from './container.html';
 import ScaleCtrl from './scale-ctrl';
 import ScrollBar from './scrollbar';
-import {matUnitize} from './utils';
+import { matUnitize, svgRect, addLegend } from './utils';
 import { getCategoryColors } from './colors';
 
 import {
@@ -56,7 +56,8 @@ export default class Heatmap {
     constructor(params) {
         this.ele = params.ele;
         this.matrix = params.matrix;
-        this.alphaMatrix = matUnitize(params.matrix);
+        let [matrix, max] = matUnitize(params.matrix);
+        this.alphaMatrix = matrix;
 
         this.labelNames = {
             x: params.xLabels,
@@ -73,7 +74,8 @@ export default class Heatmap {
         // m and n (row and cols) dimensions
         this.size = {
             x: params.matrix[0].length,
-            y: params.matrix.length
+            y: params.matrix.length,
+            max: max
         };
 
         // cell size
@@ -183,6 +185,8 @@ export default class Heatmap {
             // x: changes with x scaling
             height: yViewSize
         });
+
+        addLegend(this.svg, 250, 16, 0, this.size.max);
 
         // render is used by rAF when needed
         this.render = () => {
@@ -400,14 +404,14 @@ export default class Heatmap {
         let categories = this.xCategories[index];
 
         // compute width of each category from: total / number-of-cateogries
-        let width = parseInt(categoryWidth / categories.length);
+        let width = parseInt(categoryWidth / categories.length );
 
         for (let i = 0; i < categories.length; i++) {
             let sprite = this.textureRect( this.xCategoryColors[index][i] );
             sprite.x = x;
             sprite.y = y;
             sprite.height = this.cellYDim;
-            sprite.width = width;
+            sprite.width = width - 1; // -1 spacing
 
             this.catStage.addChild(sprite);
             x += width;
@@ -622,7 +626,7 @@ export default class Heatmap {
         let content =
             `<div><b>x:</b> ${xLabel}<div>` +
             `<div><b>y:</b> ${yLabel}</div>` +
-            `<div><b>value:</b> ${value}</div>`;
+            `<div><b>Value:</b> ${value}</div>`;
 
         // add tooltip
         this.ele.querySelector('.header .info').innerHTML = content;
@@ -630,29 +634,16 @@ export default class Heatmap {
         tooltip.style.display = 'block';
         tooltip.style.top = y + cellYDim; // place at bottom right
         tooltip.style.left = x + cellXDim;
-        tooltip.innerHTML = this.onHover({xLabel, yLabel, value});
+        tooltip.innerHTML = this.onHover({
+            xLabel, yLabel, value,
+            xCategories: this.xCategories[i]
+        });
 
         // add hover box
         if (x && y) {
             this.ele.querySelectorAll('.hover-box').forEach(el => el.remove());
-            this.svg.appendChild( this.svgRect(x, y, cellXDim, cellYDim) );
+            this.svg.appendChild( svgRect(x, y, cellXDim, cellYDim, {class: 'hover-box'}) );
         }
-    }
-
-
-    svgRect(x, y, w, h, fill = 'none') {
-        let ele = document.createElementNS(svgNS, 'rect');
-
-        ele.setAttribute('class', `hover-box`);
-        ele.setAttribute('x', x);
-        ele.setAttribute('y', y);
-        ele.setAttribute('width', w);
-        ele.setAttribute('height', h);
-        ele.setAttribute('fill', fill);
-        ele.setAttribute('stroke-width', 1);
-        ele.setAttribute('stroke', 'rgb(0,0,0)');
-
-        return ele;
     }
 
 
