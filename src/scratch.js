@@ -68,7 +68,6 @@ export default class PerfLegacy extends Heatmap {
         }
     }
 
-
     createLabelDeprecated(text, x, y, rotation, axis) {
         let style = new PIXI.TextStyle({
             fontSize: 12,
@@ -91,3 +90,11 @@ export default class PerfLegacy extends Heatmap {
         this.stage.addChild(g);
     }
 }
+
+/*
+let i = this.stage.children.length;
+while (i--) {
+    if (this.stage.children[i].pluginName == 'sprite')
+        this.stage.removeChild(this.stage.children[i]);
+};
+*/

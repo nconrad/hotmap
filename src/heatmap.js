@@ -44,14 +44,6 @@ const categoryWidth = 40;
 
 const spritePath = '../src/assets/sprites/ff0000.png';
 
-let hashCode = function(s) {
-    let h = 0, l = s.length, i = 0;
-    if ( l > 0 )
-        while (i < l)
-            h = (h << 5) - h + s.charCodeAt(i++) | 0;
-    return h;
-};
-
 export default class Heatmap {
     constructor(params) {
         this.ele = params.ele;
@@ -88,6 +80,7 @@ export default class Heatmap {
 
         this.ele.innerHTML = container;
 
+        // components to be instantiated
         this.scaleCtrl;
         this.xScrollBar;
         this.yScrollBar;
@@ -108,7 +101,7 @@ export default class Heatmap {
         this.xAxis = obj.xAxis;
         this.yAxis = obj.yAxis;
 
-        let renderer = this.renderer(canvasWidth, canvasHeight);
+        let renderer = this.getRenderer(canvasWidth, canvasHeight);
 
         this.ele.querySelector('.webgl-canvas')
             .appendChild(renderer.view);
@@ -205,7 +198,7 @@ export default class Heatmap {
         this.render();
     }
 
-    renderer(width, height) {
+    getRenderer(width, height) {
         let renderer;
         if (FORCE_CANVAS) {
             renderer = new PIXI.CanvasRenderer(width, height);
@@ -272,7 +265,7 @@ export default class Heatmap {
                     continue;
                 }
 
-                // if sprites rendered, just change alpha
+                // if sprites rendered, just making transformations
                 if (this.isStaged) {
                     // must add 1 to ignore category container stage
                     let sprite = this.stage.children[i * xViewSize + j + 1];
@@ -451,7 +444,6 @@ export default class Heatmap {
         return null;
     }
 
-
     clearStage(clearX, clearY, clearStage) {
         if (clearX) {
             while (this.xAxis.hasChildNodes()) {
@@ -470,19 +462,13 @@ export default class Heatmap {
             };
         }
 
+        // Todo: there's possibly some sort of optimization here
+        // when cells are out of range
         if (clearStage) {
             // must ignore category stage
             for (let i = 1; i < this.stage.children.length; i++) {
                 this.stage.children[i].alpha = 0;
             }
-
-            /*
-            let i = this.stage.children.length;
-            while (i--) {
-                if (this.stage.children[i].pluginName == 'sprite')
-                    this.stage.removeChild(this.stage.children[i]);
-            };
-            */
         }
     }
 
@@ -510,6 +496,7 @@ export default class Heatmap {
             height = yViewSize * this.cellYDim;
 
         // add a container for tracking (if needed)
+        // otherwise, just reinit mouse events
         let container;
         if (!this.mouseContainer) {
             container = document.createElement('div');
