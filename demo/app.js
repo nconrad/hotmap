@@ -1,19 +1,25 @@
 
 import Heatmap from '../src/heatmap';
-import data from './data/med.json';
+
 
 document.addEventListener('DOMContentLoaded', () => {
-    let ele = document.getElementById('chart');
+    let ele = document.querySelector('#chart');
+    let dataPath = ele.getAttribute('data-path');
+
     let statusHandle = loading(ele);
+    fetch(dataPath)
+        .then(res => res.json())
+        .then(data => {
+            loadViewer({ele, data});
+        }).catch(() => {
+            alert(`Could not load viewer. Please contact owner.`);
+        });
 
-    /*
-    let {xLabels, yLabels, matrix} = getMockData({
-        m: 10,
-        n: 15,
-        gradientBottom: true
-    });
-    */
+    clearInterval(statusHandle);
+});
 
+
+function loadViewer({ele, data}) {
     let {xLabels, yLabels, matrix, categories} = parseRealData(data);
     let catLabels = ['Isolation Country', 'Host', 'Genome Group'];
     matrix = transpose(matrix);
@@ -37,9 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }
     });
-
-    clearInterval(statusHandle);
-});
+}
 
 
 function loading(ele) {
@@ -53,7 +57,15 @@ function loading(ele) {
 }
 
 
+/*
+  Example mock data:
+    let {xLabels, yLabels, matrix} = getMockData({
+        m: 100,
+        n: 150
+    })
+*/
 function getMockData({m, n, random, numOfBins, gradient, gradientBottom}) {
+
     let size = m * n;
     let matrix = [];
     for (let i = 0; i < m; i++) {

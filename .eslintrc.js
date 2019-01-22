@@ -21,6 +21,8 @@ module.exports = {
     },
     "globals": {
         "PIXI": 1,
-        "requestAnimationFrame": 1
+        "requestAnimationFrame": 1,
+        "fetch": 1,
+        "alert": 1
     }
 };
