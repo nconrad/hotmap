@@ -101,6 +101,7 @@ export default class Heatmap {
         this.svg = obj.svg;
         this.xAxis = obj.xAxis;
         this.yAxis = obj.yAxis;
+        this.cAxis = obj.cAxis;
 
         let renderer = this.getRenderer(canvasWidth, canvasHeight);
         this.renderer = renderer;
@@ -190,6 +191,8 @@ export default class Heatmap {
 
         this.renderChart(true, true);
         this.isStaged = true;
+        this.catLabelsAdded = true;
+
 
         // Todo: cleanup pre-render staging
         this.cellXDim = 5;
@@ -291,7 +294,13 @@ export default class Heatmap {
                 }
 
                 if (i == 0 && cellXDim > minTextW && renderX) {
-                    this.addSVGLabel('x', this.labelNames.x[colIdx], x + 2, margin.top - 10, j);
+                    this.addSVGLabel('x', this.labelNames.x[colIdx], x + 2, margin.top - 5, j);
+                }
+
+                if (!this.catLabelsAdded && i == 0 && renderX && colIdx < this.xCategoryLabels.length) {
+                    this.addCategoryLabel('x', this.xCategoryLabels[this.xCategoryLabels.length - colIdx - 1],
+                        margin.left - colIdx * (categoryWidth / this.xCategoryLabels.length),
+                        margin.top - 5, j);
                 }
             }
         }
@@ -348,11 +357,16 @@ export default class Heatmap {
         let yAxis = document.createElementNS(svgNS, 'g');
         yAxis.setAttribute('class', 'y-axis');
 
+        let cAxis = document.createElementNS(svgNS, 'g');
+        cAxis.setAttribute('class', 'cat-axis');
+        cAxis.style.height = margin.top - 50;
+
         svg.appendChild(xAxis);
         svg.appendChild(yAxis);
+        svg.appendChild(cAxis);
         this.ele.querySelector('.svg-canvas').appendChild(svg);
 
-        return {svg, xAxis, yAxis};
+        return {svg, xAxis, yAxis, cAxis};
     }
 
     /**
@@ -410,6 +424,25 @@ export default class Heatmap {
         ele.setAttribute('transform', `translate(-${width})`);
         ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
     }
+
+    addCategoryLabel(axis, text, x, y, cellIdx) {
+        let ele = document.createElementNS(svgNS, 'text');
+
+        x -= 4;
+        ele.innerHTML = text;
+        ele.setAttribute('class', `cat-${cellIdx}`);
+        ele.setAttribute('font-size', '14px');
+        ele.setAttribute('fill', '#666');
+        ele.setAttribute('x', x);
+        ele.setAttribute('y', y);
+        this.cAxis.appendChild(ele);
+
+        let width = ele.getBBox().width;
+
+        ele.setAttribute('transform', `translate(-${width})`);
+        ele.setAttribute('transform', `rotate(-90, ${x}, ${y})`);
+    }
+
 
     addCategories(axis, index, x, y) {
         let categories = this.xCategories[index];
