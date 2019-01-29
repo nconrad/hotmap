@@ -9,6 +9,7 @@ import 'pixi.js/dist/pixi';
 import container from './container.html';
 import ScaleCtrl from './scale-ctrl';
 import ScrollBar from './scrollbar';
+import Options from './options';
 import { matUnitize, svgRect, addLegend } from './utils';
 import { getCategoryColors } from './colors';
 
@@ -203,6 +204,13 @@ export default class Heatmap {
 
         // adjust canvas to window/container
         window.addEventListener('resize', this.resize.bind(this));
+
+        // initialize options
+        this.options = new Options({
+            parentNode: this.ele,
+            openBtn: document.querySelector('.opts-btn')
+        });
+
     }
 
     getRenderer(width, height) {
@@ -315,11 +323,11 @@ export default class Heatmap {
             let height = yViewSize * this.cellYDim;
             this.yScrollBar.setLength(height);
 
-            // if y-axis is out-of-range
-            if (yViewSize < this.size.y) {
-                this.yScrollBar.show();
-            } else {
+            // if y-axis is out-of-range, hide
+            if (yViewSize >= this.size.y) {
                 this.yScrollBar.hide();
+            } else {
+                this.yScrollBar.show();
             }
         }
 
@@ -331,10 +339,10 @@ export default class Heatmap {
             this.yScrollBar.setXPosition(left);
 
             // if x-axis is out-of-range
-            if (xViewSize < this.size.x) {
-                this.xScrollBar.show();
-            } else {
+            if (xViewSize >= this.size.x) {
                 this.xScrollBar.hide();
+            } else {
+                this.xScrollBar.show();
             }
         }
 
@@ -662,8 +670,8 @@ export default class Heatmap {
             y = margin.top + i * cellYDim;
 
         let content =
-            `<div><b>x:</b> ${xLabel}<div>` +
-            `<div><b>y:</b> ${yLabel}</div>` +
+            `<div><b>row:</b> ${yLabel}</div>` +
+            `<div><b>column:</b> ${xLabel}<div>` +
             `<div><b>Value:</b> ${value}</div>`;
 
         // add tooltip

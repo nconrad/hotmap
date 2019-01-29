@@ -162,7 +162,6 @@ export default class ScrollBar {
     }
 
     setHandleLength(percent) {
-        percent = percent < 8 ? 8 : percent * 4;
         this._handle
             .style[this.type === 'vertical' ? 'height' : 'width'] = `${percent}%`;
     }
