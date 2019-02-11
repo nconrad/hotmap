@@ -90,7 +90,7 @@ export default class ScrollBar {
         let handle = this._handle;
         let containerX = this.ele.parentNode.getBoundingClientRect().x;
 
-        this.horizontalMove = document.addEventListener('mousemove', function(evt) {
+        this.horizontalMove = function(evt) {
             if (!self._moving) return;
 
             // subtract scroll bar position and use center of handle
@@ -115,7 +115,8 @@ export default class ScrollBar {
             let xStart = parseInt(percent * self.max);
             self.onMove(xStart);
             handle.style.left = `${mouseX}px`;
-        });
+        };
+        document.addEventListener('mousemove', this.horizontalMove);
     }
 
     horizontalStop() {
@@ -129,7 +130,7 @@ export default class ScrollBar {
         let handle = this._handle;
         let containerY = this.ele.parentNode.getBoundingClientRect().y;
 
-        this.verticalMove = document.addEventListener('mousemove', function(evt) {
+        this.verticalMove = function(evt) {
             if (!self._moving) return;
 
             // subtract scroll bar position and use center of handle
@@ -153,7 +154,8 @@ export default class ScrollBar {
 
             self.onMove(percent);
             handle.style.top = `${mouseY}px`;
-        });
+        };
+        document.addEventListener('mousemove', this.verticalMove)
     }
 
     verticalStop() {
