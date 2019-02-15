@@ -46,21 +46,21 @@ const spritePath = '../src/assets/sprites/ff0000.png';
 export default class Heatmap {
     constructor(params) {
         this.ele = params.ele;
+
+        this.rows = params.rows;
+        this.cols = params.cols;
         this.matrix = params.matrix;
-        let [matrix, max] = matUnitize(params.matrix);
+
+        let {matrix, max} = matUnitize(params.matrix);
         this.alphaMatrix = matrix;
 
-        this.labelNames = {
-            x: params.xLabels,
-            y: params.yLabels
-        };
-        this.xCategories = params.xCategories;
-        this.xCategoryLabels = params.xCategoryLabels;
+        this.rowCategories = this.getCategories(params.rows);
+        this.rowCatLabels = params.rowCatLabels;
         this.onHover = params.onHover;
 
         // get category colors
         // Todo: optimize?
-        this.xCategoryColors = getCategoryColors(this.xCategories);
+        this.rowCatColors = getCategoryColors(this.rowCategories);
 
         // m and n (row and cols) dimensions
         this.size = {
@@ -208,7 +208,8 @@ export default class Heatmap {
         // initialize options
         this.options = new Options({
             parentNode: this.ele,
-            openBtn: document.querySelector('.opts-btn')
+            openBtn: document.querySelector('.opts-btn'),
+            onSort: (cat) => this.categorySort(cat)
         });
 
     }
@@ -262,7 +263,7 @@ export default class Heatmap {
             }
 
             if (cellYDim > minTextW && renderY) {
-                this.addSVGLabel('y', this.labelNames.y[rowIdx], margin.left - categoryWidth - 10, y + 3, i);
+                this.addSVGLabel('y', this.rows[rowIdx].name, margin.left - categoryWidth - 10, y + 3, i);
             }
             if (renderY) {
                 this.addCategories('y', rowIdx, margin.left - categoryWidth, y);
@@ -302,12 +303,12 @@ export default class Heatmap {
                 }
 
                 if (i == 0 && cellXDim > minTextW && renderX) {
-                    this.addSVGLabel('x', this.labelNames.x[colIdx], x + 2, margin.top - 5, j);
+                    this.addSVGLabel('x', this.cols[colIdx].name, x + 2, margin.top - 5, j);
                 }
 
-                if (!this.catLabelsAdded && i == 0 && renderX && colIdx < this.xCategoryLabels.length) {
-                    this.addCategoryLabel('x', this.xCategoryLabels[this.xCategoryLabels.length - colIdx - 1],
-                        margin.left - colIdx * (categoryWidth / this.xCategoryLabels.length),
+                if (!this.catLabelsAdded && i == 0 && renderX && colIdx < this.rowCatLabels.length) {
+                    this.addCategoryLabel('x', this.rowCatLabels[this.rowCatLabels.length - colIdx - 1],
+                        margin.left - colIdx * (categoryWidth / this.rowCatLabels.length),
                         margin.top - 5, j);
                 }
             }
@@ -362,6 +363,7 @@ export default class Heatmap {
         let xAxis = document.createElementNS(svgNS, 'g');
         xAxis.setAttribute('class', 'x-axis');
         xAxis.style.height = margin.top - 50;
+
         let yAxis = document.createElementNS(svgNS, 'g');
         yAxis.setAttribute('class', 'y-axis');
 
@@ -453,13 +455,13 @@ export default class Heatmap {
 
 
     addCategories(axis, index, x, y) {
-        let categories = this.xCategories[index];
+        let categories = this.rowCategories[index];
 
         // compute width of each category from: total / number-of-cateogries
         let width = parseInt(categoryWidth / categories.length );
 
         for (let i = 0; i < categories.length; i++) {
-            let sprite = this.textureRect( this.xCategoryColors[index][i] );
+            let sprite = this.textureRect( this.rowCatColors[index][i] );
             sprite.x = x;
             sprite.y = y;
             sprite.height = this.cellYDim;
@@ -631,8 +633,8 @@ export default class Heatmap {
                 if (i >= this.size.y || j >= this.size.x) return;
 
                 let value = this.matrix[i][j],
-                    xLabel = this.labelNames.x[j],
-                    yLabel = this.labelNames.y[i];
+                    xLabel = this.cols[j].name,
+                    yLabel = this.rows[i].name;
 
                 this.setHoverInfo(xLabel, yLabel, value, y, x);
             }
@@ -682,7 +684,7 @@ export default class Heatmap {
         tooltip.style.left = x + cellXDim;
         tooltip.innerHTML = this.onHover({
             xLabel, yLabel, value,
-            xCategories: this.xCategories[i]
+            rowCategories: this.rowCategories[i]
         });
 
         // add hover box

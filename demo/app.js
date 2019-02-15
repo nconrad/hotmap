@@ -10,8 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch(dataPath)
         .then(res => res.json())
         .then(data => {
+            console.log('data file:', data);
             loadViewer({ele, data});
-        }).catch(() => {
+        }).catch((e) => {
+            console.log(e);
             alert(`Could not load viewer. Please contact owner.`);
         });
 
@@ -20,17 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 function loadViewer({ele, data}) {
-    let {xLabels, yLabels, matrix, categories} = parseRealData(data);
     let catLabels = ['Isolation Country', 'Host', 'Genome Group'];
-    matrix = transpose(matrix);
-    let subset = false;
     new Heatmap({
         ele,
-        xLabels: yLabels, // also transpose labels
-        yLabels: subset ? xLabels.splice(0, subset) : xLabels,
-        matrix: subset ? matrix.splice(0, subset) : matrix,
-        xCategories: categories,
-        xCategoryLabels: catLabels,
+        rows: data.rows,
+        cols: data.cols,
+        matrix: data.matrix,
+        rowCatLabels: catLabels,
         onHover: info => {
             let cs = info.xCategories;
             return `
@@ -65,7 +63,6 @@ function loading(ele) {
     })
 */
 function getMockData({m, n, random, numOfBins, gradient, gradientBottom}) {
-
     let size = m * n;
     let matrix = [];
     for (let i = 0; i < m; i++) {
@@ -107,21 +104,28 @@ function getMockLabelNames(m, n) {
 }
 
 
-function parseRealData(data) {
-    let xLabels = data.col_nodes.map(obj => obj.name);
-    let yLabels = data.row_nodes.map(obj => obj.name);
-    let matrix = data.mat;
-
-    // get some categories for testings
-    let categories = data.col_nodes.map(obj => {
-        return [
-            obj['cat-1'].split(': ')[1],
-            obj['cat-2'].split(': ')[1],
-            obj['cat-3'].split(': ')[1]
-        ];
+function trimData(data) {
+    let rows = data.col_nodes.map(row => {
+        return {
+            categories: [
+                row['cat-1'].replace('Isolation Country: ', ''),
+                row['cat-2'].replace('Host Name: ', ''),
+                row['cat-3'].replace('Genome Group: ', ''),
+            ],
+            name: row.name
+        };
     });
 
-    return {xLabels, yLabels, matrix, categories};
+    let cols = data.row_nodes.map(row => {
+        return {
+            categories: [row['cat-0'].replace('FAMILY ID: ', '')],
+            name: row.name
+        };
+    });
+
+    let matrix = transpose(data.mat);
+
+    return {rows, cols, matrix};
 }
 
 
