@@ -13,7 +13,7 @@ import { svgNS } from './consts';
 function matUnitize(matrix) {
     let max = matAbsMax(matrix);
     matrix = matrix.map(row => row.map(val => val / max));
-    return [matrix, max];
+    return {matrix, max};
 }
 
 function matAbsMax(matrix) {

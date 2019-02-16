@@ -710,6 +710,41 @@ export default class Heatmap {
         this.renderChart(true, true, true);
     }
 
+    categorySort(category) {
+        let catIdx = this.rowCatLabels.indexOf(category);
+
+        // attach matrix rows to rows for sorting;
+        this.rows.forEach((row, i) => {
+            row.data = this.matrix[i];
+        });
+
+        // sort rows
+        this.rows.sort((a, b) => a.categories[catIdx].localeCompare(b.categories[catIdx]));
+
+        // get matrix back
+        this.matrix = this.rows.map(row => row.data);
+
+        // update all data
+        this.updateData();
+
+        this.catLabelsAdded = false;
+        this.renderChart(true, true, true);
+        this.catLabelsAdded = true;
+    }
+
+    // updates associated data models (such as categorical data
+    updateData() {
+        this.rowCategories = this.getCategories(this.rows);
+        this.rowCatColors = getCategoryColors(this.rowCategories);
+
+        // update alphas
+        this.alphaMatrix = matUnitize(this.matrix).matrix;
+    }
+
+    getCategories(objs) {
+        return objs.map(r => r.categories);
+    }
+
     /**
      * very pretty ellipsis, but
      * not currently used since there's a performance hit

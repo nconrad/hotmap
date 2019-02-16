@@ -16,6 +16,14 @@ body {
  * general
  */
 
+.heatmap .btn {
+  cursor: pointer;
+  color: #666;
+}
+.heatmap .btn:hover {
+  color: #333;
+}
+
 .heatmap .btn svg{
   fill: #333;
 }
@@ -37,7 +45,7 @@ body {
 
 .heatmap > .header > .info {
   position:absolute;
-  margin-left: 200px;
+  margin-left: 30px;
   display: inline-block;
   font-size: .8em;
   top: 10px;
@@ -192,12 +200,10 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  width: 75%;
+  width: 60%;
   height: 0;
   z-index: 100;
   background-color: #fff;
-  /*border: 1px solid #222;
-  border-width: 0 1px 1px 1px;*/
   overflow-x: hidden;
   transition: 0.3s;
   visibility: hidden;
@@ -212,11 +218,13 @@ body {
   text-decoration: none;
   color: #666;
   display: inline-block;
-
 }
 
-.heatmap .options a:hover {
-  color: #aaa;
+.heatmap .options a { cursor: pointer; }
+.heatmap .options a:hover { color: #000; }
+.heatmap .options a.active {
+  border-bottom: 3px solid #444;
+  color: #000;
 }
 
 .heatmap .options .close-btn {
@@ -224,5 +232,13 @@ body {
   top: 0;
   right: 25px;
   font-size: 36px;
+  border: none;
 }
 
+.heatmap .options .option-title {
+  font-weight: bold;
+}
+
+.heatmap .options .option-group {
+  margin: 15px 15px;
+}

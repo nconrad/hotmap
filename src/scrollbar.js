@@ -24,7 +24,6 @@ export default class ScrollBar {
         return this;
     }
 
-
     init() {
         // setup scroll container
         this.setLength(this.length);
@@ -155,7 +154,7 @@ export default class ScrollBar {
             self.onMove(percent);
             handle.style.top = `${mouseY}px`;
         };
-        document.addEventListener('mousemove', this.verticalMove)
+        document.addEventListener('mousemove', this.verticalMove);
     }
 
     verticalStop() {
