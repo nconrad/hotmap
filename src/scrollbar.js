@@ -1,4 +1,10 @@
-
+/**
+ * scrollbar.js
+ *
+ * Very basic manually built scrollbar, just for prototyping.
+ *
+ * Authors: nconrad
+ */
 export default class ScrollBar {
 
     constructor({ele, type, x, y, length, onMove, max}) {

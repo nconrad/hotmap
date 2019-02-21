@@ -1,3 +1,9 @@
+/**
+ * Color.js
+ *
+ * Authors: nconrad
+ */
+
 import {matAbsMax} from './utils';
 
 let schemeCategory20RGBs = [

@@ -1,4 +1,11 @@
-
+/**
+ * options.js
+ *
+ * Panel for various options.
+ *
+ * Authors: nconrad
+ *
+ */
 export default class Options {
 
     constructor({openBtn, onSort}) {

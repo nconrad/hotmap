@@ -1,3 +1,10 @@
+/**
+ * scale-ctrl.js
+ *
+ * Scale controllers for row/column width
+ *
+ * Authors: nconrad
+ */
 import lock from './assets/icons/lock.svg';
 import lockOpen from './assets/icons/lock-open.svg';
 

@@ -10,13 +10,13 @@ import container from './container.html';
 import ScaleCtrl from './scale-ctrl';
 import ScrollBar from './scrollbar';
 import Options from './options';
-import { svgRect, addLegend, matAbsMax } from './utils';
-import { getColorMatrix, getCategoryColors } from './colors';
+import { addLegend, matAbsMax } from './utils';
+import { svgNS, svgRect } from './svg';
+import { getColorMatrix, getCategoryColors } from './color';
 
 import {
     labelColor,
-    labelHoverColor,
-    svgNS
+    labelHoverColor
 } from './consts';
 
 

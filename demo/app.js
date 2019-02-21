@@ -1,4 +1,11 @@
-
+/**
+ * app.js
+ *
+ * Demo app using heatmap.
+ *
+ * Authors: nconrad
+ *
+ */
 import Heatmap from '../src/heatmap';
 
 
@@ -31,7 +38,7 @@ function loadViewer({ele, data}) {
         rowCatLabels: catLabels,
         colorFunction,
         onHover: info => {
-            let cs = info.xCategories;
+            let cs = info.rowCategories;
             return `
              <div><b>Genome:</b> ${info.yLabel}</div>
              <div><b>Protein Family:</b> ${info.xLabel}<div><br>
@@ -45,7 +52,7 @@ function loadViewer({ele, data}) {
 }
 
 function colorFunction(val) {
-    if (val < 1) return 0x222222;
+    if (val < 1) return 0x333333;
     if (val < 2) return 0xffe8e5;
     if (val < 20) return 0xff7566;
     return 0xff0000;

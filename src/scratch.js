@@ -1,6 +1,5 @@
 import Heatmap from './heatmap';
 
-
 export default class PerfLegacy extends Heatmap {
 
     createRectSprite(x, y, w, h, val, data) {
