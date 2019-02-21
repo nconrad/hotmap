@@ -111,5 +111,6 @@ export {
     matUnitize,
     svgRect,
     svgG,
-    addLegend
+    addLegend,
+    matAbsMax
 };

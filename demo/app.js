@@ -29,6 +29,7 @@ function loadViewer({ele, data}) {
         cols: data.cols,
         matrix: data.matrix,
         rowCatLabels: catLabels,
+        colorFunction,
         onHover: info => {
             let cs = info.xCategories;
             return `
@@ -41,6 +42,13 @@ function loadViewer({ele, data}) {
             `;
         }
     });
+}
+
+function colorFunction(val) {
+    if (val < 1) return 0x222222;
+    if (val < 2) return 0xffe8e5;
+    if (val < 20) return 0xff7566;
+    return 0xff0000;
 }
 
 

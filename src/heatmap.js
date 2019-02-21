@@ -10,8 +10,8 @@ import container from './container.html';
 import ScaleCtrl from './scale-ctrl';
 import ScrollBar from './scrollbar';
 import Options from './options';
-import { matUnitize, svgRect, addLegend } from './utils';
-import { getCategoryColors } from './colors';
+import { svgRect, addLegend, matAbsMax } from './utils';
+import { getColorMatrix, getCategoryColors } from './colors';
 
 import {
     labelColor,
@@ -51,12 +51,14 @@ export default class Heatmap {
         this.cols = params.cols;
         this.matrix = params.matrix;
 
-        let {matrix, max} = matUnitize(params.matrix);
-        this.alphaMatrix = matrix;
+        this.colorF = params.colorFunction || 'gradient';
+        this.colorMatrix = getColorMatrix(this.matrix, this.colorF);
 
         this.rowCategories = this.getCategories(params.rows);
         this.rowCatLabels = params.rowCatLabels;
         this.onHover = params.onHover;
+
+        this.redTexture = this.textureRect(0xff0000);
 
         // get category colors
         // Todo: optimize?
@@ -66,7 +68,7 @@ export default class Heatmap {
         this.size = {
             x: params.matrix[0].length,
             y: params.matrix.length,
-            max: max
+            max: matAbsMax(params.matrix)
         };
 
         // cell size
@@ -192,7 +194,6 @@ export default class Heatmap {
 
         this.renderChart(true, true);
         this.isStaged = true;
-        this.catLabelsAdded = true;
 
 
         // Todo: cleanup pre-render staging
@@ -209,7 +210,7 @@ export default class Heatmap {
         this.options = new Options({
             parentNode: this.ele,
             openBtn: document.querySelector('.opts-btn'),
-            onSort: (cat) => this.categorySort(cat)
+            onSort: (cat) => this.rowCatSort(cat)
         });
 
     }
@@ -287,18 +288,18 @@ export default class Heatmap {
                 if (this.isStaged) {
                     // must add 1 to ignore category container stage
                     let sprite = this.stage.children[i * xViewSize + j + 1];
-                    sprite.alpha = this.alphaMatrix[rowIdx][colIdx];
+                    sprite.tint = this.colorMatrix[rowIdx][colIdx];
+                    sprite.alpha = 1.0;
                     sprite.x = x;
                     sprite.y = y;
                     sprite.height = cellYDim;
                     sprite.width = cellXDim;
                 } else {
-                    let sprite = new PIXI.Sprite(this.sprites.redCell.texture);
+                    let sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
                     sprite.x = x;
                     sprite.y = y;
                     sprite.height = cellYDim;
                     sprite.width = cellXDim;
-                    sprite.alpha = this.alphaMatrix[rowIdx][colIdx];
                     this.stage.addChild(sprite);
                 }
 
@@ -347,9 +348,9 @@ export default class Heatmap {
             }
         }
 
-        // update tracker
         this.mouseTracker();
-        requestAnimationFrame(this.render);
+        requestAnimationFrame(this.render); // draw
+        this.catLabelsAdded = true;
     }
 
     initSVGContainers(width, height) {
@@ -710,7 +711,7 @@ export default class Heatmap {
         this.renderChart(true, true, true);
     }
 
-    categorySort(category) {
+    rowCatSort(category) {
         let catIdx = this.rowCatLabels.indexOf(category);
 
         // attach matrix rows to rows for sorting;
@@ -726,10 +727,7 @@ export default class Heatmap {
 
         // update all data
         this.updateData();
-
-        this.catLabelsAdded = false;
         this.renderChart(true, true, true);
-        this.catLabelsAdded = true;
     }
 
     // updates associated data models (such as categorical data
@@ -737,8 +735,8 @@ export default class Heatmap {
         this.rowCategories = this.getCategories(this.rows);
         this.rowCatColors = getCategoryColors(this.rowCategories);
 
-        // update alphas
-        this.alphaMatrix = matUnitize(this.matrix).matrix;
+        // update colors
+        this.colorMatrix = getColorMatrix(this.matrix, this.colorF);
     }
 
     getCategories(objs) {
