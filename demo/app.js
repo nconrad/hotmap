@@ -30,13 +30,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function loadViewer({ele, data}) {
     let catLabels = ['Isolation Country', 'Host', 'Genome Group'];
+    let colors = [0x333333, 0xffe8e5, 0xff7566, 0xff0000];
     new Heatmap({
         ele,
         rows: data.rows,
         cols: data.cols,
         matrix: data.matrix,
         rowCatLabels: catLabels,
-        colorFunction,
+        color: { bins: ['=0', '=1', '=2', '>=20'], colors },
         onHover: info => {
             let cs = info.rowCategories;
             return `

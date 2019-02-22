@@ -4,7 +4,7 @@
  * Authors: nconrad
  */
 
-import {matAbsMax} from './utils';
+import {matMinMax} from './utils';
 
 let schemeCategory20RGBs = [
     'rgb(31, 119, 180)',
@@ -134,7 +134,7 @@ function pickHex(color1, color2, weight) {
  * @param {*} rgb2 [r, g, b]
  */
 function matGradient(matrix, rgb1, rgb2) {
-    let max = matAbsMax(matrix);
+    let max = matMinMax(matrix).max;
     matrix = matrix.map(r => r.map(val => rgbToHex( pickHex(rgb1, rgb2, val / max)) ) );
     return matrix;
 }
@@ -157,10 +157,14 @@ function getRandomColorMatrix(m, n) {
  * @param {*} matrix matrix of values
  * @param {*} f function for returning color
  */
-function getColorMatrix(matrix, f) {
-    if (f == 'gradient') {
+function getColorMatrix(matrix, settings) {
+    if (settings == 'gradient') {
         return matGradient(matrix, [255, 0, 0], [255, 255, 255]);
     }
+
+    // parse bin list and create function to return color
+    let bins = parseColorBins(settings.bins);
+    let f = binColorFunction(bins, settings.colors);
 
     let n = matrix[0].length,
         m = matrix.length;
@@ -179,9 +183,52 @@ function getColorMatrix(matrix, f) {
     return colors;
 }
 
+function parseColorBins(bins) {
+    let opRegex = /(>|<|=|<=|>=)+/gm;
+    let valRegex = /(\d+)/gm;
+    bins = bins.map(binStr => {
+        return {
+            op: binStr.match(opRegex)[0],
+            val: binStr.match(valRegex)[0]
+        };
+    });
+
+    return bins;
+}
+
+function binColorFunction(bins, colors) {
+    return (val) => {
+        let i = 0;
+        let color = null;
+        while (i < colors.length) {
+            let bin = bins[i];
+            if (bin.op === '=' && val == bin.val) {
+                color = colors[i];
+                break;
+            } else if (bin.op === '<=' && val <= bin.val) {
+                color = colors[i];
+                break;
+            } else if (bin.op === '<' && val < bin.val) {
+                color = colors[i];
+                break;
+            } else if (bin.op === '>' && val > bin.val) {
+                color = colors[i];
+                break;
+            } else if (bin.op === '>=' && val >= bin.val) {
+                color = colors[i];
+                break;
+            }
+
+            i += 1;
+        }
+        return color;
+    };
+}
+
 
 export {
     getColorMatrix,
     getRandomColorMatrix,
     getCategoryColors,
+    parseColorBins
 };

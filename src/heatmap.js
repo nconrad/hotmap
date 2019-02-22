@@ -10,7 +10,8 @@ import container from './container.html';
 import ScaleCtrl from './scale-ctrl';
 import ScrollBar from './scrollbar';
 import Options from './options';
-import { addLegend, matAbsMax } from './utils';
+import { addLegend } from './legend';
+import { matMinMax } from './utils';
 import { svgNS, svgRect } from './svg';
 import { getColorMatrix, getCategoryColors } from './color';
 
@@ -51,8 +52,8 @@ export default class Heatmap {
         this.cols = params.cols;
         this.matrix = params.matrix;
 
-        this.colorF = params.colorFunction || 'gradient';
-        this.colorMatrix = getColorMatrix(this.matrix, this.colorF);
+        this.color = params.color || 'gradient';
+        this.colorMatrix = getColorMatrix(this.matrix, this.color);
 
         this.rowCategories = this.getCategories(params.rows);
         this.rowCatLabels = params.rowCatLabels;
@@ -65,11 +66,15 @@ export default class Heatmap {
         this.rowCatColors = getCategoryColors(this.rowCategories);
 
         // m and n (row and cols) dimensions
+        let minMax = matMinMax(params.matrix);
+        console.log('minMax', minMax);
         this.size = {
             x: params.matrix[0].length,
             y: params.matrix.length,
-            max: matAbsMax(params.matrix)
+            min: minMax.min,
+            max: minMax.max
         };
+
 
         // cell size
         this.cellXDim = 1; // (canvasWidth - margin.left - margin.right) / this.size.x;
@@ -185,7 +190,7 @@ export default class Heatmap {
             height: yViewSize
         });
 
-        addLegend(this.svg, 250, 16, 0, this.size.max);
+        addLegend(this.svg, 250, 16, this.size.min, this.size.max, this.color);
 
         // render is used by rAF when needed
         this.render = () => {
@@ -736,7 +741,7 @@ export default class Heatmap {
         this.rowCatColors = getCategoryColors(this.rowCategories);
 
         // update colors
-        this.colorMatrix = getColorMatrix(this.matrix, this.colorF);
+        this.colorMatrix = getColorMatrix(this.matrix, this.color);
     }
 
     getCategories(objs) {

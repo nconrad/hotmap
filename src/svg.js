@@ -1,12 +1,11 @@
 /**
  * svg.js
  *
- * Helpers for svg generation
+ * Basic helpers for SVG generation
  *
  * Authors: nconrad
  */
-
-export const svgNS = 'http://www.w3.org/2000/svg';;
+export const svgNS = 'http://www.w3.org/2000/svg';
 
 export function svgG(svg) {
     return document.createElementNS(svgNS, 'g');
