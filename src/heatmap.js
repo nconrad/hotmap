@@ -654,7 +654,7 @@ export default class Heatmap {
                 node.setAttribute('font-weight', 'normal');
             });
 
-            this.setHoverInfo('-', '-', '-');
+            this.hideHoverInfo();
             coordinates = {x: -1, y: -1};
 
             let tooltip = this.ele.querySelector('.tooltip');
@@ -693,6 +693,10 @@ export default class Heatmap {
             this.ele.querySelectorAll('.hover-box').forEach(el => el.remove());
             this.svg.appendChild( svgRect(x, y, cellXDim, cellYDim, {class: 'hover-box'}) );
         }
+    }
+
+    hideHoverInfo() {
+        this.ele.querySelector('.header .info').innerHTML = '';
     }
 
 
