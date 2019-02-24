@@ -17,7 +17,8 @@ module.exports = {
         "no-multiple-empty-lines":  ["error", {"max": 2}],
         "padded-blocks": 0,
         "new-cap": 0, // ignore for Pixi.js
-        "no-extend-native": 0
+        "no-extend-native": 0,
+        "no-throw-literal": 0
     },
     "globals": {
         "PIXI": 1,
