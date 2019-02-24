@@ -39,10 +39,7 @@ const margin = {
 const minTextW = 2;
 const maxTextW = 16;
 const categoryWidth = 40;
-
 // const cellPadding = 1;
-
-const spritePath = '../src/assets/sprites/ff0000.png';
 
 export default class Heatmap {
     constructor(params) {
@@ -53,13 +50,16 @@ export default class Heatmap {
         this.matrix = params.matrix;
 
         this.color = params.color || 'gradient';
-        this.colorMatrix = getColorMatrix(this.matrix, this.color);
+        try {
+            this.colorMatrix = getColorMatrix(this.matrix, this.color);
+        } catch (error) {
+            alert(error);
+            return;
+        }
 
         this.rowCategories = this.getCategories(params.rows);
         this.rowCatLabels = params.rowCatLabels;
         this.onHover = params.onHover;
-
-        this.redTexture = this.textureRect(0xff0000);
 
         // get category colors
         // Todo: optimize?
@@ -67,7 +67,6 @@ export default class Heatmap {
 
         // m and n (row and cols) dimensions
         let minMax = matMinMax(params.matrix);
-        console.log('minMax', minMax);
         this.size = {
             x: params.matrix[0].length,
             y: params.matrix.length,
@@ -91,11 +90,7 @@ export default class Heatmap {
         this.xScrollBar;
         this.yScrollBar;
 
-
-        PIXI.loader.add('redCell', spritePath).load((ldr, resources) => {
-            this.sprites = resources;
-            this.start();
-        });
+        this.start();
 
         return this;
     }
@@ -190,7 +185,7 @@ export default class Heatmap {
             height: yViewSize
         });
 
-        addLegend(this.svg, 250, 16, this.size.min, this.size.max, this.color);
+        addLegend(this.ele, 250, 16, this.size.min, this.size.max, this.color);
 
         // render is used by rAF when needed
         this.render = () => {

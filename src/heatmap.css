@@ -124,7 +124,6 @@ body {
 /**
  * scrollbar
  */
-
 .heatmap .scrollbar {
   position: absolute;
   background: #f2f2f2;
@@ -174,6 +173,32 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/**
+ * legend
+ */
+
+.heatmap .legend{
+  position: absolute;
+  left: 220px;
+  top: 15px;
+}
+
+.heatmap .legend .item {
+  display: inline;
+  padding: 0 5px;
+  color: #666;
+  font-size: .9em;
+}
+
+.heatmap .legend .item .box {
+  display: inline-block;
+  border: 1px solid #ddd;
+  width: 14px;
+  height: 14px;
+  margin-right: 2px;
+}
+
 
 /**
  * tooltip

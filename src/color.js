@@ -162,25 +162,34 @@ function getColorMatrix(matrix, settings) {
         return matGradient(matrix, [255, 0, 0], [255, 255, 255]);
     }
 
+    let {bins, colors} = settings;
+
+    if (bins.length !== colors.length)
+        throw 'When specifying "bins", the number of bins and colors must be equal.';
+
     // parse bin list and create function to return color
-    let bins = parseColorBins(settings.bins);
-    let f = binColorFunction(bins, settings.colors);
+    bins = parseColorBins(bins);
+    let f = binColorFunction(bins, colors);
 
     let n = matrix[0].length,
         m = matrix.length;
 
-    let colors = [];
+    let cMatrix = [];
     for (let i = 0; i < m; i++) {
         let row = [];
         for (let j = 0; j < n; j++) {
-
             let val = matrix[i][j];
-            row.push( f(val) );
+            let color = f(val);
+
+            if (color === null)
+                throw Error(`Could not map value ${val} to a color.  (i,j)=(${i},${j})`);
+
+            row.push(color);
         }
-        colors.push(row);
+        cMatrix.push(row);
     }
 
-    return colors;
+    return cMatrix;
 }
 
 function parseColorBins(bins) {
@@ -198,29 +207,29 @@ function parseColorBins(bins) {
 
 function binColorFunction(bins, colors) {
     return (val) => {
-        let i = 0;
         let color = null;
-        while (i < colors.length) {
-            let bin = bins[i];
-            if (bin.op === '=' && val == bin.val) {
+        for (let i = 0; i < bins.length; i++) {
+            let bin = bins[i],
+                v = parseInt(bin.val);
+
+            if (bin.op === '=' && val == v) {
                 color = colors[i];
                 break;
-            } else if (bin.op === '<=' && val <= bin.val) {
+            } else if (bin.op === '<=' && val <= v) {
                 color = colors[i];
                 break;
-            } else if (bin.op === '<' && val < bin.val) {
+            } else if (bin.op === '<' && val < v) {
                 color = colors[i];
                 break;
-            } else if (bin.op === '>' && val > bin.val) {
+            } else if (bin.op === '>' && val > v) {
                 color = colors[i];
                 break;
-            } else if (bin.op === '>=' && val >= bin.val) {
+            } else if (bin.op === '>=' && val >= v) {
                 color = colors[i];
                 break;
             }
-
-            i += 1;
         }
+
         return color;
     };
 }
@@ -230,5 +239,6 @@ export {
     getColorMatrix,
     getRandomColorMatrix,
     getCategoryColors,
-    parseColorBins
+    parseColorBins,
+    toHex
 };

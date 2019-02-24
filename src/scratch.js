@@ -90,6 +90,11 @@ export default class PerfLegacy extends Heatmap {
     }
 }
 
+
+PIXI.loader.add('redCell', spritePath).load((ldr, resources) => {
+    this.sprites = resources;
+});
+
 /*
 let i = this.stage.children.length;
 while (i--) {

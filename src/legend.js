@@ -8,28 +8,25 @@
  */
 import { setAttributes } from './dom';
 import { svgEle, svgG, svgRect, svgText } from './svg';
-import { parseColorBins } from './color';
+import { parseColorBins, toHex } from './color';
 
-export function addLegend(svg, x, y, min, max, settings) {
+export function addLegend(ele, x, y, min, max, settings) {
     if (!settings || settings === 'gradient')
-        return gradientLegend(svg, x, y, min, max);
+        return gradientLegend(ele.querySelector('.svg-canvas'), x, y, min, max);
 
-    binLegend(svg, x, y, min, max, settings);
+    binLegend(ele, x, y, min, max, settings);
 }
-function binLegend(svg, x, y, min, max, settings) {
-    let w = 14,
-        h = 14,
-        offset = 40;
 
+
+function binLegend(ele, x, y, min, max, settings) {
     let bins = parseColorBins(settings.bins),
         colors = settings.colors;
 
-    let legend = svgG(svg);
-    let textOpts = {fill: '#666', fontSize: '.9em'};
-
+    let legend = ele.querySelector('.legend');
     bins.forEach((bin, i) => {
         let op = bin.op,
-            val = bin.val;
+            val = bin.val,
+            color = colors[i];
 
         let text;
         if (op === '=') text = val;
@@ -38,17 +35,20 @@ function binLegend(svg, x, y, min, max, settings) {
         else if (op === '>=') text = '≥ ' + val;
         else if (op === '>') text = '> ' + val;
 
-        console.log(colors[i].toString(16));
-        let rect = svgRect(x + offset * i, y, w, h, {
-            fill: '#' + colors[i].toString(16), // hexidecimal to hex
-            stroke: '#f2f2f2'
-        });
+        let item = document.createElement('div');
+        item.classList.add('item');
 
-        legend.appendChild(rect);
-        legend.append( svgText(text, x + offset * i + w + 3, y + h - 1, textOpts) );
+        let rectEl = document.createElement('div');
+        rectEl.classList.add('box');
+        rectEl.style.backgroundColor = isNaN(color) ? color : toHex(color);
+        item.appendChild(rectEl);
+
+        let textEl = document.createElement('div');
+        textEl.innerHTML = text;
+        item.append(text);
+
+        legend.append(item);
     });
-
-    svg.appendChild(legend);
 }
 
 
