@@ -1,29 +1,34 @@
 /**
  * scrollbar.js
  *
- * Very basic manually built scrollbar, just for prototyping.
+ * A scrollbar implementation for heatmap.js, using fake content area.
  *
  * Authors: nconrad
  */
+
+let barOffset = '15px';
+
 export default class ScrollBar {
 
-    constructor({ele, type, x, y, length, onMove, max}) {
+    constructor({
+        ele, x, y, width, height, xMax, yMax,
+        contentWidth, contentHeight, onXMove, onYMove
+    }) {
         this.ele = ele;
-        this.type = type || 'vertical';
         this.x = x;
         this.y = y;
-        this.length = length || '100%';
-        this.max = max; // number of cols or rows\eeeeee
+
+        this._xMax = xMax;
+        this._yMax = yMax;
 
         // events
-        this.onMove = onMove;
+        this._onXMove = onXMove;
+        this._onYMove = onYMove;
 
-        this._handle;
-        this._moving = false;
-        this._min = 0;
-
-        this._cellW;
-        this._cellH;
+        this.width = width;
+        this.height = height;
+        this.contentWidth = contentWidth;
+        this.contentHeight = contentHeight;
 
         this.init();
 
@@ -32,146 +37,70 @@ export default class ScrollBar {
 
     init() {
         // setup scroll container
-        this.setLength(this.length);
-        this.setXPosition(this.x);
-        this.setYPosition(this.y);
+        let container = document.querySelector('.scroll-container');
+        container.style.position = 'absolute';
+        container.style.overflow = 'scroll';
+        container.style.padding = `0 ${barOffset} ${barOffset} 0`;
+        this.ele.querySelector('.chart').appendChild(container);
+        this.scrollContainer = container;
 
-        // add handle
-        let handle = document.createElement('div');
-        handle.className = 'scroll-handle';
-        handle.style[this.type === 'vertical' ? 'height' : 'width'] = '10%';
-        this.ele.appendChild(handle);
+        container.style.top = this.y;
+        container.style.left = this.x;
+        container.style.width = this.width;
+        container.style.height = this.height;
 
-        // events
-        if (this.type === 'vertical') {
-            handle.addEventListener('mousedown', this.verticalDrag.bind(this));
-            document.addEventListener('mouseup', this.verticalStop.bind(this));
-        } else { // horizontal
-            handle.addEventListener('mousedown', this.horizontalDrag.bind(this));
-            document.addEventListener('mouseup', this.horizontalStop.bind(this));
-        }
+        // setup fake content
+        let content = document.createElement('div');
+        content.style.top = this.y;
+        content.style.left = this.x;
+        content.style.width = this.contentWidth;
+        content.style.height = this.contentHeight;
 
-        this._handle = handle;
-    }
+        this.scrollContainer.append(content);
+        this.content = content;
 
-    hide() {
-        this.ele.style.display = 'none';
-    }
+        let previousX = 0,
+            previousY = 0;
+        this.scrollContainer.addEventListener('scroll', evt => {
+            let target = evt.target;
 
-    show() {
-        this.ele.style.display = 'block';
-    }
+            let y = target.scrollTop,
+                x = target.scrollLeft;
 
-    setXPosition(x) {
-        this.x = x;
-        this.ele.style.left = x;
-    }
+            let xDirection = x > previousX ? 'right' : (x === previousX ? null : 'left'),
+                yDirection = y > previousY ? 'down' : (y === previousY ? null : 'up');
 
-    setYPosition(y) {
-        this.y = y;
-        this.ele.style.top = y;
-    }
-
-    setLength(length) {
-        this.length = length;
-        if (this.type === 'vertical') {
-            this.ele.style.height = length;
-        } else {
-            this.ele.style.width = length;
-        }
-    }
-
-    setCellW(w) {
-        this._cellW = w;
-    }
-
-    setCellH(h) {
-        this._cellH = h;
-    }
-
-    horizontalDrag() {
-        let self = this;
-        this._moving = true;
-        let handle = this._handle;
-        let containerX = this.ele.parentNode.getBoundingClientRect().x;
-
-        this.horizontalMove = function(evt) {
-            if (!self._moving) return;
-
-            // subtract scroll bar position and use center of handle
-            // <mouse position> - <scrollbar position> - <absolute position> - <handleW / 2>
-            let mouseX = evt.clientX - self.x - containerX - (handle.offsetWidth / 2);
-
-            // enforce boundaries (improve)
-            if (mouseX > self.length - handle.offsetWidth) {
-                self.onMove(parseInt(100 * self.max));
-                handle.style.left = self.length - handle.offsetWidth;
-                return;
+            if (xDirection) {
+                let percent = target.scrollLeft / target.scrollWidth;
+                let pos = Math.ceil(percent * this._xMax);
+                this._onXMove(pos);
             }
 
-            if (mouseX < self._min) {
-                self.onMove(0);
-                handle.style.left = 0;
-                return;
+            if (yDirection) {
+                let percent = target.scrollTop / target.scrollHeight;
+                let pos = Math.ceil(percent * this._yMax);
+                this._onYMove(pos);
             }
 
-            // subtract handle length/width from scrollbar width
-            let percent = mouseX / (self.length - handle.offsetWidth);
-            let xStart = parseInt(percent * self.max);
-            self.onMove(xStart);
-            handle.style.left = `${mouseX}px`;
-        };
-        document.addEventListener('mousemove', this.horizontalMove);
+            previousX = x;
+            previousY = y;
+        });
     }
 
-    horizontalStop() {
-        this._moving = false;
-        document.removeEventListener('mousemove', this.horizontalMove);
+    setWidth(width) {
+        this.content.style.width = width;
     }
 
-    verticalDrag() {
-        let self = this;
-        this._moving = true;
-        let handle = this._handle;
-        let containerY = this.ele.parentNode.getBoundingClientRect().y;
-
-        this.verticalMove = function(evt) {
-            if (!self._moving) return;
-
-            // subtract scroll bar position and use center of handle
-            let mouseY = evt.clientY - self.y - containerY - (handle.offsetHeight / 2);
-
-            // enforce boundaries
-            if (mouseY > self.length - handle.offsetHeight) {
-                self.onMove(parseInt(100 * self.max));
-                handle.style.top = self.length - handle.offsetHeight;
-                return;
-            }
-
-            if (mouseY < self._min) {
-                self.onMove(0);
-                handle.style.top = 0;
-                return;
-            }
-
-            // subtract handle length/width from scrollbar width
-            let percent = mouseY / (self.length - handle.offsetHeight);
-
-            self.onMove(percent);
-            handle.style.top = `${mouseY}px`;
-        };
-        document.addEventListener('mousemove', this.verticalMove);
+    setHeight(height) {
+        this.content.style.height = height;
     }
 
-    verticalStop() {
-        this._moving = false;
-        document.removeEventListener('mousemove', this.verticalMove);
+    setContentWidth(width) {
+        this.scrollContainer.style.width = width;
     }
 
-    setHandleLength(percent) {
-        this._handle
-            .style[this.type === 'vertical' ? 'height' : 'width'] = `${percent}%`;
+    setContentHeight(height) {
+        this.scrollContainer.style.height = height;
     }
-
 
 }

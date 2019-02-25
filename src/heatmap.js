@@ -163,26 +163,20 @@ export default class Heatmap {
             }
         });
 
-        // add scrollbars.  note we most update positions on rendering
-        // todo: implement in webgl?
-        this.xScrollBar = new ScrollBar({
-            type: 'horizontal',
-            ele: document.querySelector('.x-scrollbar'),
-            onMove: this.onHorizontalScroll.bind(this),
-            max: this.size.x,
+        // add (fake) scrollbars.
+        // note: we must update size of content area on render
+        this.scrollBars = new ScrollBar({
+            ele: this.ele,
             x: margin.left,
-            // y: changes with y scaling
-            width: xViewSize
-        });
-
-        this.yScrollBar = new ScrollBar({
-            type: 'vertical',
-            ele: document.querySelector('.y-scrollbar'),
-            onMove: this.onVerticalScroll.bind(this),
-            max: this.size.y,
             y: margin.top,
-            // x: changes with x scaling
-            height: yViewSize
+            width: xViewSize,
+            height: yViewSize,
+            contentWidth: this.cellXDim * this.size.x,
+            contentHeight: this.cellYDim * this.size.y,
+            xMax: this.size.x,
+            yMax: this.size.y,
+            onXMove: pos => this.onHorizontalScroll(pos),
+            onYMove: pos => this.onVerticalScroll(pos)
         });
 
         addLegend(this.ele, 250, 16, this.size.min, this.size.max, this.color);
@@ -212,7 +206,6 @@ export default class Heatmap {
             openBtn: document.querySelector('.opts-btn'),
             onSort: (cat) => this.rowCatSort(cat)
         });
-
     }
 
     getRenderer(width, height) {
@@ -319,32 +312,30 @@ export default class Heatmap {
          * also adjust scrollbars if needed
          **/
         if (renderY || this.scaleCtrl.isLocked()) {
-            let top = yViewSize * this.cellYDim + margin.top;
-            this.xScrollBar.setYPosition(top);
+            this.scrollBars.setHeight(this.cellYDim * this.size.y );
 
             let height = yViewSize * this.cellYDim;
-            this.yScrollBar.setLength(height);
+            this.scrollBars.setContentHeight(height);
 
             // if y-axis is out-of-range, hide
             if (yViewSize >= this.size.y) {
-                this.yScrollBar.hide();
+                // this.yScrollBar.hide();
             } else {
-                this.yScrollBar.show();
+                // this.yScrollBar.show();
             }
         }
 
         if (renderX || this.scaleCtrl.isLocked()) {
-            let width = xViewSize * this.cellXDim;
-            this.xScrollBar.setLength(width);
+            this.scrollBars.setWidth(this.cellXDim * this.size.x);
 
-            let left = xViewSize * this.cellXDim + margin.left;
-            this.yScrollBar.setXPosition(left);
+            let width = xViewSize * this.cellXDim;
+            this.scrollBars.setContentWidth(width);
 
             // if x-axis is out-of-range
             if (xViewSize >= this.size.x) {
-                this.xScrollBar.hide();
+                // this.xScrollBar.hide();
             } else {
-                this.xScrollBar.show();
+                // this.xScrollBar.show();
             }
         }
 
@@ -535,18 +526,12 @@ export default class Heatmap {
     }
 
     onHorizontalScroll(xStart) {
-        if (xStart === this.xStart) return;
         this.xStart = xStart;
-
         this.renderChart(true);
     }
 
-    onVerticalScroll(percent) {
-        let yStart = parseInt(percent * this.size.y);
-
-        if (yStart === this.yStart) return;
+    onVerticalScroll(yStart) {
         this.yStart = yStart;
-
         this.renderChart(false, true);
     }
 

@@ -10,10 +10,10 @@ body {
   font-family: 'Rubik', sans-serif;
 }
 
+
 /**
  * general
  */
-
 .heatmap .btn {
   cursor: pointer;
   color: #666;
@@ -56,6 +56,28 @@ body {
 .heatmap .chart {
   position: relative;
 }
+
+
+::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 13px;
+}
+
+::-webkit-scrollbar:horizontal {
+  height: 13px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 7px;
+  background-color: rgba(0, 0, 0, .7);
+}
+
+::-webkit-scrollbar-track {
+  background: #f2f2f2;
+
+}
+
+
 
 /**
  * scale control components
