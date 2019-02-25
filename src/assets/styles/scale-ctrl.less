@@ -1,0 +1,67 @@
+
+/**
+  * scale control components
+  */
+.scale-ctrls {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  z-index: 10;
+}
+
+.slider {
+  -webkit-appearance: none;
+  height: 5px;
+  border-radius: 5px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+  background: #03bfff;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+  background: #03bfff;
+  cursor: pointer;
+}
+
+.y-slider {
+  height: 5px;
+  transform-origin: 15px 40px;
+  transform: rotate(90deg);
+}
+
+.x-slider {
+  width: 130px;
+  position: absolute;
+  top: 0;
+  left: 75px;
+}
+
+.lock-btn {
+  position: absolute;
+  top: -10px;
+  left: 40;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+}
+
+.lock-btn svg {
+  margin-left: -5px;
+}
+

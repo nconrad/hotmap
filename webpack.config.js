@@ -5,6 +5,7 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 
 module.exports = {
+    watch: true,
     mode: 'development',
     entry: {
         'heatmap': './entry.js',
@@ -18,22 +19,21 @@ module.exports = {
         libraryTarget: 'umd'
     },
     module: {
-        rules: [
-            {
-                test: /\.js$/,
-                loader: 'babel-loader',
-                exclude: /node_modules/
-            },
-            {
-                test: /\.html$/,
-                loader: 'html-loader',
-                exclude: /node_modules/
-            },
-            {
-                test: /\.svg$/,
-                loader: 'svg-inline-loader'
-            }
-        ]
+        rules: [{
+            test: /\.js$/,
+            loader: 'babel-loader',
+            exclude: /node_modules/
+        }, {
+            test: /\.html$/,
+            loader: 'html-loader',
+            exclude: /node_modules/
+        }, {
+            test: /\.less$/,
+            loaders: ['style-loader', 'css-loader', 'less-loader']
+        }, {
+            test: /\.svg$/,
+            loader: 'svg-inline-loader'
+        }]
     },
     optimization: {
         minimizer: [
@@ -50,12 +50,12 @@ module.exports = {
         new webpack.optimize.LimitChunkCountPlugin({
             maxChunks: 1
         }),
-        new CopyWebpackPlugin([
-            {
-                from: 'src/heatmap.css',
-                to: 'heatmap.css'
-            }
-        ])
+        /*
+        new CopyWebpackPlugin([{
+            from: 'src/heatmap.css',
+            to: 'heatmap.css'
+        }])
+        */
     ],
     stats: {
         colors: true

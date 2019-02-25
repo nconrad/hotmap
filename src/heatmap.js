@@ -15,11 +15,8 @@ import { matMinMax } from './utils';
 import { svgNS, svgRect } from './svg';
 import { getColorMatrix, getCategoryColors } from './color';
 
-import {
-    labelColor,
-    labelHoverColor
-} from './consts';
-
+import { labelColor, labelHoverColor } from './consts';
+import './assets/styles/heatmap.less';
 
 const FORCE_CANVAS = false;
 const PARTICLE_CONTAINER = false;
@@ -61,8 +58,7 @@ export default class Heatmap {
         this.rowCatLabels = params.rowCatLabels;
         this.onHover = params.onHover;
 
-        // get category colors
-        // Todo: optimize?
+        // get category colors; Todo: optimize?
         this.rowCatColors = getCategoryColors(this.rowCategories);
 
         // m and n (row and cols) dimensions
@@ -73,7 +69,6 @@ export default class Heatmap {
             min: minMax.min,
             max: minMax.max
         };
-
 
         // cell size
         this.cellXDim = 1; // (canvasWidth - margin.left - margin.right) / this.size.x;
@@ -730,20 +725,6 @@ export default class Heatmap {
 
     getCategories(objs) {
         return objs.map(r => r.categories);
-    }
-
-    /**
-     * very pretty ellipsis, but
-     * not currently used since there's a performance hit
-     **/
-    textEllipsis(ele, text, width) {
-        // fixed bug in from the following:
-        // https://stackoverflow.com/questions/15975440/add-ellipses-to-overflowing-text-in-svg
-        ele.textContent = text;
-        let len = text.length;
-        while (ele.getSubStringLength(0, len--) > width) {
-            ele.textContent = text.slice(0, len) + '...';
-        }
     }
 
 }

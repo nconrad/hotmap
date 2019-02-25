@@ -1,0 +1,203 @@
+
+
+
+/**
+ * general
+ */
+button {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  font-size: 1.0em;
+}
+
+button:hover {
+  background-color: #f2f2f2;
+}
+
+button:focus {
+  outline: none;
+}
+
+.btn {
+  cursor: pointer;
+  color: #333;
+}
+
+.btn:hover {
+  color: #333;
+}
+
+.btn svg{
+  fill: #333;
+}
+
+.caret-down {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #222;
+  display:inline-block;
+}
+
+/**
+  * app
+  */
+> .header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  background: #333;
+  color: #d8d8d8;
+  height: 68px;
+}
+
+> .header > * {
+  margin: 0 35px;
+}
+
+> .header > .logo {
+  font-size: 1.5em;
+  margin-left: 40px; /* override */
+}
+
+> .header > .logo small {
+  font-size: 0.5em;
+}
+
+> .header > .info {
+  margin-left: 30px;
+  font-size: .8em;
+}
+
+.chart {
+  position: relative;
+}
+
+::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 13px;
+}
+
+::-webkit-scrollbar:horizontal {
+  height: 13px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 7px;
+  background-color: rgba(0, 0, 0, .7);
+}
+
+::-webkit-scrollbar-track {
+  background: #f2f2f2;
+}
+
+
+/**
+  * scrollbar
+  */
+.scrollbar {
+  position: absolute;
+  background: #f2f2f2;
+}
+
+.scrollbar .scroll-handle {
+  position: absolute;
+  background: #444;
+  user-select: none;
+}
+
+.x-scrollbar {
+  height: 13px;
+}
+
+.x-scrollbar .scroll-handle {
+  height: 13px;
+}
+
+.y-scrollbar {
+  width: 13px;
+}
+
+.y-scrollbar .scroll-handle {
+  width: 13px;
+}
+
+
+.x-axis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/**
+  * tooltip
+  */
+.tooltip {
+  position: absolute;
+  background: #444;
+  color: #fff;
+  padding: 10px;
+  font-size: .75em;
+  border-radius: 5px;
+}
+
+/**
+  *  options slide down
+  */
+
+.options {
+  margin: 68px auto 0 auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 60%;
+  height: 0;
+  z-index: 100;
+  background-color: #fff;
+  overflow-x: hidden;
+  transition: 0.3s;
+  visibility: hidden;
+  -webkit-box-shadow: 0px 3px 28px -6px rgba(0,0,0,0.55);
+  -moz-box-shadow: 0px 3px 28px -6px rgba(0,0,0,0.55);
+  box-shadow: 0px 3px 28px -6px rgba(0,0,0,0.55);
+}
+
+.options .sorting {
+  padding: 30px 10px;
+  margin-left: 10px;
+  text-decoration: none;
+  color: #666;
+  display: inline-block;
+}
+
+.options a { cursor: pointer; }
+.options a:hover { color: #000; }
+.options a.active {
+  border-bottom: 3px solid #444;
+  color: #000;
+}
+
+.options .close-btn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  border: none;
+}
+
+.options .option-title {
+  font-weight: bold;
+}
+
+.options .option-group {
+  margin: 15px 15px;
+}
+
+/**
+  * forms
+  */
+.opts-btn {
+  height: 28px;
+}
