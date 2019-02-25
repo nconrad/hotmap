@@ -170,8 +170,11 @@ export default class Heatmap {
             contentHeight: this.cellYDim * this.size.y,
             xMax: this.size.x,
             yMax: this.size.y,
-            onXMove: pos => this.onHorizontalScroll(pos),
-            onYMove: pos => this.onVerticalScroll(pos)
+            onMove: (direction, pos) => {
+                if (direction === 'x') this.onHorizontalScroll(pos);
+                else if (direction == 'y') pos => this.onVerticalScroll(pos);
+                this.hideHoverTooltip();
+            }
         });
 
         addLegend(this.ele, 250, 16, this.size.min, this.size.max, this.color);
@@ -541,10 +544,8 @@ export default class Heatmap {
         // otherwise, just reinit mouse events
         let container;
         if (!this.mouseContainer) {
-            container = document.createElement('div');
-            container.className = 'mouse-tracker';
+            container = document.querySelector('.scroll-container');
             container.style.position = 'absolute';
-            this.ele.querySelector('.chart').appendChild(container);
             this.mouseContainer = container;
         } else {
             container = this.mouseContainer;
@@ -562,13 +563,16 @@ export default class Heatmap {
         let coordinates = {x: -1, y: -1};
 
         this.onMove = evt => {
-            // position of mouse
-            let xPos = evt.offsetX,
-                yPos = evt.offsetY;
+            // look at container for scroll offsets
+            let scrollCtner = evt.target.parentNode;
+
+            // relative position of mouse on view (taking scrolling into account)
+            let _xPos = evt.offsetX - scrollCtner.scrollLeft,
+                _yPos = evt.offsetY - scrollCtner.scrollTop;
 
             // relative position on visible cells
-            let x = parseInt(xPos / this.cellXDim),
-                y = parseInt(yPos / this.cellYDim);
+            let x = parseInt(_xPos / this.cellXDim),
+                y = parseInt(_yPos / this.cellYDim);
 
             let oldX = coordinates.x,
                 oldY = coordinates.y;
@@ -635,11 +639,8 @@ export default class Heatmap {
             });
 
             this.hideHoverInfo();
+            this.hideHoverTooltip();
             coordinates = {x: -1, y: -1};
-
-            let tooltip = this.ele.querySelector('.tooltip');
-            tooltip.style.display = 'none';
-            this.ele.querySelectorAll('.hover-box').forEach(el => el.remove());
         };
 
         container.addEventListener('mousemove', this.onMove);
@@ -677,6 +678,12 @@ export default class Heatmap {
 
     hideHoverInfo() {
         this.ele.querySelector('.header .info').innerHTML = '';
+    }
+
+    hideHoverTooltip() {
+        let tooltip = this.ele.querySelector('.tooltip');
+        tooltip.style.display = 'none';
+        this.ele.querySelectorAll('.hover-box').forEach(el => el.remove());
     }
 
 

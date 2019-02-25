@@ -6,13 +6,13 @@
  * Authors: nconrad
  */
 
-let barOffset = '15px';
+let barOffset = '15';
 
 export default class ScrollBar {
 
     constructor({
         ele, x, y, width, height, xMax, yMax,
-        contentWidth, contentHeight, onXMove, onYMove
+        contentWidth, contentHeight, onMove,
     }) {
         this.ele = ele;
         this.x = x;
@@ -22,8 +22,7 @@ export default class ScrollBar {
         this._yMax = yMax;
 
         // events
-        this._onXMove = onXMove;
-        this._onYMove = onYMove;
+        this._onMove = onMove;
 
         this.width = width;
         this.height = height;
@@ -39,15 +38,14 @@ export default class ScrollBar {
         // setup scroll container
         let container = document.querySelector('.scroll-container');
         container.style.position = 'absolute';
-        container.style.overflow = 'scroll';
-        container.style.padding = `0 ${barOffset} ${barOffset} 0`;
-        this.ele.querySelector('.chart').appendChild(container);
+        container.style.overflowY = 'scroll';
+        container.style.padding = `0 ${barOffset}px ${barOffset}px 0`;
         this.scrollContainer = container;
 
         container.style.top = this.y;
         container.style.left = this.x;
-        container.style.width = this.width;
-        container.style.height = this.height;
+        container.style.width = this.width - barOffset;
+        container.style.height = this.height - barOffset;
 
         // setup fake content
         let content = document.createElement('div');
@@ -73,13 +71,13 @@ export default class ScrollBar {
             if (xDirection) {
                 let percent = target.scrollLeft / target.scrollWidth;
                 let pos = Math.ceil(percent * this._xMax);
-                this._onXMove(pos);
+                this._onMove('x', pos);
             }
 
             if (yDirection) {
                 let percent = target.scrollTop / target.scrollHeight;
                 let pos = Math.ceil(percent * this._yMax);
-                this._onYMove(pos);
+                this._onMove('y', pos);
             }
 
             previousX = x;
@@ -88,11 +86,11 @@ export default class ScrollBar {
     }
 
     setWidth(width) {
-        this.content.style.width = width;
+        this.content.style.width = width - barOffset;
     }
 
     setHeight(height) {
-        this.content.style.height = height;
+        this.content.style.height = height - barOffset;
     }
 
     setContentWidth(width) {

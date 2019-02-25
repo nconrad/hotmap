@@ -38,7 +38,6 @@ export default class Options {
             document.addEventListener('click', close);
         };
 
-
         document.querySelector('.close-btn').onclick = () => this.hide();
 
         // click events for sorting

@@ -1,0 +1,52 @@
+
+/**
+ *  options slide down
+ */
+.options {
+  margin: 68px auto 0 auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 60%;
+  height: 0;
+  z-index: 100;
+  background-color: #fff;
+  overflow-x: hidden;
+  transition: 0.3s;
+  visibility: hidden;
+  -webkit-box-shadow: 0px 3px 28px -6px rgba(0,0,0,0.55);
+  -moz-box-shadow: 0px 3px 28px -6px rgba(0,0,0,0.55);
+  box-shadow: 0px 3px 28px -6px rgba(0,0,0,0.55);
+}
+
+.options .sorting {
+  padding: 30px 10px;
+  margin-left: 10px;
+  text-decoration: none;
+  color: #666;
+  display: inline-block;
+}
+
+.options a { cursor: pointer; }
+.options a:hover { color: #000; }
+.options a.active {
+  border-bottom: 3px solid #444;
+  color: #000;
+}
+
+.options .close-btn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  border: none;
+}
+
+.options .option-title {
+  font-weight: bold;
+}
+
+.options .option-group {
+  margin: 15px 15px;
+}
