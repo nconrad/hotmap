@@ -172,7 +172,7 @@ export default class Heatmap {
             yMax: this.size.y,
             onMove: (direction, pos) => {
                 if (direction === 'x') this.onHorizontalScroll(pos);
-                else if (direction == 'y') pos => this.onVerticalScroll(pos);
+                else if (direction === 'y') this.onVerticalScroll(pos);
                 this.hideHoverTooltip();
             }
         });
@@ -545,7 +545,6 @@ export default class Heatmap {
         let container;
         if (!this.mouseContainer) {
             container = document.querySelector('.scroll-container');
-            container.style.position = 'absolute';
             this.mouseContainer = container;
         } else {
             container = this.mouseContainer;

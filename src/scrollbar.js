@@ -37,8 +37,6 @@ export default class ScrollBar {
     init() {
         // setup scroll container
         let container = document.querySelector('.scroll-container');
-        container.style.position = 'absolute';
-        container.style.overflowX = 'scroll';
         container.style.padding = `0 ${barOffset}px ${barOffset}px 0`;
         this.scrollContainer = container;
 
@@ -49,6 +47,7 @@ export default class ScrollBar {
 
         // setup fake content
         let content = document.createElement('div');
+        content.classList.add('scroll-content');
         content.style.top = this.y;
         content.style.left = this.x;
         content.style.width = this.contentWidth;

@@ -7,7 +7,7 @@
 button {
   background-color: #fff;
   border: 1px solid #ddd;
-  font-size: 1.0em;
+  font-size: .8em;
 }
 
 button:hover {
@@ -75,7 +75,11 @@ button:focus {
 }
 
 .scroll-container::-webkit-scrollbar {
+  display: inherit;
   -webkit-appearance: none;
+}
+
+.scroll-container::-webkit-scrollbar:vertical {
   width: 13px;
 }
 
@@ -84,17 +88,24 @@ button:focus {
 }
 
 .scroll-container::-webkit-scrollbar-thumb {
-  border-radius: 7px;
+  border-radius: 8px;
   background-color: rgba(0, 0, 0, .7);
 }
 
 .scroll-container::-webkit-scrollbar-track {
+  border-radius: 8px;
   background: #f2f2f2;
+}
+
+.scroll-container {
+  position: absolute;
+  overflow: auto;
 }
 
 .scroll-container:hover {
   overflow: auto;
 }
+
 
 /**
   * tooltip
