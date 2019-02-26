@@ -74,36 +74,10 @@ button:focus {
   position: relative;
 }
 
-.scroll-container::-webkit-scrollbar {
-  display: inherit;
-  -webkit-appearance: none;
-}
-
-.scroll-container::-webkit-scrollbar:vertical {
-  width: 13px;
-}
-
-.scroll-container::-webkit-scrollbar:horizontal {
-  height: 13px;
-}
-
-.scroll-container::-webkit-scrollbar-thumb {
-  border-radius: 8px;
-  background-color: rgba(0, 0, 0, .7);
-}
-
-.scroll-container::-webkit-scrollbar-track {
-  border-radius: 8px;
-  background: #f2f2f2;
-}
-
-.scroll-container {
+.webgl-canvas {
+  /* must be z-indexed and absolute for safari*/
+  z-index: -1;
   position: absolute;
-  overflow: auto;
-}
-
-.scroll-container:hover {
-  overflow: auto;
 }
 
 

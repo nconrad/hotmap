@@ -38,20 +38,25 @@ export default class ScrollBar {
         // setup scroll container
         let container = document.querySelector('.scroll-container');
         container.style.padding = `0 ${barOffset}px ${barOffset}px 0`;
-        this.scrollContainer = container;
+
+        // for firefox, at least show on hover
+        if (navigator.userAgent.search('Firefox') != -1) {
+            container.classList.add('ff');
+        }
 
         container.style.top = this.y;
         container.style.left = this.x;
         container.style.width = this.width;
         container.style.height = this.height;
+        this.scrollContainer = container;
 
         // setup fake content
         let content = document.createElement('div');
         content.classList.add('scroll-content');
         content.style.top = this.y;
         content.style.left = this.x;
-        content.style.width = this.contentWidth;
-        content.style.height = this.contentHeight;
+        content.style.width = this.contentWidth - barOffset;
+        content.style.height = this.contentHeight - barOffset;
 
         this.scrollContainer.append(content);
         this.content = content;

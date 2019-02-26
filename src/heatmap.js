@@ -104,7 +104,7 @@ export default class Heatmap {
         let renderer = this.getRenderer(canvasWidth, canvasHeight);
         this.renderer = renderer;
 
-        this.ele.querySelector('.webgl-canvas')
+        let canvas = this.ele.querySelector('.webgl-canvas')
             .appendChild(renderer.view);
 
         if (PARTICLE_CONTAINER) {
@@ -113,7 +113,7 @@ export default class Heatmap {
             this.stage._maxSize = this.size.x * this.size.y;
         } else {
             this.stage = new PIXI.Container();
-            this.stage._maxSize = this.size.x * this.size.y;
+            // this.stage._maxSize = this.size.x * this.size.y;
             this.catStage = new PIXI.Container();
             this.stage.addChild(this.catStage);
         }
