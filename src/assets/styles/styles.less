@@ -74,26 +74,26 @@ button:focus {
   position: relative;
 }
 
-::-webkit-scrollbar {
+.scroll-container::-webkit-scrollbar {
   -webkit-appearance: none;
   width: 13px;
 }
 
-::-webkit-scrollbar:horizontal {
+.scroll-container::-webkit-scrollbar:horizontal {
   height: 13px;
 }
 
-::-webkit-scrollbar-thumb {
+.scroll-container::-webkit-scrollbar-thumb {
   border-radius: 7px;
   background-color: rgba(0, 0, 0, .7);
 }
 
-::-webkit-scrollbar-track {
+.scroll-container::-webkit-scrollbar-track {
   background: #f2f2f2;
 }
 
 .scroll-container:hover {
-  overflow: auto; /* show scrollbar for firefox */
+  overflow: auto;
 }
 
 /**

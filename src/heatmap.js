@@ -317,9 +317,9 @@ export default class Heatmap {
 
             // if y-axis is out-of-range, hide
             if (yViewSize >= this.size.y) {
-                // this.yScrollBar.hide();
+                this.scrollBars.hideY();
             } else {
-                // this.yScrollBar.show();
+                this.scrollBars.showY();
             }
         }
 
@@ -331,9 +331,9 @@ export default class Heatmap {
 
             // if x-axis is out-of-range
             if (xViewSize >= this.size.x) {
-                // this.xScrollBar.hide();
+                this.scrollBars.hideX();
             } else {
-                // this.xScrollBar.show();
+                this.scrollBars.showX();
             }
         }
 

@@ -38,14 +38,14 @@ export default class ScrollBar {
         // setup scroll container
         let container = document.querySelector('.scroll-container');
         container.style.position = 'absolute';
-        container.style.overflowY = 'scroll';
+        container.style.overflowX = 'scroll';
         container.style.padding = `0 ${barOffset}px ${barOffset}px 0`;
         this.scrollContainer = container;
 
         container.style.top = this.y;
         container.style.left = this.x;
-        container.style.width = this.width - barOffset;
-        container.style.height = this.height - barOffset;
+        container.style.width = this.width;
+        container.style.height = this.height;
 
         // setup fake content
         let content = document.createElement('div');
@@ -86,19 +86,38 @@ export default class ScrollBar {
     }
 
     setWidth(width) {
-        this.content.style.width = width - barOffset;
+        this.width = width - barOffset;
+        this.content.style.width = this.width;
     }
 
     setHeight(height) {
-        this.content.style.height = height - barOffset;
+        this.height = height - barOffset;
+        this.content.style.height = this.height;
     }
 
     setContentWidth(width) {
+        this.contentWidth = width;
         this.scrollContainer.style.width = width;
     }
 
     setContentHeight(height) {
+        this.contentHeight = height;
         this.scrollContainer.style.height = height;
     }
 
+    hideY() {
+        this.scrollContainer.style.paddingRight = 0;
+    }
+
+    showY() {
+        this.scrollContainer.style.paddingRight = `${barOffset}px`;
+    }
+
+    hideX() {
+        this.scrollContainer.style.paddingBottom = 0;
+    }
+
+    showX() {
+        this.scrollContainer.style.paddingBottom = `${barOffset}px`;
+    }
 }
