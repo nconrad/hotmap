@@ -82,8 +82,7 @@ export default class Heatmap {
 
         // components to be instantiated
         this.scaleCtrl;
-        this.xScrollBar;
-        this.yScrollBar;
+        this.scrollBars;
 
         this.start();
 
@@ -119,63 +118,11 @@ export default class Heatmap {
         }
 
         // initialize scale x/y width controls
-        this.scaleCtrl = new ScaleCtrl({
-            ele: this.ele,
-            xValue: this.cellXDim,
-            yValue: this.cellYDim,
-            onXChange: (val, isLocked) => {
-                this.cellXDim = val;
-                if (isLocked) {
-                    this.cellYDim = val;
-                    this.renderChart(true, true, true);
-                } else {
-                    this.renderChart(true, false, true);
-                }
-                return {x: this.cellXDim, y: this.cellYDim};
-            },
-            onYChange: (val, isLocked) => {
-                this.cellYDim = val;
-                if (isLocked) {
-                    this.cellXDim = val;
-                    this.renderChart(true, true, true);
-                } else {
-                    this.renderChart(false, true, true);
-                }
-                return {x: this.cellXDim, y: this.cellYDim};
-            },
-            onLockClick: lockOpen => {
-                let x = this.cellXDim,
-                    y = this.cellYDim;
-
-                if (y > x)
-                    this.cellXDim = y;
-                else
-                    this.cellYDim = x;
-
-                this.renderChart(true, true, true);
-
-                return {x: this.cellXDim, y: this.cellYDim};
-            }
-        });
+        this.scaleCtrl = this.getScaleCtrl();
 
         // add (fake) scrollbars.
         // note: we must update size of content area on render
-        this.scrollBars = new ScrollBar({
-            ele: this.ele,
-            x: margin.left,
-            y: margin.top,
-            width: xViewSize,
-            height: yViewSize,
-            contentWidth: this.cellXDim * this.size.x,
-            contentHeight: this.cellYDim * this.size.y,
-            xMax: this.size.x,
-            yMax: this.size.y,
-            onMove: (direction, pos) => {
-                if (direction === 'x') this.onHorizontalScroll(pos);
-                else if (direction === 'y') this.onVerticalScroll(pos);
-                this.hideHoverTooltip();
-            }
-        });
+        this.scrollBars = this.getScrollBars();
 
         addLegend(this.ele, 250, 16, this.size.min, this.size.max, this.color);
 
@@ -184,11 +131,8 @@ export default class Heatmap {
             renderer.render(this.stage);
         };
 
-        this.renderChart(true, true);
-        this.isStaged = true;
+        this.initStage();
 
-
-        // Todo: cleanup pre-render staging
         this.cellXDim = 5;
         this.cellYDim = 10;
         this.scaleCtrl._setValues({x: this.cellXDim, y: this.cellYDim});
@@ -219,15 +163,26 @@ export default class Heatmap {
         return renderer;
     }
 
+    initStage() {
+        this.isStaged = false;
+        this.renderChart(true, true);
+        this.isStaged = true;
+    }
+
     /**
-     * rendering experiment
-     * todo: break into stage and update alpha
+     * todo: break into stage and update tint
      */
     renderChart(renderX, renderY, scale) {
         this.clearStage(renderX, renderY, scale);
 
-        let cellXDim = this.cellXDim,
+        let cellXDim, cellYDim;
+        if (this.isStaged) {
+            cellXDim = this.cellXDim;
             cellYDim = this.cellYDim;
+        } else {
+            cellXDim = 1;
+            cellYDim = 1;
+        }
 
         let xStart = this.xStart,
             yStart = this.yStart;
@@ -418,9 +373,6 @@ export default class Heatmap {
             ele.innerHTML = text;
         }
 
-        // optional super pretty ellipsis?
-        // this.textEllipsis(ele, text, margin.top + 10); // add some for angle
-
         ele.setAttribute('transform', `translate(-${width})`);
         ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
     }
@@ -531,6 +483,66 @@ export default class Heatmap {
     onVerticalScroll(yStart) {
         this.yStart = yStart;
         this.renderChart(false, true);
+    }
+
+    getScaleCtrl() {
+        return new ScaleCtrl({
+            ele: this.ele,
+            xValue: this.cellXDim,
+            yValue: this.cellYDim,
+            onXChange: (val, isLocked) => {
+                this.cellXDim = val;
+                if (isLocked) {
+                    this.cellYDim = val;
+                    this.renderChart(true, true, true);
+                } else {
+                    this.renderChart(true, false, true);
+                }
+                return {x: this.cellXDim, y: this.cellYDim};
+            },
+            onYChange: (val, isLocked) => {
+                this.cellYDim = val;
+                if (isLocked) {
+                    this.cellXDim = val;
+                    this.renderChart(true, true, true);
+                } else {
+                    this.renderChart(false, true, true);
+                }
+                return {x: this.cellXDim, y: this.cellYDim};
+            },
+            onLockClick: lockOpen => {
+                let x = this.cellXDim,
+                    y = this.cellYDim;
+
+                if (y > x)
+                    this.cellXDim = y;
+                else
+                    this.cellYDim = x;
+
+                this.renderChart(true, true, true);
+
+                return {x: this.cellXDim, y: this.cellYDim};
+            }
+        });
+    }
+
+    getScrollBars() {
+        return new ScrollBar({
+            ele: this.ele,
+            x: margin.left,
+            y: margin.top,
+            width: xViewSize,
+            height: yViewSize,
+            contentWidth: this.cellXDim * this.size.x,
+            contentHeight: this.cellYDim * this.size.y,
+            xMax: this.size.x,
+            yMax: this.size.y,
+            onMove: (direction, pos) => {
+                if (direction === 'x') this.onHorizontalScroll(pos);
+                else if (direction === 'y') this.onVerticalScroll(pos);
+                this.hideHoverTooltip();
+            }
+        });
     }
 
     mouseTracker() {
@@ -698,6 +710,7 @@ export default class Heatmap {
         this.svg.setAttribute('width', canvasWidth);
         this.svg.setAttribute('height', canvasHeight);
 
+        this.initStage(); // re-init stage for max number of sprites on canvas
         this.renderChart(true, true, true);
     }
 
