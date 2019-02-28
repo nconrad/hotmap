@@ -103,7 +103,7 @@ export default class Heatmap {
         let renderer = this.getRenderer(canvasWidth, canvasHeight);
         this.renderer = renderer;
 
-        let canvas = this.ele.querySelector('.webgl-canvas')
+        this.ele.querySelector('.webgl-canvas')
             .appendChild(renderer.view);
 
         if (PARTICLE_CONTAINER) {
@@ -403,7 +403,8 @@ export default class Heatmap {
         let width = parseInt(categoryWidth / categories.length );
 
         for (let i = 0; i < categories.length; i++) {
-            let sprite = this.textureRect( this.rowCatColors[index][i] );
+            let sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
+            sprite.tint = this.rowCatColors[index][i];
             sprite.x = x;
             sprite.y = y;
             sprite.height = this.cellYDim;
@@ -412,39 +413,6 @@ export default class Heatmap {
             this.catStage.addChild(sprite);
             x += width;
         }
-    }
-
-    // Todo: (optimize) cache textures
-    textureRect(color) {
-        let g = new PIXI.Graphics();
-        g.beginFill(color);
-        g.drawRect(1, 1, 10, 10);
-        g.endFill();
-        return new PIXI.Sprite(g.generateCanvasTexture());
-    }
-
-    // not currently used
-    stageSprites() {
-        let sprites = [];
-
-        // for each row
-        for (let i = 0; i < this.size.y; i++) {
-            let row = [];
-            // for each column
-            for (let j = 0; j < this.size.x; j++) {
-                let sprite = this.loadSprite(i, j);
-                row.push(sprite);
-            }
-            sprites.push(row);
-        }
-
-        return sprites;
-    }
-
-    // not currently used
-    stageSprite(i, j) {
-        // implement
-        return null;
     }
 
     clearStage(clearX, clearY, clearStage) {
