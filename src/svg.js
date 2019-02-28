@@ -5,6 +5,8 @@
  *
  * Authors: nconrad
  */
+import { setAttributes } from './dom';
+
 export const svgNS = 'http://www.w3.org/2000/svg';
 
 export function svgG(svg) {
@@ -39,4 +41,29 @@ export function svgRect(x, y, w, h, opts = {}) {
     ele.setAttribute('stroke', opts.stroke || 'rgb(0,0,0)');
 
     return ele;
+}
+
+/* not used */
+export function addSvgGradient(svg, startColor, stopColor) {
+    // define gradient
+    let defs = svgEle('defs'),
+        linearGradient = svgEle('linearGradient'),
+        stop1 = svgEle('stop'),
+        stop2 = svgEle('stop');
+
+    setAttributes(linearGradient, {
+        id: 'posGradient',
+        x1: '0%',
+        y1: '0%',
+        x2: '100%',
+        y2: '0%',
+        spreadMethod: 'pad'
+    });
+    setAttributes(stop1, { 'offset': '0%', 'stop-color': startColor, 'stop-opacity': 1 });
+    setAttributes(stop2, { 'offset': '100%', 'stop-color': stopColor, 'stop-opacity': 1 });
+    defs.appendChild(linearGradient);
+    linearGradient.appendChild(stop1);
+    linearGradient.appendChild(stop2);
+
+    svg.appendChild(defs);
 }

@@ -17,3 +17,11 @@ textEllipsis(ele, text, width) {
         ele.textContent = text.slice(0, len) + '...';
     }
 }
+
+textureRect(color) {
+    let g = new PIXI.Graphics();
+    g.beginFill(color);
+    g.drawRect(1, 1, 10, 10);
+    g.endFill();
+    return new PIXI.Sprite(g.generateCanvasTexture());
+}

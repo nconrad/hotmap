@@ -173,6 +173,7 @@ export default class Heatmap {
      * todo: break into stage and update tint
      */
     renderChart(renderX, renderY, scale) {
+        // let t0 = performance.now();
         this.clearStage(renderX, renderY, scale);
 
         let cellXDim, cellYDim;
@@ -295,6 +296,8 @@ export default class Heatmap {
         this.mouseTracker();
         requestAnimationFrame(this.render); // draw
         this.catLabelsAdded = true;
+        // let t1 = performance.now();
+        // console.log('total time spent', t1 - t0);
     }
 
     initSVGContainers(width, height) {
