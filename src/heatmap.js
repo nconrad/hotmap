@@ -3,6 +3,8 @@
  *
  * Author: https://github.com/nconrad
  *
+ * Todo: polyfill remove()/append()
+ *
  */
 import 'pixi.js/dist/pixi';
 
@@ -100,11 +102,45 @@ export default class Heatmap {
         this.yAxis = obj.yAxis;
         this.cAxis = obj.cAxis;
 
+
+        // initialize scale x/y width controls
+        this.scaleCtrl = this.getScaleCtrl();
+
+        // add (fake) scrollbars.
+        // note: we must update size of content area on render
+        this.scrollBars = this.getScrollBars();
+
+        addLegend(this.ele, 250, 16, this.size.min, this.size.max, this.color);
+
+
         let renderer = this.getRenderer(canvasWidth, canvasHeight);
         this.renderer = renderer;
 
+        this.init();
+
+        // adjust canvas on resize
+        let resizeTO;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTO);
+            resizeTO = setTimeout(this.resize.bind(this), 100);
+        });
+
+        // initialize options
+        this.options = new Options({
+            parentNode: this.ele,
+            openBtn: document.querySelector('.opts-btn'),
+            onSort: (cat) => this.rowCatSort(cat)
+        });
+    }
+
+
+    init() {
+        if (this.ele.querySelector('.webgl-canvas canvas')) {
+            this.ele.querySelector('.webgl-canvas canvas').remove();
+        }
+
         this.ele.querySelector('.webgl-canvas')
-            .appendChild(renderer.view);
+            .appendChild(this.renderer.view);
 
         if (PARTICLE_CONTAINER) {
             this.stage = new PIXI.particles.ParticleContainer();
@@ -117,38 +153,20 @@ export default class Heatmap {
             this.stage.addChild(this.catStage);
         }
 
-        // initialize scale x/y width controls
-        this.scaleCtrl = this.getScaleCtrl();
-
-        // add (fake) scrollbars.
-        // note: we must update size of content area on render
-        this.scrollBars = this.getScrollBars();
-
-        addLegend(this.ele, 250, 16, this.size.min, this.size.max, this.color);
-
         // render is used by rAF when needed
         this.render = () => {
-            renderer.render(this.stage);
+            this.renderer.render(this.stage);
         };
 
+        // initial staging of 1x1 cells
         this.initStage();
 
-        this.cellXDim = 5;
+        this.cellXDim = 1;
         this.cellYDim = 10;
         this.scaleCtrl._setValues({x: this.cellXDim, y: this.cellYDim});
         this.renderChart(true, true, true);
-        this.render();
-
-        // adjust canvas to window/container
-        window.addEventListener('resize', this.resize.bind(this));
-
-        // initialize options
-        this.options = new Options({
-            parentNode: this.ele,
-            openBtn: document.querySelector('.opts-btn'),
-            onSort: (cat) => this.rowCatSort(cat)
-        });
     }
+
 
     getRenderer(width, height) {
         let renderer;
@@ -681,7 +699,7 @@ export default class Heatmap {
         this.svg.setAttribute('width', canvasWidth);
         this.svg.setAttribute('height', canvasHeight);
 
-        this.initStage(); // re-init stage for max number of sprites on canvas
+        this.init();
         this.renderChart(true, true, true);
     }
 
