@@ -4,6 +4,7 @@
  * A scrollbar implementation for heatmap.js, using fake content area.
  *
  * Authors: nconrad
+ *
  */
 
 let barOffset = '15';

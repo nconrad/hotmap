@@ -11,6 +11,7 @@ import 'pixi.js/dist/pixi';
 import container from './container.html';
 import ScaleCtrl from './scale-ctrl';
 import ScrollBar from './scrollbar';
+import MouseTracker from './mouse-tracker';
 import Options from './options';
 import { addLegend } from './legend';
 import { matMinMax } from './utils';
@@ -23,7 +24,7 @@ import './assets/styles/heatmap.less';
 const FORCE_CANVAS = false;
 const PARTICLE_CONTAINER = false;
 
-// view size (in terms of matrix)
+// view size (in terms of size of matrix)
 let yViewSize;
 let xViewSize;
 
@@ -85,6 +86,7 @@ export default class Heatmap {
         // components to be instantiated
         this.scaleCtrl;
         this.scrollBars;
+        this.mouseTracker;
 
         this.start();
 
@@ -102,16 +104,19 @@ export default class Heatmap {
         this.yAxis = obj.yAxis;
         this.cAxis = obj.cAxis;
 
-
         // initialize scale x/y width controls
         this.scaleCtrl = this.getScaleCtrl();
 
         // add (fake) scrollbars.
-        // note: we must update size of content area on render
+        // we update size of content area on render
         this.scrollBars = this.getScrollBars();
 
-        addLegend(this.ele, 250, 16, this.size.min, this.size.max, this.color);
+        // add mouse tracker.
+        // we update the size of the area on render
+        this.mouseTracker = this.getMouseTracker();
 
+
+        addLegend(this.ele, 250, 16, this.size.min, this.size.max, this.color);
 
         let renderer = this.getRenderer(canvasWidth, canvasHeight);
         this.renderer = renderer;
@@ -182,6 +187,8 @@ export default class Heatmap {
     }
 
     initStage() {
+        this.cellXDim = 1;
+        this.cellYDim = 1;
         this.isStaged = false;
         this.renderChart(true, true);
         this.isStaged = true;
@@ -194,14 +201,8 @@ export default class Heatmap {
         // let t0 = performance.now();
         this.clearStage(renderX, renderY, scale);
 
-        let cellXDim, cellYDim;
-        if (this.isStaged) {
-            cellXDim = this.cellXDim;
+        let cellXDim = this.cellXDim,
             cellYDim = this.cellYDim;
-        } else {
-            cellXDim = 1;
-            cellYDim = 1;
-        }
 
         let xStart = this.xStart,
             yStart = this.yStart;
@@ -311,7 +312,14 @@ export default class Heatmap {
             }
         }
 
-        this.mouseTracker();
+        this.mouseTracker.update({
+            top: margin.top,
+            left: margin.left,
+            width: xViewSize * this.cellXDim,
+            height: yViewSize * this.cellYDim,
+            cellXSize: this.cellXDim,
+            cellYSize: this.cellYDim
+        });
         requestAnimationFrame(this.render); // draw
         this.catLabelsAdded = true;
         // let t1 = performance.now();
@@ -534,117 +542,78 @@ export default class Heatmap {
         });
     }
 
-    mouseTracker() {
-        let cellXStart = margin.left,
-            cellYStart = margin.top;
+    getMouseTracker() {
+        return new MouseTracker({
+            ele: document.querySelector('.scroll-container'),
+            top: margin.top,
+            left: margin.left,
+            width: xViewSize * this.cellXDim,
+            height: yViewSize * this.cellYDim,
+            cellXSize: this.cellXDim,
+            cellYSize: this.cellYDim,
+            m: this.size.y,
+            n: this.size.x,
+            onCellMouseOver: (pos) => this.onCellMouseOver(pos),
+            onCellMouseOut: () => this.onCellMouseOut(),
+        });
+    }
 
-        let width = xViewSize * this.cellXDim,
-            height = yViewSize * this.cellYDim;
+    onCellMouseOver(posObj) {
+        let {x, y, oldX, oldY} = posObj;
 
-        // add a container for tracking (if needed)
-        // otherwise, just reinit mouse events
-        let container;
-        if (!this.mouseContainer) {
-            container = document.querySelector('.scroll-container');
-            this.mouseContainer = container;
-        } else {
-            container = this.mouseContainer;
-            container.removeEventListener('mousemove', this.onMove);
-            container.removeEventListener('mouseout', this.onMouseOut);
+        if (x > xViewSize - 1 || y > yViewSize - 1 ) return;
+
+        // if there even is y axis labels and we're changing cells
+        if (this.yAxis.childNodes.length && y !== oldY) {
+            let label;
+            // old cell hover styling
+            if (oldY !== -1 && oldY < yViewSize ) {
+                label = this.yAxis.querySelector(`.row-${oldY}`);
+                label.setAttribute('fill', labelColor);
+                label.setAttribute('font-weight', 'normal');
+            }
+            // new cell hover styling
+            label = this.yAxis.querySelector(`.row-${y}`);
+            label.setAttribute('fill', labelHoverColor);
+            label.setAttribute('font-weight', 'bold');
         }
 
-        // update container on scaling
-        container.style.top = cellYStart;
-        container.style.left = cellXStart;
-        container.style.width = width;
-        container.style.height = height;
-
-        // here we use -1 since new to old cell comparison is made
-        let coordinates = {x: -1, y: -1};
-
-        this.onMove = evt => {
-            // look at container for scroll offsets
-            let scrollCtner = evt.target.parentNode;
-
-            // relative position of mouse on view (taking scrolling into account)
-            let _xPos = evt.offsetX - scrollCtner.scrollLeft,
-                _yPos = evt.offsetY - scrollCtner.scrollTop;
-
-            // relative position on visible cells
-            let x = parseInt(_xPos / this.cellXDim),
-                y = parseInt(_yPos / this.cellYDim);
-
-            let oldX = coordinates.x,
-                oldY = coordinates.y;
-
-            // ignore boundaries
-            if (x > xViewSize - 1 || y > yViewSize - 1 ) return;
-
-            // if there even is y axis labels and we're changing cells
-            if (this.yAxis.childNodes.length && y !== oldY) {
-                let label;
-                // old cell hover styling
-                if (oldY !== -1) {
-                    label = this.yAxis.querySelector(`.row-${oldY}`);
-                    label.setAttribute('fill', labelColor);
-                    label.setAttribute('font-weight', 'normal');
-                }
-                // new cell hover styling
-                label = this.yAxis.querySelector(`.row-${y}`);
-                if (label) {
-                    label.setAttribute('fill', labelHoverColor);
-                    label.setAttribute('font-weight', 'bold');
-                }
+        // if there even is x axis labels and we're changing cells
+        if (this.xAxis.childNodes.length && x !== oldX) {
+            let label;
+            if (oldX !== -1 && oldX < xViewSize) {
+                label = this.xAxis.querySelector(`.col-${oldX}`);
+                label.setAttribute('fill', labelColor);
+                label.setAttribute('font-weight', 'normal');
             }
+            label = this.xAxis.querySelector(`.col-${x}`);
+            label.setAttribute('fill', labelHoverColor);
+            label.setAttribute('font-weight', 'bold');
+        }
 
-            // if there even is x axis labels and we're changing cells
-            if (this.xAxis.childNodes.length && x !== oldX) {
-                let label;
-                if (oldX !== -1) {
-                    label = this.xAxis.querySelector(`.col-${oldX}`);
-                    label.setAttribute('fill', labelColor);
-                    label.setAttribute('font-weight', 'normal');
-                }
-                label = this.xAxis.querySelector(`.col-${x}`);
-                label.setAttribute('fill', labelHoverColor);
-                label.setAttribute('font-weight', 'bold');
-            }
+        let i = this.yStart + y,
+            j = this.xStart + x;
 
-            if (x !== oldX || y !== oldY) {
-                let i = this.yStart + y,
-                    j = this.xStart + x;
+        let value = this.matrix[i][j],
+            xLabel = this.cols[j].name,
+            yLabel = this.rows[i].name;
 
-                // Todo: fix.  Enforce bounds due to scrolling
-                if (i >= this.size.y || j >= this.size.x) return;
+        this.setHoverInfo(xLabel, yLabel, value, y, x);
+    }
 
-                let value = this.matrix[i][j],
-                    xLabel = this.cols[j].name,
-                    yLabel = this.rows[i].name;
+    onCellMouseOut() {
+        this.yAxis.childNodes.forEach(node => {
+            node.setAttribute('fill', labelColor);
+            node.setAttribute('font-weight', 'normal');
+        });
 
-                this.setHoverInfo(xLabel, yLabel, value, y, x);
-            }
+        this.xAxis.childNodes.forEach(node => {
+            node.setAttribute('fill', labelColor);
+            node.setAttribute('font-weight', 'normal');
+        });
 
-            coordinates = {x, y};
-        };
-
-        this.onMouseOut = () => {
-            this.yAxis.childNodes.forEach(node => {
-                node.setAttribute('fill', labelColor);
-                node.setAttribute('font-weight', 'normal');
-            });
-
-            this.xAxis.childNodes.forEach(node => {
-                node.setAttribute('fill', labelColor);
-                node.setAttribute('font-weight', 'normal');
-            });
-
-            this.hideHoverInfo();
-            this.hideHoverTooltip();
-            coordinates = {x: -1, y: -1};
-        };
-
-        container.addEventListener('mousemove', this.onMove);
-        container.addEventListener('mouseout', this.onMouseOut);
+        this.hideHoverInfo();
+        this.hideHoverTooltip();
     }
 
     setHoverInfo(xLabel, yLabel, value, i, j) {
