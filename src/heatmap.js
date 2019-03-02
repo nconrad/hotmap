@@ -58,6 +58,7 @@ export default class Heatmap {
         }
 
         this.rowCategories = this.getCategories(params.rows);
+        this.colCategories = this.getCategories(params.cols);
         this.rowCatLabels = params.rowCatLabels;
         this.onHover = params.onHover;
 
@@ -635,7 +636,8 @@ export default class Heatmap {
         tooltip.style.left = x + cellXDim;
         tooltip.innerHTML = this.onHover({
             xLabel, yLabel, value,
-            rowCategories: this.rowCategories[i]
+            rowCategories: this.rowCategories[i],
+            colCategories: this.colCategories[i]
         });
 
         // add hover box
@@ -654,7 +656,6 @@ export default class Heatmap {
         tooltip.style.display = 'none';
         this.ele.querySelectorAll('.hover-box').forEach(el => el.remove());
     }
-
 
     getContainerSize() {
         let parent = this.ele.parentNode;

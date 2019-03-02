@@ -41,8 +41,9 @@ function loadViewer({ele, data}) {
         onHover: info => {
             let cs = info.rowCategories;
             return `
-             <div><b>Genome:</b> ${info.yLabel}</div>
-             <div><b>Protein Family:</b> ${info.xLabel}<div><br>
+             <div><b>Genome:</b> ${info.yLabel}</div><br>
+             <div><b>Protein Family:</b> ${info.xLabel}<div>
+             <div><b>ID:</b> ${info.colCategories[0]}<div><br>
              <div><b>${catLabels[0]}:</b> ${cs && cs[0] != 'undefined' ? cs[0] : 'N/A'}</div>
              <div><b>${catLabels[1]}:</b> ${cs && cs[1] != 'undefined' ? cs[1] : 'N/A'}</div>
              <div><b>${catLabels[2]}:</b> ${cs && cs[2] != 'undefined' ? cs[2] : 'N/A'}</div><br>
