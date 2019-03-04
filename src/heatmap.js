@@ -158,8 +158,27 @@ export default class Heatmap {
         this.sorter(this.svg);
     }
 
+    getRenderer(width, height) {
+        let renderer;
+        if (FORCE_CANVAS) {
+            renderer = new PIXI.CanvasRenderer(width, height);
+            renderer.transparent = true;
+        } else {
+            renderer = new PIXI.autoDetectRenderer(width, height, {
+                transparent: true
+            });
+        }
+        return renderer;
+    }
 
-    init() {
+    initStage() {
+        this.isStaged = false;
+        this.renderChart(true, true);
+        this.isStaged = true;
+    }
+
+
+    init(resize) {
         if (this.ele.querySelector('.webgl-canvas canvas')) {
             this.ele.querySelector('.webgl-canvas canvas').remove();
         }
@@ -186,31 +205,14 @@ export default class Heatmap {
         // initial staging of 1x1 cells
         this.initStage();
 
-        this.cellXDim = 1; // (canvasWidth - margin.left - margin.right) / this.size.x;
-        this.cellYDim = 10;
+        if (!resize) {
+            this.cellXDim = 1; // (canvasWidth - margin.left - margin.right) / this.size.x;
+            this.cellYDim = 10;
+        }
         this.scaleCtrl._setValues({x: this.cellXDim, y: this.cellYDim});
         this.renderChart(true, true, true);
     }
 
-
-    getRenderer(width, height) {
-        let renderer;
-        if (FORCE_CANVAS) {
-            renderer = new PIXI.CanvasRenderer(width, height);
-            renderer.transparent = true;
-        } else {
-            renderer = new PIXI.autoDetectRenderer(width, height, {
-                transparent: true
-            });
-        }
-        return renderer;
-    }
-
-    initStage() {
-        this.isStaged = false;
-        this.renderChart(true, true);
-        this.isStaged = true;
-    }
 
     /**
      * todo: break into stage and update tint
@@ -309,9 +311,9 @@ export default class Heatmap {
          * also adjust scrollbars if needed
          **/
         if (renderY || this.scaleCtrl.isLocked()) {
-            this.scrollBars.setHeight(this.cellYDim * this.size.y );
+            this.scrollBars.setHeight(cellYDim * this.size.y );
 
-            let height = yViewSize * this.cellYDim;
+            let height = yViewSize * cellYDim;
             this.scrollBars.setContentHeight(height);
 
             // if y-axis is out-of-range, hide
@@ -323,9 +325,9 @@ export default class Heatmap {
         }
 
         if (renderX || this.scaleCtrl.isLocked()) {
-            this.scrollBars.setWidth(this.cellXDim * this.size.x);
+            this.scrollBars.setWidth(cellXDim * this.size.x);
 
-            let width = xViewSize * this.cellXDim;
+            let width = xViewSize * cellXDim;
             this.scrollBars.setContentWidth(width);
 
             // if x-axis is out-of-range
@@ -339,10 +341,10 @@ export default class Heatmap {
         this.mouseTracker.update({
             top: margin.top,
             left: margin.left,
-            width: xViewSize * this.cellXDim,
-            height: yViewSize * this.cellYDim,
-            cellXSize: this.cellXDim,
-            cellYSize: this.cellYDim
+            width: xViewSize * cellXDim,
+            height: yViewSize * cellYDim,
+            cellXSize: cellXDim,
+            cellYSize: cellYDim
         });
         requestAnimationFrame(this.render); // draw
         this.catLabelsAdded = true;
@@ -456,7 +458,6 @@ export default class Heatmap {
         ele.setAttribute('transform', `rotate(-90, ${x}, ${y})`);
 
         ele.onclick = (evt) => {
-            console.log('this order', this.sortModel[idx]);
             this.sortModel[text] = this.sortModel[text] == 'asc' ? 'dsc' : 'asc';
 
             if (this.sortModel[text] === 'dsc') {
@@ -744,7 +745,7 @@ export default class Heatmap {
         this.svg.setAttribute('width', canvasWidth);
         this.svg.setAttribute('height', canvasHeight);
 
-        this.init(); // no stage
+        this.init(true); // resize init
         this.renderChart(true, true, true);
     }
 
