@@ -34,6 +34,10 @@ const PARTICLE_CONTAINER = false;
 let yViewSize;
 let xViewSize;
 
+const cellXMin = 1;
+const cellXMax = 100;
+const zoomFactor = 0.1; // speed at which to zoom with mouse
+
 // general chart settings
 const margin = {
     top: 200,
@@ -614,6 +618,20 @@ export default class Heatmap {
                 if (direction === 'x') this.onHorizontalScroll(pos);
                 else if (direction === 'y') this.onVerticalScroll(pos);
                 this.hideHoverTooltip();
+            },
+            onMouseWheel: change => {
+                let {deltaY} = change;
+
+                this.hideHoverTooltip();
+                // update cell size
+                let newXDim = this.cellXDim - deltaY * zoomFactor;
+                this.cellXDim = newXDim < cellXMin
+                    ? cellXMin : (newXDim > cellXMax ? cellXMax : newXDim);
+
+                this.renderChart(true, null, true);
+
+                // update controls
+                this.scaleCtrl._setValues({x: this.cellXDim, y: this.cellYDim});
             }
         });
     }

@@ -4,6 +4,8 @@
  * Scale controllers for row/column width
  *
  * Authors: nconrad
+ *
+ * Todo: set min and max programmatically
  */
 import lock from './assets/icons/lock.svg';
 import lockOpen from './assets/icons/lock-open.svg';

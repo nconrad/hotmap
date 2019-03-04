@@ -13,7 +13,7 @@ export default class ScrollBar {
 
     constructor({
         ele, x, y, width, height, xMax, yMax,
-        contentWidth, contentHeight, onMove,
+        contentWidth, contentHeight, onMove, onMouseWheel
     }) {
         this.ele = ele;
         this.x = x;
@@ -24,6 +24,8 @@ export default class ScrollBar {
 
         // events
         this._onMove = onMove;
+        this._onMouseWheel = onMouseWheel;
+
 
         this.width = width;
         this.height = height;
@@ -62,6 +64,7 @@ export default class ScrollBar {
         this.scrollContainer.append(content);
         this.content = content;
 
+        // scroll event
         let previousX = 0,
             previousY = 0;
         this.scrollContainer.addEventListener('scroll', evt => {
@@ -87,6 +90,14 @@ export default class ScrollBar {
 
             previousX = x;
             previousY = y;
+        });
+
+        // zoom event
+        this.scrollContainer.addEventListener('mousewheel', (e) => {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                this._onMouseWheel({deltaY: e.deltaY});
+            }
         });
     }
 
