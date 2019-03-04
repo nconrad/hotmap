@@ -3,7 +3,9 @@
  *
  * Author: https://github.com/nconrad
  *
- * Todo: polyfill remove()/append()
+ * Todo:
+ *      polyfill remove()/append()
+ *      polyfill proxy
  *
  */
 import 'pixi.js/dist/pixi';
@@ -15,11 +17,15 @@ import MouseTracker from './mouse-tracker';
 import Options from './options';
 import { addLegend } from './legend';
 import { matMinMax } from './utils';
-import { svgNS, svgRect } from './svg';
+import { svgNS, svgRect, svgG } from './svg';
+import { setAttributes } from './dom';
 import { getColorMatrix, getCategoryColors } from './color';
 
 import { labelColor, labelHoverColor } from './consts';
 import './assets/styles/heatmap.less';
+
+import caretDown from './assets/icons/caret-down.svg';
+import caretUp from './assets/icons/caret-up.svg';
 
 const FORCE_CANVAS = false;
 const PARTICLE_CONTAINER = false;
@@ -59,6 +65,7 @@ export default class Heatmap {
 
         this.rowCategories = this.getCategories(params.rows);
         this.colCategories = this.getCategories(params.cols);
+
         this.rowCatLabels = params.rowCatLabels;
         this.onHover = params.onHover;
 
@@ -73,10 +80,6 @@ export default class Heatmap {
             min: minMax.min,
             max: minMax.max
         };
-
-        // cell size
-        this.cellXDim = 1; // (canvasWidth - margin.left - margin.right) / this.size.x;
-        this.cellYDim = 1; // (canvasWidth - margin.top - margin.bottom) / this.size.y * 0.5;
 
         // start coordinates in matrix for "viewbox"
         this.xStart = 0;
@@ -135,8 +138,11 @@ export default class Heatmap {
         this.options = new Options({
             parentNode: this.ele,
             openBtn: document.querySelector('.opts-btn'),
-            onSort: (cat) => this.rowCatSort(cat)
+            // onSort: (cat) => this.rowCatSort(cat)
         });
+
+        // start tracking sorting
+        this.sorter(this.svg);
     }
 
 
@@ -167,7 +173,7 @@ export default class Heatmap {
         // initial staging of 1x1 cells
         this.initStage();
 
-        this.cellXDim = 1;
+        this.cellXDim = 1; // (canvasWidth - margin.left - margin.right) / this.size.x;
         this.cellYDim = 10;
         this.scaleCtrl._setValues({x: this.cellXDim, y: this.cellYDim});
         this.renderChart(true, true, true);
@@ -188,8 +194,6 @@ export default class Heatmap {
     }
 
     initStage() {
-        this.cellXDim = 1;
-        this.cellYDim = 1;
         this.isStaged = false;
         this.renderChart(true, true);
         this.isStaged = true;
@@ -202,8 +206,14 @@ export default class Heatmap {
         // let t0 = performance.now();
         this.clearStage(renderX, renderY, scale);
 
-        let cellXDim = this.cellXDim,
+        let cellXDim, cellYDim;
+        if (this.isStaged) {
+            cellXDim = this.cellXDim;
             cellYDim = this.cellYDim;
+        } else {
+            cellXDim = 1;
+            cellYDim = 1;
+        }
 
         let xStart = this.xStart,
             yStart = this.yStart;
@@ -407,24 +417,42 @@ export default class Heatmap {
         ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
     }
 
-    addCategoryLabel(axis, text, x, y, cellIdx) {
+    addCategoryLabel(axis, text, x, y, idx) {
         let ele = document.createElementNS(svgNS, 'text');
+
+        let g = svgG();
 
         x -= 4;
         ele.innerHTML = text;
-        ele.setAttribute('class', `cat-${cellIdx}`);
-        ele.setAttribute('font-size', '14px');
-        ele.setAttribute('fill', '#666');
-        ele.setAttribute('x', x);
-        ele.setAttribute('y', y);
-        this.cAxis.appendChild(ele);
+
+        setAttributes(ele, {
+            'class': `cat-label`,
+            'data-idx': idx,
+            'font-size': '14px',
+            'fill': '#666',
+            'x': x,
+            'y': y
+        });
+        g.appendChild(ele);
+
+        this.cAxis.appendChild(g);
 
         let width = ele.getBBox().width;
 
         ele.setAttribute('transform', `translate(-${width})`);
         ele.setAttribute('transform', `rotate(-90, ${x}, ${y})`);
-    }
 
+        ele.onclick = (evt) => {
+            console.log('this order', this.sortModel[idx]);
+            this.sortModel[text] = this.sortModel[text] == 'asc' ? 'dsc' : 'asc';
+
+            if (this.sortModel[text] === 'dsc') {
+                ele.innerHTML = `&#8250; ${text}`;
+            } else {
+                ele.innerHTML = `&#8249; ${text}`;
+            }
+        };
+    }
 
     addCategories(axis, index, x, y) {
         let categories = this.rowCategories[index];
@@ -443,6 +471,39 @@ export default class Heatmap {
             this.catStage.addChild(sprite);
             x += width;
         }
+    }
+
+
+    sorter(svg) {
+        // data model for sorting
+        // { <cat_name>: <'asc'|'dsc'> }
+        let model = {};
+
+        let handler = {
+            get: (target, key) => {
+                return target[key];
+            },
+            set: (target, key, val) => {
+                // only allow one selection at time right now
+                Object.keys(target).forEach(k => {
+                    if (k !== key) target[k] = null;
+                });
+                target[key] = val;
+
+                // clear sort in dom
+                svg.querySelectorAll('.cat-label').forEach(label => {
+                    let idx = label.getAttribute('data-idx');
+                    label.innerHTML = this.rowCatLabels[idx];
+                });
+
+                // sort
+                this.rowCatSort(key, val === 'dsc');
+
+                return true;
+            }
+        };
+
+        this.sortModel = new Proxy(model, handler);
     }
 
     clearStage(clearX, clearY, clearStage) {
@@ -599,7 +660,7 @@ export default class Heatmap {
             xLabel = this.cols[j].name,
             yLabel = this.rows[i].name;
 
-        this.setHoverInfo(xLabel, yLabel, value, y, x);
+        this.setHoverInfo(xLabel, yLabel, value, i, j, x, y);
     }
 
     onCellMouseOut() {
@@ -617,16 +678,18 @@ export default class Heatmap {
         this.hideHoverTooltip();
     }
 
-    setHoverInfo(xLabel, yLabel, value, i, j) {
+    setHoverInfo(xLabel, yLabel, value, i, j, x, y) {
         let cellXDim = this.cellXDim,
-            cellYDim = this.cellYDim,
-            x = margin.left + j * cellXDim,
-            y = margin.top + i * cellYDim;
+            cellYDim = this.cellYDim;
+
+        x = margin.left + x * cellXDim;
+        y = margin.top + y * cellYDim;
 
         let content =
             `<div><b>row:</b> ${yLabel}</div>` +
             `<div><b>column:</b> ${xLabel}<div>` +
             `<div><b>Value:</b> ${value}</div>`;
+
 
         // add tooltip
         this.ele.querySelector('.header .info').innerHTML = content;
@@ -637,7 +700,7 @@ export default class Heatmap {
         tooltip.innerHTML = this.onHover({
             xLabel, yLabel, value,
             rowCategories: this.rowCategories[i],
-            colCategories: this.colCategories[i]
+            colCategories: this.colCategories[j]
         });
 
         // add hover box
@@ -673,19 +736,24 @@ export default class Heatmap {
         this.renderChart(true, true, true);
     }
 
-    rowCatSort(category) {
+    rowCatSort(category, dsc) {
         let catIdx = this.rowCatLabels.indexOf(category);
 
         // attach matrix rows to rows for sorting;
         this.rows.forEach((row, i) => {
             row.data = this.matrix[i];
+            row.catColors = this.rowCatColors[i];
         });
 
         // sort rows
-        this.rows.sort((a, b) => a.categories[catIdx].localeCompare(b.categories[catIdx]));
+        this.rows.sort((a, b) => {
+            if (dsc) return b.categories[catIdx].localeCompare(a.categories[catIdx]);
+            return a.categories[catIdx].localeCompare(b.categories[catIdx]);
+        });
 
-        // get matrix back
+        // get matrix and colors back
         this.matrix = this.rows.map(row => row.data);
+        this.rowCatColors = this.rows.map(row => row.catColors);
 
         // update all data
         this.updateData();
@@ -695,7 +763,6 @@ export default class Heatmap {
     // updates associated data models (such as categorical data
     updateData() {
         this.rowCategories = this.getCategories(this.rows);
-        this.rowCatColors = getCategoryColors(this.rowCategories);
 
         // update colors
         this.colorMatrix = getColorMatrix(this.matrix, this.color);

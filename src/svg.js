@@ -9,7 +9,7 @@ import { setAttributes } from './dom';
 
 export const svgNS = 'http://www.w3.org/2000/svg';
 
-export function svgG(svg) {
+export function svgG() {
     return document.createElementNS(svgNS, 'g');
 }
 
