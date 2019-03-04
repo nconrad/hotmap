@@ -56,6 +56,7 @@ export default class Heatmap {
         this.matrix = params.matrix;
 
         this.color = params.color || 'gradient';
+        this.origColorSettings = this.color;
         try {
             this.colorMatrix = getColorMatrix(this.matrix, this.color);
         } catch (error) {
@@ -120,7 +121,8 @@ export default class Heatmap {
         this.mouseTracker = this.getMouseTracker();
 
 
-        addLegend(this.ele, 250, 16, this.size.min, this.size.max, this.color);
+        addLegend(this.ele.querySelector('.legend'),
+            this.size.min, this.size.max, this.color);
 
         let renderer = this.getRenderer(canvasWidth, canvasHeight);
         this.renderer = renderer;
@@ -138,7 +140,18 @@ export default class Heatmap {
         this.options = new Options({
             parentNode: this.ele,
             openBtn: document.querySelector('.opts-btn'),
-            // onSort: (cat) => this.rowCatSort(cat)
+            colorType: 'bins' in this.color ? 'bins' : 'gradient',
+            onColorChange: (type) => {
+                let colors = type === 'gradient' ? type : this.origColorSettings;
+                this.colorMatrix = getColorMatrix(this.matrix, colors);
+
+                // change legend
+                this.ele.querySelector('.legend').innerHTML = '';
+                addLegend(this.ele.querySelector('.legend'),
+                    this.size.min, this.size.max, colors);
+
+                this.renderChart();
+            }
         });
 
         // start tracking sorting
@@ -690,7 +703,6 @@ export default class Heatmap {
             `<div><b>column:</b> ${xLabel}<div>` +
             `<div><b>Value:</b> ${value}</div>`;
 
-
         // add tooltip
         this.ele.querySelector('.header .info').innerHTML = content;
         let tooltip = this.ele.querySelector('.tooltip');
@@ -732,7 +744,7 @@ export default class Heatmap {
         this.svg.setAttribute('width', canvasWidth);
         this.svg.setAttribute('height', canvasHeight);
 
-        this.init();
+        this.init(); // no stage
         this.renderChart(true, true, true);
     }
 

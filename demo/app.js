@@ -37,6 +37,7 @@ function loadViewer({ele, data}) {
         cols: data.cols,
         matrix: data.matrix,
         rowCatLabels: catLabels,
+
         color: { bins: ['=0', '=1', '=2', '<20', '>=20'], colors },
         onHover: info => {
             let cs = info.rowCategories;

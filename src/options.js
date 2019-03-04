@@ -8,10 +8,12 @@
  */
 export default class Options {
 
-    constructor({openBtn, onSort}) {
+    constructor({openBtn, onSortChange, colorType, onColorChange}) {
         this.openBtn = openBtn;
-        this.onSort = onSort;
+        this.onSortChange = onSortChange;
+        this.onColorChange = onColorChange;
 
+        this._colorType = colorType;
         this._viewerNode = this.openBtn.parentNode.parentNode;
         this._show = false;
 
@@ -19,6 +21,8 @@ export default class Options {
     }
 
     init() {
+        let ele = this._viewerNode;
+
         let optsBtn = this.openBtn;
         optsBtn.onclick = (evt) => {
             this._show = !this._show;
@@ -30,15 +34,23 @@ export default class Options {
             }
 
             let close = (evt) => {
-                if (document.querySelector('.options').contains(evt.target)) return;
+                if (ele.querySelector('.options').contains(evt.target)) return;
                 this.hide();
-                document.removeEventListener('click', close);
+                ele.removeEventListener('click', close);
                 this._show = false;
             };
-            document.addEventListener('click', close);
+            ele.addEventListener('click', close);
         };
 
-        document.querySelector('.close-btn').onclick = () => this.hide();
+        ele.querySelector('.close-btn').onclick = () => this.hide();
+
+
+        if (this._colorType === 'bins') {
+            ele.querySelector('.colors').onclick = () => this._onColor;
+            ele.querySelector('.colors [data-id="bins"]');
+        }
+
+        this.colorEventInit();
 
         // click events for sorting
         // this.sortEventInit();
@@ -65,9 +77,24 @@ export default class Options {
 
                 sortNodes.forEach(node => node.classList.remove('active'));
 
-                let category = ele.getAttribute('data-id');
+                let type = ele.getAttribute('data-id');
                 ele.classList.add('active');
-                this.onSort(category);
+                this.onSort(type);
+            };
+        });
+    }
+
+    colorEventInit() {
+        let nodes = this._viewerNode.querySelectorAll('.options .colors a');
+        nodes.forEach(node => {
+            node.onclick = evt => {
+                let ele = evt.target;
+
+                nodes.forEach(node => node.classList.remove('active'));
+
+                let type = ele.getAttribute('data-id');
+                ele.classList.add('active');
+                this.onColorChange(type);
             };
         });
     }

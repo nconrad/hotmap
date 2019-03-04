@@ -11,21 +11,20 @@ import { svgEle, svgG, svgRect, svgText } from './svg';
 import { parseColorBins, toHex } from './color';
 
 
-export function addLegend(ele, x, y, min, max, settings) {
+export function addLegend(ele, min, max, settings) {
     if (!settings || settings === 'gradient') {
-        gradientLegend(ele, x, y, min, max);
+        gradientLegend(ele, min, max);
         return;
     }
 
-    binLegend(ele, x, y, min, max, settings);
+    binLegend(ele, min, max, settings);
 }
 
 
-function binLegend(ele, x, y, min, max, settings) {
+function binLegend(ele, min, max, settings) {
     let bins = parseColorBins(settings.bins),
         colors = settings.colors;
 
-    let legend = ele.querySelector('.legend');
     bins.forEach((bin, i) => {
         let op = bin.op,
             val = bin.val,
@@ -50,16 +49,14 @@ function binLegend(ele, x, y, min, max, settings) {
         textEl.innerHTML = text;
         item.appendChild(textEl);
 
-        legend.appendChild(item);
+        ele.appendChild(item);
     });
 }
 
 
-function gradientLegend(ele, x, y, min, max) {
+function gradientLegend(ele, min, max) {
     let w = 100,
         h = 14;
-
-    let legend = ele.querySelector('.legend');
 
     let gradient = document.createElement('div');
     gradient.style.backgroundImage = 'linear-gradient(to right, #ffffff, #ff0000)';
@@ -69,12 +66,12 @@ function gradientLegend(ele, x, y, min, max) {
 
     let low = document.createElement('span');
     low.innerHTML = `${min} `;
-    legend.append(low);
+    ele.append(low);
 
     let high = document.createElement('span');
     high.innerHTML = ` ${max}`;
 
-    legend.appendChild(low);
-    legend.appendChild(gradient);
-    legend.appendChild(high);
+    ele.appendChild(low);
+    ele.appendChild(gradient);
+    ele.appendChild(high);
 }

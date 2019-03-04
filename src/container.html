@@ -3,15 +3,16 @@
     <!--<div class="loading-bar"></div>-->
     <div class="header">
         <div class="logo">
-            Hotmap <small>v1.0</small>
+            PATRICMap <small>v1.0</small>
         </div>
 
         <button class="btn opts-btn">
             Options <span class="caret-down"></span>
         </button>
 
-        <div class="legend">
+        <div class="legend-container">
             <div class="title">Legend</div>
+            <div class="legend"></div>
         </div>
 
         <div class="info"></div>
@@ -20,8 +21,17 @@
     <div class="options">
         <button class="close-btn btn">&times;</button>
 
+        <div class="colors option-set" display="display: none;">
+            <div class="option-title">Colors</div>
+            <div class="option-group">
+                <i>Color Type:</i>&nbsp;&nbsp;
+                <a data-id="bins" class="active">Bins</a>
+                <a data-id="gradient">gradient</a>
+            </div>
+        </div>
+
         <!--
-        <div class="sorting">
+        <div class="sorting option-set">
             <div class="option-title">Sort rows:</div>
             <div class="option-group">
                 <i>By Category:</i>&nbsp;&nbsp;
