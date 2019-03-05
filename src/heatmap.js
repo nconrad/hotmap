@@ -19,7 +19,9 @@ import { addLegend } from './legend';
 import { matMinMax } from './utils';
 import { svgNS, svgRect, svgG } from './svg';
 import { setAttributes } from './dom';
-import { getColorMatrix, getCategoryColors } from './color';
+import { getColorMatrix, getCategoryColors, rgbToHex, toHex } from './color';
+
+import Picker from 'vanilla-picker';
 
 import { labelColor, labelHoverColor } from './consts';
 import './assets/styles/heatmap.less';
@@ -122,9 +124,7 @@ export default class Heatmap {
         // we update the size of the area on render
         this.mouseTracker = this.getMouseTracker();
 
-
-        addLegend(this.ele.querySelector('.legend'),
-            this.size.min, this.size.max, this.color);
+        this.updateLegend();
 
         let renderer = this.getRenderer(canvasWidth, canvasHeight);
         this.renderer = renderer;
@@ -148,9 +148,7 @@ export default class Heatmap {
                 this.colorMatrix = getColorMatrix(this.matrix, this.color);
 
                 // change legend
-                this.ele.querySelector('.legend').innerHTML = '';
-                addLegend(this.ele.querySelector('.legend'),
-                    this.size.min, this.size.max, this.color);
+                this.updateLegend();
 
                 this.renderChart();
             }
@@ -158,6 +156,7 @@ export default class Heatmap {
 
         // start tracking sorting
         this.sorter(this.svg);
+
     }
 
     getRenderer(width, height) {
@@ -793,7 +792,7 @@ export default class Heatmap {
 
         let content =
             `<div><b>row:</b> ${yLabel}</div>` +
-            `<div><b>column:</b> ${xLabel}<div>` +
+            `<div><b>column:</b> ${xLabel.length > 50 ? xLabel.slice(0, 50) + '...' : xLabel}<div>` +
             `<div><b>Value:</b> ${value}</div>`;
 
         this.ele.querySelector('.header .info').innerHTML = content;
@@ -884,6 +883,36 @@ export default class Heatmap {
         return objs.map(r => r.categories);
     }
 
+    updateLegend() {
+        this.ele.querySelector('.legend').innerHTML = '';
+        addLegend(this.ele.querySelector('.legend'),
+            this.size.min, this.size.max, this.color);
+
+        this.updateColorPicker();
+    }
+
+    updateColorPicker() {
+        this.ele.querySelectorAll('.legend .item').forEach((el, i) => {
+            new Picker({
+                parent: el,
+                popup: 'bottom',
+                alpha: false,
+                color: toHex(this.color.colors[i]),
+                onChange: (color) => {
+                    if (!color._rgba) return;
+                    let hex = parseInt( rgbToHex(color._rgba) );
+                    this.color.colors[i] = hex;
+                    this.colorMatrix = getColorMatrix(this.matrix, this.color);
+                    el.querySelector('.box').style.backgroundColor = '#' + hex;
+                    this.renderChart();
+                },
+                onClose: () => {
+                    this.updateLegend();
+                }
+            });
+        });
+    }
+
     selectable() {
         let self = this;
         let box = {}; // i, j coordinates
@@ -909,8 +938,6 @@ export default class Heatmap {
             box.x = x;
             box.y = y;
 
-            console.log('box', box);
-
             drag = true;
         };
 
@@ -923,9 +950,15 @@ export default class Heatmap {
             let i2 = i + box.h,
                 j2 = j + box.w;
 
+            // todo: fix these bounds
+            if (isNaN(i) || isNaN(j) || isNaN(i2) || isNaN(j2))
+                return;
+
+            if (i2 < i || j2 < j) return;
+
             let selection = this.getSelection(i, j, i2, j2);
-            alert(`Selected ${selection.length} cells\n` +
-                JSON.stringify(selection, null, 4).slice(0, 1000) + '...');
+            alert(`Selected ${selection.length} cells\n\n` +
+                JSON.stringify(selection, null, 4).slice(0, 10000) + '...');
 
             this.svg.querySelectorAll('.select-box').forEach(e => e.remove());
         };
@@ -956,6 +989,8 @@ export default class Heatmap {
 
             let w = box.w * this.cellXDim,
                 h = box.h * this.cellYDim;
+
+            if (w < 0 || h < 0) return;
 
             let rect = svgRect(x, y, w, h, {
                 class: 'select-box',

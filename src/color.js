@@ -240,5 +240,6 @@ export {
     getRandomColorMatrix,
     getCategoryColors,
     parseColorBins,
-    toHex
+    toHex,
+    rgbToHex
 };

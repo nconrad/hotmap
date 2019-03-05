@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function loadViewer({ele, data}) {
     let rowCatLabels = ['Isolation Country', 'Host', 'Genome Group'];
-    let colors = [0x333333, 0xfff4f2, 0xffadad, 0xff6b6b, 0xff0000];
     new Heatmap({
         ele,
         rows: data.rows,
@@ -38,7 +37,10 @@ function loadViewer({ele, data}) {
         matrix: data.matrix,
         rowCatLabels: rowCatLabels,
         colCatLabels: ['Protein Family ID'],
-        color: { bins: ['=0', '=1', '=2', '<20', '>=20'], colors },
+        color: {
+            bins: ['=0', '=1', '=2', '<20', '>=20'],
+            colors: [0x333333, 0xfff4f2, 0xffadad, 0xff6b6b, 0xff0000]
+        },
         onHover: info => {
             let cs = info.rowCategories;
             return `
@@ -48,8 +50,7 @@ function loadViewer({ele, data}) {
              <div><b>${rowCatLabels[0]}:</b> ${cs && cs[0] != 'undefined' ? cs[0] : 'N/A'}</div>
              <div><b>${rowCatLabels[1]}:</b> ${cs && cs[1] != 'undefined' ? cs[1] : 'N/A'}</div>
              <div><b>${rowCatLabels[2]}:</b> ${cs && cs[2] != 'undefined' ? cs[2] : 'N/A'}</div><br>
-             <div><b>Value:</b> ${info.value}</div>
-            `;
+             <div><b>Value:</b> ${info.value}</div>`;
         }
     });
 }
