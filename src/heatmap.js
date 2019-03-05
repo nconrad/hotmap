@@ -956,10 +956,7 @@ export default class Heatmap {
 
             if (i2 < i || j2 < j) return;
 
-            console.log('i,j', i, j, i2, j2);
-
             let selection = this.getSelection(i, j, i2, j2);
-
 
             alert(`Selected ${selection.length} cell(s)\n\n` +
                 JSON.stringify(selection, null, 4).slice(0, 10000));
