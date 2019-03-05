@@ -144,8 +144,8 @@ export default class Heatmap {
             openBtn: document.querySelector('.opts-btn'),
             colorType: 'bins' in this.color ? 'bins' : 'gradient',
             onColorChange: (type) => {
-                let colors = type === 'gradient' ? type : this.origColorSettings;
-                this.colorMatrix = getColorMatrix(this.matrix, colors);
+                this.color = type === 'gradient' ? type : this.origColorSettings;
+                this.colorMatrix = getColorMatrix(this.matrix, this.color);
 
                 // change legend
                 this.ele.querySelector('.legend').innerHTML = '';
