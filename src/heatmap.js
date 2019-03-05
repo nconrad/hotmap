@@ -900,10 +900,10 @@ export default class Heatmap {
                 color: toHex(this.color.colors[i]),
                 onChange: (color) => {
                     if (!color._rgba) return;
-                    let hex = parseInt( rgbToHex(color._rgba) );
-                    this.color.colors[i] = hex;
+                    let hexD = parseInt( rgbToHex(color._rgba) );
+                    this.color.colors[i] = hexD;
                     this.colorMatrix = getColorMatrix(this.matrix, this.color);
-                    el.querySelector('.box').style.backgroundColor = '#' + hex;
+                    el.querySelector('.box').style.backgroundColor = '#' + toHex(hexD);
                     this.renderChart();
                 },
                 onClose: () => {
