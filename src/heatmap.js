@@ -302,9 +302,10 @@ export default class Heatmap {
                 }
 
                 if (!this.catLabelsAdded && i == 0 && renderX && colIdx < this.rowCatLabels.length) {
-                    this.addCategoryLabel('x', this.rowCatLabels[this.rowCatLabels.length - colIdx - 1],
+                    let k = this.rowCatLabels.length - colIdx - 1;
+                    this.addCategoryLabel('x', this.rowCatLabels[k],
                         margin.left - colIdx * (categoryWidth / this.rowCatLabels.length),
-                        margin.top - 5, j);
+                        margin.top - 5, k);
                 }
             }
         }
@@ -473,6 +474,7 @@ export default class Heatmap {
         setAttributes(ele, {
             'class': `cat-label`,
             'data-idx': idx,
+            'data-name': text,
             'font-size': '14px',
             'fill': '#666',
             'x': x,
@@ -489,12 +491,6 @@ export default class Heatmap {
 
         ele.onclick = (evt) => {
             this.sortModel[text] = this.sortModel[text] == 'asc' ? 'dsc' : 'asc';
-
-            if (this.sortModel[text] === 'dsc') {
-                ele.innerHTML = `&#8250; ${text}`;
-            } else {
-                ele.innerHTML = `&#8249; ${text}`;
-            }
         };
     }
 
@@ -539,6 +535,9 @@ export default class Heatmap {
                     let idx = label.getAttribute('data-idx');
                     label.innerHTML = this.rowCatLabels[idx];
                 });
+
+                let ele = svg.querySelector(`.cat-label[data-name="${key}"]`);
+                ele.innerHTML = `${val === 'dsc' ? `&#8250; ` : `&#8249; `} ${key}`;
 
                 // sort
                 this.rowCatSort(key, val === 'dsc');
