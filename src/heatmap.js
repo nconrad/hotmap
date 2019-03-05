@@ -492,10 +492,10 @@ export default class Heatmap {
     getSelection(i1, j1, i2, j2) {
         let selected = [];
 
-        for (let i = i1; i < i2; i++) {
+        for (let i = i1; i <= i2; i++) {
             let row = this.matrix[i];
 
-            for (let j = j1; j < j2; j++) {
+            for (let j = j1; j <= j2; j++) {
                 let val = this.matrix[i][j];
 
                 selected.push({
@@ -956,10 +956,15 @@ export default class Heatmap {
 
             if (i2 < i || j2 < j) return;
 
-            let selection = this.getSelection(i, j, i2, j2);
-            alert(`Selected ${selection.length} cells\n\n` +
-                JSON.stringify(selection, null, 4).slice(0, 10000) + '...');
+            console.log('i,j', i, j, i2, j2);
 
+            let selection = this.getSelection(i, j, i2, j2);
+
+
+            alert(`Selected ${selection.length} cell(s)\n\n` +
+                JSON.stringify(selection, null, 4).slice(0, 10000));
+
+            box = {};
             this.svg.querySelectorAll('.select-box').forEach(e => e.remove());
         };
 
@@ -987,8 +992,11 @@ export default class Heatmap {
             let x = margin.left + box.x * this.cellXDim;
             let y = margin.top + box.y * this.cellYDim;
 
-            let w = box.w * this.cellXDim,
-                h = box.h * this.cellYDim;
+            let w = box.w < this.cellXDim
+                ? ((box.w + 1) * this.cellXDim) : box.w * this.cellXDim;
+
+            let h = box.h < this.cellYDim
+                ? (box.h + 1) * this.cellYDim : box.h * this.cellYDim;
 
             if (w < 0 || h < 0) return;
 
