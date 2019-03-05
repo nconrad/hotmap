@@ -24,9 +24,6 @@ import { getColorMatrix, getCategoryColors } from './color';
 import { labelColor, labelHoverColor } from './consts';
 import './assets/styles/heatmap.less';
 
-import caretDown from './assets/icons/caret-down.svg';
-import caretUp from './assets/icons/caret-up.svg';
-
 const FORCE_CANVAS = false;
 const PARTICLE_CONTAINER = false;
 
@@ -70,8 +67,9 @@ export default class Heatmap {
 
         this.rowCategories = this.getCategories(params.rows);
         this.colCategories = this.getCategories(params.cols);
-
         this.rowCatLabels = params.rowCatLabels;
+        this.colCatLabels = params.colCatLabels;
+
         this.onHover = params.onHover;
 
         // get category colors; Todo: optimize?
@@ -396,11 +394,12 @@ export default class Heatmap {
         let ele = document.createElementNS(svgNS, 'text');
 
         if (axis == 'y') {
+            y += this.cellYDim / 2 + 1;
             ele.setAttribute('font-size', `${this.cellYDim <= maxTextW ? this.cellYDim - 2 : 16}px`);
             ele.setAttribute('class', `row-${cellIdx}`);
             ele.setAttribute('fill', '#666');
             ele.setAttribute('x', x);
-            ele.setAttribute('y', y + this.cellYDim / 2 + 1 );
+            ele.setAttribute('y', y);
             this.yAxis.appendChild(ele);
 
             // add ellipsis
@@ -412,28 +411,55 @@ export default class Heatmap {
 
             let width = ele.getBBox().width;
             ele.setAttribute('transform', `translate(-${width})`);
-            return;
-        }
 
-        x += this.cellXDim / 2 + 1;
-        ele.innerHTML = text;
-        ele.setAttribute('class', `col-${cellIdx}`);
-        ele.setAttribute('font-size', `${this.cellXDim <= maxTextW ? this.cellXDim - 2 : 16}px`);
-        ele.setAttribute('fill', '#666');
-        ele.setAttribute('x', x);
-        ele.setAttribute('y', y);
-        this.xAxis.appendChild(ele);
+            ele.addEventListener('mouseover', () => {
+                let tt = this.tooltip(y - ele.getBBox().height - 5, x + 10);
 
-        let width = ele.getBBox().width;
+                let cats = this.rowCategories[cellIdx].map((cat, i) =>
+                    `<div><b>${this.rowCatLabels[i]}:</b> ${cat}</div>`
+                ).join('');
 
-        // add ellipsis
-        if (width > margin.top) {
-            text = text.slice(0, 28) + '...';
+                tt.innerHTML =
+                    `<div>${this.rows[cellIdx].name}</div><br>
+                    ${cats}`;
+            });
+
+        } else {
+            x += this.cellXDim / 2 + 1;
             ele.innerHTML = text;
+            ele.setAttribute('class', `col-${cellIdx}`);
+            ele.setAttribute('font-size', `${this.cellXDim <= maxTextW ? this.cellXDim - 2 : 16}px`);
+            ele.setAttribute('fill', '#666');
+            ele.setAttribute('x', x);
+            ele.setAttribute('y', y);
+            this.xAxis.appendChild(ele);
+
+            let width = ele.getBBox().width;
+
+            // add ellipsis
+            if (width > margin.top) {
+                text = text.slice(0, 28) + '...';
+                ele.innerHTML = text;
+            }
+
+            ele.setAttribute('transform', `translate(-${width})`);
+            ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
+
+
+            ele.addEventListener('mouseover', () => {
+                let tt = this.tooltip(y, x - 5);
+
+                let cats = this.colCategories[cellIdx].map((cat, i) =>
+                    `<div><b>${this.colCatLabels[i]}:</b> ${cat}</div>`
+                ).join('');
+
+                tt.innerHTML =
+                    `<div>${this.cols[cellIdx].name}</div><br>
+                    ${cats}`;
+            });
         }
 
-        ele.setAttribute('transform', `translate(-${width})`);
-        ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
+        ele.addEventListener('mouseout', this.hideHoverTooltip.bind(this));
     }
 
     addCategoryLabel(axis, text, x, y, idx) {
@@ -722,12 +748,11 @@ export default class Heatmap {
             `<div><b>column:</b> ${xLabel}<div>` +
             `<div><b>Value:</b> ${value}</div>`;
 
-        // add tooltip
         this.ele.querySelector('.header .info').innerHTML = content;
-        let tooltip = this.ele.querySelector('.tooltip');
-        tooltip.style.display = 'block';
-        tooltip.style.top = y + cellYDim; // place at bottom right
-        tooltip.style.left = x + cellXDim;
+
+        let top = y + cellYDim,
+            left = x + cellXDim;
+        let tooltip = this.tooltip(top, left);
         tooltip.innerHTML = this.onHover({
             xLabel, yLabel, value,
             rowCategories: this.rowCategories[i],
@@ -739,6 +764,14 @@ export default class Heatmap {
             this.ele.querySelectorAll('.hover-box').forEach(el => el.remove());
             this.svg.appendChild( svgRect(x, y, cellXDim, cellYDim, {class: 'hover-box'}) );
         }
+    }
+
+    tooltip(top, left) {
+        let tooltip = this.ele.querySelector('.tooltip');
+        tooltip.style.display = 'block';
+        tooltip.style.top = top; // place at bottom right
+        tooltip.style.left = left;
+        return tooltip;
     }
 
     hideHoverInfo() {

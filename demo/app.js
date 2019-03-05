@@ -29,15 +29,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 function loadViewer({ele, data}) {
-    let catLabels = ['Isolation Country', 'Host', 'Genome Group'];
+    let rowCatLabels = ['Isolation Country', 'Host', 'Genome Group'];
     let colors = [0x333333, 0xfff4f2, 0xffadad, 0xff6b6b, 0xff0000];
     new Heatmap({
         ele,
         rows: data.rows,
         cols: data.cols,
         matrix: data.matrix,
-        rowCatLabels: catLabels,
-
+        rowCatLabels: rowCatLabels,
+        colCatLabels: ['Protein Family ID'],
         color: { bins: ['=0', '=1', '=2', '<20', '>=20'], colors },
         onHover: info => {
             let cs = info.rowCategories;
@@ -45,9 +45,9 @@ function loadViewer({ele, data}) {
              <div><b>Genome:</b> ${info.yLabel}</div><br>
              <div><b>Protein Family:</b> ${info.xLabel}<div>
              <div><b>ID:</b> ${info.colCategories[0]}<div><br>
-             <div><b>${catLabels[0]}:</b> ${cs && cs[0] != 'undefined' ? cs[0] : 'N/A'}</div>
-             <div><b>${catLabels[1]}:</b> ${cs && cs[1] != 'undefined' ? cs[1] : 'N/A'}</div>
-             <div><b>${catLabels[2]}:</b> ${cs && cs[2] != 'undefined' ? cs[2] : 'N/A'}</div><br>
+             <div><b>${rowCatLabels[0]}:</b> ${cs && cs[0] != 'undefined' ? cs[0] : 'N/A'}</div>
+             <div><b>${rowCatLabels[1]}:</b> ${cs && cs[1] != 'undefined' ? cs[1] : 'N/A'}</div>
+             <div><b>${rowCatLabels[2]}:</b> ${cs && cs[2] != 'undefined' ? cs[2] : 'N/A'}</div><br>
              <div><b>Value:</b> ${info.value}</div>
             `;
         }
