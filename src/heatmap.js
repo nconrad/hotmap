@@ -21,7 +21,7 @@ import { svgNS, svgRect, svgG } from './svg';
 import { setAttributes } from './dom';
 import { getColorMatrix, getCategoryColors, rgbToHex, toHex } from './color';
 
-import Picker from 'vanilla-picker';
+// import Picker from 'vanilla-picker';
 
 import { labelColor, labelHoverColor } from './consts';
 import './assets/styles/heatmap.less';
