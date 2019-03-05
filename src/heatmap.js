@@ -150,7 +150,7 @@ export default class Heatmap {
                 // change legend
                 this.ele.querySelector('.legend').innerHTML = '';
                 addLegend(this.ele.querySelector('.legend'),
-                    this.size.min, this.size.max, colors);
+                    this.size.min, this.size.max, this.color);
 
                 this.renderChart();
             }
@@ -351,6 +351,7 @@ export default class Heatmap {
         });
         requestAnimationFrame(this.render); // draw
         this.catLabelsAdded = true;
+        this.selectable();
         // let t1 = performance.now();
         // console.log('total time spent', t1 - t0);
     }
@@ -425,6 +426,13 @@ export default class Heatmap {
                     ${cats}`;
             });
 
+            ele.onclick = () => {
+                let r = this.getRow(cellIdx);
+                alert(`Selected ${r.length} Protein Familes from ${this.rows[cellIdx].name}:\n
+                ${r[0].id}, ${r[1].id}, ..., ${r[r.length - 1].id}\n
+                ${r[0].val}, ${r[1].val}, ..., ${r[r.length - 1].val}`);
+            };
+
         } else {
             x += this.cellXDim / 2 + 1;
             ele.innerHTML = text;
@@ -458,9 +466,50 @@ export default class Heatmap {
                     `<div>${this.cols[cellIdx].name}</div><br>
                     ${cats}`;
             });
+
+            ele.onclick = () => {
+                let r = this.getCol(cellIdx);
+                alert(`Selected ${r.length} Genomes with ${this.cols[cellIdx].name}:\n
+                ${r[0].id}, ${r[1].id}, ..., ${r[r.length - 1].id}\n
+                ${r[0].val}, ${r[1].val}, ..., ${r[r.length - 1].val}`);
+            };
         }
 
         ele.addEventListener('mouseout', this.hideHoverTooltip.bind(this));
+    }
+
+    getRow(i) {
+        return this.matrix[i].map((val, j) => {
+            return { id: this.cols[j].categories[0], val };
+        });
+    }
+
+    getCol(j) {
+        return this.matrix.map((val, i) => {
+            return { id: this.rows[i].name, val: val[j] };
+        });
+    }
+
+    getSelection(i1, j1, i2, j2) {
+        let selected = [];
+
+        for (let i = i1; i < i2; i++) {
+            let row = this.matrix[i];
+
+            for (let j = j1; j < j2; j++) {
+                let val = this.matrix[i][j];
+
+                selected.push({
+                    val: val,
+                    rowName: this.rows[i].name,
+                    colName: this.cols[j].name,
+                    rowCats: this.rowCategories[i],
+                    colCats: this.colCategories[j]
+                });
+            }
+        }
+
+        return selected;
     }
 
     addCategoryLabel(axis, text, x, y, idx) {
@@ -834,6 +883,92 @@ export default class Heatmap {
     getCategories(objs) {
         return objs.map(r => r.categories);
     }
+
+    selectable() {
+        let self = this;
+        let box = {}; // i, j coordinates
+        let drag = false;
+
+        let scrollContainer = this.ele.querySelector('.scroll-container');
+
+        if (this.SmouseDown) {
+            scrollContainer.removeEventListener('mousedown', this.SmouseDown);
+            scrollContainer.removeEventListener('mouseup', this.SmouseUp);
+            scrollContainer.removeEventListener('mousemove', this.SmouseMove);
+        }
+
+        this.SmouseDown = (e) => {
+            this.hideHoverTooltip();
+            let _xPos = e.offsetX - scrollContainer.scrollLeft,
+                _yPos = e.offsetY - scrollContainer.scrollTop;
+
+            // relative position on visible cells
+            let x = parseInt(_xPos / this.cellXDim),
+                y = parseInt(_yPos / this.cellYDim);
+
+            box.x = x;
+            box.y = y;
+
+            console.log('box', box);
+
+            drag = true;
+        };
+
+        this.SmouseUp = () => {
+            drag = false;
+
+            let i = this.yStart + box.y,
+                j = this.xStart + box.x;
+
+            let i2 = i + box.h,
+                j2 = j + box.w;
+
+            let selection = this.getSelection(i, j, i2, j2);
+            alert(`Selected ${selection.length} cells\n` +
+                JSON.stringify(selection, null, 4).slice(0, 1000) + '...');
+
+            this.svg.querySelectorAll('.select-box').forEach(e => e.remove());
+        };
+
+        this.SmouseMove = (e) => {
+            if (drag) {
+                let _xPos = e.offsetX - scrollContainer.scrollLeft,
+                    _yPos = e.offsetY - scrollContainer.scrollTop;
+
+                // relative position on visible cells
+                let x = parseInt(_xPos / this.cellXDim),
+                    y = parseInt(_yPos / this.cellYDim);
+
+
+                box.w = x - box.x;
+                box.h = y - box.y;
+
+                this.Sdraw();
+            }
+        };
+
+        this.Sdraw = () => {
+            this.hideHoverTooltip();
+            this.svg.querySelectorAll('.select-box').forEach(e => e.remove());
+
+            let x = margin.left + box.x * this.cellXDim;
+            let y = margin.top + box.y * this.cellYDim;
+
+            let w = box.w * this.cellXDim,
+                h = box.h * this.cellYDim;
+
+            let rect = svgRect(x, y, w, h, {
+                class: 'select-box',
+                fill: 'rgba(0,0,0,0.1)'
+            });
+            self.svg.appendChild(rect);
+        };
+
+        scrollContainer.addEventListener('mousedown', this.SmouseDown, false);
+        scrollContainer.addEventListener('mouseup', this.SmouseUp, false);
+        scrollContainer.addEventListener('mousemove', this.SmouseMove, false);
+    }
+
 
 }
 
