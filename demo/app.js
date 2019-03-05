@@ -39,7 +39,7 @@ function loadViewer({ele, data}) {
         colCatLabels: ['Protein Family ID'],
         color: {
             bins: ['=0', '=1', '=2', '<20', '>=20'],
-            colors: [0x333333, 0xfff4f2, 0xffadad, 0xff6b6b, 0xff0000]
+            colors: [0xffffff, 0xfbe6e2, 0xffadad, 0xff6b6b, 0xff0000]
         },
         onHover: info => {
             let cs = info.rowCategories;

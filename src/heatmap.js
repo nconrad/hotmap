@@ -57,6 +57,7 @@ export default class Heatmap {
         this.rows = params.rows;
         this.cols = params.cols;
         this.matrix = params.matrix;
+        this.defaults = params.defaults || {};
 
         this.color = params.color || 'gradient';
         this.origColorSettings = this.color;
@@ -207,8 +208,8 @@ export default class Heatmap {
         this.initStage();
 
         if (!resize) {
-            this.cellXDim = 1; // (canvasWidth - margin.left - margin.right) / this.size.x;
-            this.cellYDim = 10;
+            this.cellXDim = this.defaults.cellW || 1; // (canvasWidth - margin.left - margin.right) / this.size.x;
+            this.cellYDim = this.defaults.cellH || 10;
         }
         this.scaleCtrl._setValues({x: this.cellXDim, y: this.cellYDim});
         this.renderChart(true, true, true);
