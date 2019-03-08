@@ -47,7 +47,7 @@ export default class Options {
 
         if (this._color !== 'gradient') {
             let el = ele.querySelector('.colors');
-            el.style.display = 'block'
+            el.style.display = 'block';
             el.onclick = () => this._onColor;
             ele.querySelector('.colors [data-id="bins"]');
         }

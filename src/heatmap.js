@@ -417,7 +417,7 @@ export default class Heatmap {
             ele.addEventListener('mouseover', () => {
                 let tt = this.tooltip(y - ele.getBBox().height - 5, x + 10);
 
-                let cats = this.rowCatLabels.length == 0 ? ""
+                let cats = this.rowCatLabels.length == 0 ? ''
                     : this.rowCategories[cellIdx].map((cat, i) =>
                         `<br><div><b>${this.rowCatLabels[i]}:</b> ${cat}</div>`
                     ).join('');
