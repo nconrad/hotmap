@@ -8,12 +8,12 @@
  */
 export default class Options {
 
-    constructor({openBtn, onSortChange, colorType, onColorChange}) {
+    constructor({openBtn, onSortChange, color, onColorChange}) {
         this.openBtn = openBtn;
         this.onSortChange = onSortChange;
         this.onColorChange = onColorChange;
 
-        this._colorType = colorType;
+        this._color = color;
         this._viewerNode = this.openBtn.parentNode.parentNode;
         this._show = false;
 
@@ -45,8 +45,10 @@ export default class Options {
         ele.querySelector('.close-btn').onclick = () => this.hide();
 
 
-        if (this._colorType === 'bins') {
-            ele.querySelector('.colors').onclick = () => this._onColor;
+        if (this._color !== 'gradient') {
+            let el = ele.querySelector('.colors');
+            el.style.display = 'block'
+            el.onclick = () => this._onColor;
             ele.querySelector('.colors [data-id="bins"]');
         }
 

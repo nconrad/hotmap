@@ -4,8 +4,8 @@
  * Author: https://github.com/nconrad
  *
  * Todo:
- *      polyfill remove()/append()
- *      polyfill proxy
+ *      IE polyfill remove()/append()
+ *      IE polyfill proxy
  *
  */
 import 'pixi.js/dist/pixi';
@@ -70,13 +70,13 @@ export default class Heatmap {
 
         this.rowCategories = this.getCategories(params.rows);
         this.colCategories = this.getCategories(params.cols);
-        this.rowCatLabels = params.rowCatLabels;
-        this.colCatLabels = params.colCatLabels;
+        this.rowCatLabels = params.rowCatLabels || [];
+        this.colCatLabels = params.colCatLabels || [];
 
         this.onHover = params.onHover;
 
         // get category colors; Todo: optimize?
-        this.rowCatColors = getCategoryColors(this.rowCategories);
+        this.rowCatColors = getCategoryColors(this.rowCategories) || [];
 
         // m and n (row and cols) dimensions
         let minMax = matMinMax(params.matrix);
@@ -143,7 +143,7 @@ export default class Heatmap {
         this.options = new Options({
             parentNode: this.ele,
             openBtn: document.querySelector('.opts-btn'),
-            colorType: 'bins' in this.color ? 'bins' : 'gradient',
+            color: this.color,
             onColorChange: (type) => {
                 this.color = type === 'gradient' ? type : this.origColorSettings;
                 this.colorMatrix = getColorMatrix(this.matrix, this.color);
@@ -417,12 +417,13 @@ export default class Heatmap {
             ele.addEventListener('mouseover', () => {
                 let tt = this.tooltip(y - ele.getBBox().height - 5, x + 10);
 
-                let cats = this.rowCategories[cellIdx].map((cat, i) =>
-                    `<div><b>${this.rowCatLabels[i]}:</b> ${cat}</div>`
-                ).join('');
+                let cats = this.rowCatLabels.length == 0 ? ""
+                    : this.rowCategories[cellIdx].map((cat, i) =>
+                        `<br><div><b>${this.rowCatLabels[i]}:</b> ${cat}</div>`
+                    ).join('');
 
                 tt.innerHTML =
-                    `<div>${this.rows[cellIdx].name}</div><br>
+                    `<div>${this.rows[cellIdx].name}</div>
                     ${cats}`;
             });
 
@@ -458,12 +459,13 @@ export default class Heatmap {
             ele.addEventListener('mouseover', () => {
                 let tt = this.tooltip(y, x - 5);
 
-                let cats = this.colCategories[cellIdx].map((cat, i) =>
-                    `<div><b>${this.colCatLabels[i]}:</b> ${cat}</div>`
-                ).join('');
+                let cats = this.colCatLabels.length === 0 ? ''
+                    : this.colCategories[cellIdx].map((cat, i) =>
+                        `<br><div><b>${this.colCatLabels[i]}:</b> ${cat}</div>`
+                    ).join('');
 
                 tt.innerHTML =
-                    `<div>${this.cols[cellIdx].name}</div><br>
+                    `<div>${this.cols[cellIdx].name}</div>
                     ${cats}`;
             });
 
@@ -801,11 +803,11 @@ export default class Heatmap {
         let top = y + cellYDim,
             left = x + cellXDim;
         let tooltip = this.tooltip(top, left);
-        tooltip.innerHTML = this.onHover({
+        tooltip.innerHTML = this.hover ? this.onHover({
             xLabel, yLabel, value,
             rowCategories: this.rowCategories[i],
             colCategories: this.colCategories[j]
-        });
+        }) : content;
 
         // add hover box
         if (x && y) {
