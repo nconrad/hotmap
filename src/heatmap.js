@@ -47,11 +47,14 @@ const margin = {
 
 const minTextW = 2;
 const maxTextW = 16;
-const categoryWidth = 40;
+let rowCatWidth = 40;
+let colCatWidth = 40;
 // const cellPadding = 1;
 
 export default class Heatmap {
     constructor(params) {
+        this.validateParams(params);
+
         this.ele = params.ele;
 
         this.rows = params.rows;
@@ -70,13 +73,18 @@ export default class Heatmap {
 
         this.rowCategories = this.getCategories(params.rows);
         this.colCategories = this.getCategories(params.cols);
+        if (!this.rowCategories) rowCatWidth = 0;
+        if (!this.colCategories) colCatWidth = 0;
+
         this.rowCatLabels = params.rowCatLabels || [];
         this.colCatLabels = params.colCatLabels || [];
 
         this.onHover = params.onHover;
 
         // get category colors; Todo: optimize?
-        this.rowCatColors = getCategoryColors(this.rowCategories) || [];
+        this.rowCatColors = this.rowCategories
+            ? getCategoryColors(this.rowCategories) : [];
+
 
         // m and n (row and cols) dimensions
         let minMax = matMinMax(params.matrix);
@@ -101,6 +109,37 @@ export default class Heatmap {
         this.start();
 
         return this;
+    }
+
+    validateParams(params) {
+        let {ele, rows, cols, matrix} = params;
+        let name = `hotmap.js`;
+
+        // validate params
+        if (!ele) alert(`${name}: Must provide an element to attach chart to.`);
+        else if (!matrix) alert(`${name}: Must provide an matrix of values.`);
+        else if (!rows) alert(`${name}: Must provide some sort of row labels.`);
+        else if (!cols) alert(`${name}: Must provide some sort of column labels.`);
+
+        let rowCatLbls = params.rowCatLabels;
+        if (rowCatLbls !== null && !rowCatLbls && 'categories' in rows[0]) {
+            console.warn(
+                `${name}: No labels were provided for row categories.
+                Use "rowCatLabels: null" to dismiss`
+            );
+        }
+
+        let colCatLbls = params.colCatLabels;
+        if (colCatLbls !== null && !colCatLbls && 'categories' in rows[0]) {
+            console.warn(
+                `${name}: No labels were provided for column categories.
+                Use "colCatLabels: null" to dismiss`
+            );
+        }
+
+        // validate data
+        let validMat = matrix.filter(r => r.length !== matrix[0].length).length == 0;
+        if (!validMat) alert('Must provide matrix with same number of columns.');
     }
 
     start() {
@@ -258,10 +297,10 @@ export default class Heatmap {
             }
 
             if (cellYDim > minTextW && renderY) {
-                this.addSVGLabel('y', this.rows[rowIdx].name, margin.left - categoryWidth - 10, y + 3, i);
+                this.addSVGLabel('y', this.rows[rowIdx].name, margin.left - rowCatWidth - 10, y + 3, i);
             }
-            if (renderY) {
-                this.addCategories('y', rowIdx, margin.left - categoryWidth, y);
+            if (renderY && this.rowCategories) {
+                this.addCategories('y', rowIdx, margin.left - rowCatWidth, y);
             }
 
             // for each column
@@ -301,10 +340,11 @@ export default class Heatmap {
                     this.addSVGLabel('x', this.cols[colIdx].name, x + 2, margin.top - 5, j);
                 }
 
-                if (!this.catLabelsAdded && i == 0 && renderX && colIdx < this.rowCatLabels.length) {
+                if (this.colCategories && !this.catLabelsAdded && i == 0 &&
+                    renderX && colIdx < this.rowCatLabels.length) {
                     let k = this.rowCatLabels.length - colIdx - 1;
                     this.addCategoryLabel('x', this.rowCatLabels[k],
-                        margin.left - colIdx * (categoryWidth / this.rowCatLabels.length),
+                        margin.left - colIdx * (colCatWidth / this.rowCatLabels.length),
                         margin.top - 5, k);
                 }
             }
@@ -353,7 +393,7 @@ export default class Heatmap {
         this.catLabelsAdded = true;
         this.selectable();
         // let t1 = performance.now();
-        // console.log('total time spent', t1 - t0);
+        // console.log('render time', t1 - t0);
     }
 
     initSVGContainers(width, height) {
@@ -549,7 +589,7 @@ export default class Heatmap {
         let categories = this.rowCategories[index];
 
         // compute width of each category from: total / number-of-cateogries
-        let width = parseInt(categoryWidth / categories.length );
+        let width = parseInt(rowCatWidth / categories.length );
 
         for (let i = 0; i < categories.length; i++) {
             let sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
@@ -883,7 +923,11 @@ export default class Heatmap {
     }
 
     getCategories(objs) {
-        return objs.map(r => r.categories);
+        objs = objs.filter(r => r.categories).map(r => {
+            return r.categories;
+        });
+
+        return !objs.length ? null : objs;
     }
 
     updateLegend() {

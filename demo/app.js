@@ -29,12 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 function loadViewer({ele, data}) {
+    let {rows, cols, matrix} = data;
     let rowCatLabels = ['Isolation Country', 'Host', 'Genome Group'];
     new Heatmap({
-        ele,
-        rows: data.rows,
-        cols: data.cols,
-        matrix: data.matrix,
+        ele, rows, cols, matrix,
         rowCatLabels: rowCatLabels,
         colCatLabels: ['Protein Family ID'],
         color: {
