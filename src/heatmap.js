@@ -26,6 +26,8 @@ import { getColorMatrix, getCategoryColors, rgbToHex, toHex } from './color';
 import { labelColor, labelHoverColor } from './consts';
 import './assets/styles/heatmap.less';
 
+PIXI.utils.skipHello();
+
 const FORCE_CANVAS = false;
 const PARTICLE_CONTAINER = false;
 
@@ -55,6 +57,7 @@ export default class Heatmap {
     constructor(params) {
         this.validateParams(params);
 
+        // ***** initialize params *****
         this.ele = params.ele;
 
         this.rows = params.rows;
@@ -85,15 +88,10 @@ export default class Heatmap {
         this.rowCatColors = this.rowCategories
             ? getCategoryColors(this.rowCategories) : [];
 
+        // ***** end params *****
 
         // m and n (row and cols) dimensions
-        let minMax = matMinMax(params.matrix);
-        this.size = {
-            x: params.matrix[0].length,
-            y: params.matrix.length,
-            min: minMax.min,
-            max: minMax.max
-        };
+        this.size = this.getMatrixStats(params.matrix);
 
         // start coordinates in matrix for "viewbox"
         this.xStart = 0;
@@ -279,6 +277,7 @@ export default class Heatmap {
         xViewSize = parseInt((window.innerWidth - margin.left - margin.right) / cellXDim);
         yViewSize = parseInt((window.innerHeight - margin.top - margin.bottom) / cellYDim);
         if (yViewSize > this.size.y) yViewSize = this.size.y;
+
 
         // for each row
         for (let i = 0; i < yViewSize; i++) {
@@ -910,16 +909,18 @@ export default class Heatmap {
         this.rowCatColors = this.rows.map(row => row.catColors);
 
         // update all data
-        this.updateData();
-        this.renderChart(true, true, true);
+        this.updateData(true);
     }
 
     // updates associated data models (such as categorical data
-    updateData() {
+    updateData(render) {
         this.rowCategories = this.getCategories(this.rows);
+        this.colCategories = this.getCategories(this.cols);
 
         // update colors
         this.colorMatrix = getColorMatrix(this.matrix, this.color);
+
+        if (render) this.renderChart(true, true, true);
     }
 
     getCategories(objs) {
@@ -1056,6 +1057,37 @@ export default class Heatmap {
         scrollContainer.addEventListener('mousemove', this.SmouseMove, false);
     }
 
+    getMatrixStats(matrix) {
+        let minMax = matMinMax(matrix);
+        return {
+            x: this.matrix[0].length,
+            y: this.matrix.length,
+            min: minMax.min,
+            max: minMax.max
+        };
+    }
+
+    /**
+     * API methods
+     */
+    update(data) {
+        let {rows, cols, matrix} = data;
+        this.cols = cols || this.cols;
+        this.rows = rows || this.rows;
+        this.matrix = matrix || this.matrix;
+
+        this.size = this.getMatrixStats(this.matrix);
+
+        this.updateData(true);
+    }
+
+    getState() {
+        return {
+            rows: this.rows,
+            cols: this.cols,
+            matrix: this.matrix
+        };
+    }
 
 }
 

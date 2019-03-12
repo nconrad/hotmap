@@ -8,30 +8,43 @@
  */
 import Heatmap from '../src/heatmap';
 
-
 document.addEventListener('DOMContentLoaded', () => {
     let ele = document.querySelector('#chart');
     let dataPath = ele.getAttribute('data-path');
+
+    let heatmap;
 
     let statusHandle = loading(ele);
     fetch(dataPath)
         .then(res => res.json())
         .then(data => {
             console.log('data file:', data);
-            loadViewer({ele, data});
+            heatmap = loadViewer({ele, data});
         }).catch((e) => {
             console.log(e);
             alert(`Could not load viewer. Please contact owner.`);
         });
 
     clearInterval(statusHandle);
+
+    // example of updating the chart
+    let updateBtn = document.querySelector('.update-btn');
+    if (!updateBtn) return;
+
+    document.querySelector('.update-btn').onclick = () => {
+        let data = heatmap.getState();
+        let rows = data.rows.slice(0, 5),
+            matrix = data.matrix.slice(0, 5);
+
+        heatmap.update({rows, matrix});
+    };
 });
 
 
 function loadViewer({ele, data}) {
     let {rows, cols, matrix} = data;
     let rowCatLabels = ['Isolation Country', 'Host', 'Genome Group'];
-    new Heatmap({
+    let heatmap = new Heatmap({
         ele, rows, cols, matrix,
         rowCatLabels: rowCatLabels,
         colCatLabels: ['Protein Family ID'],
@@ -51,6 +64,8 @@ function loadViewer({ele, data}) {
              <div><b>Value:</b> ${info.value}</div>`;
         }
     });
+
+    return heatmap;
 }
 
 function colorFunction(val) {
@@ -59,7 +74,6 @@ function colorFunction(val) {
     if (val < 20) return 0xff7566;
     return 0xff0000;
 }
-
 
 function loading(ele) {
     let i = 0;
@@ -70,7 +84,6 @@ function loading(ele) {
 
     return handle;
 }
-
 
 /*
   Example mock data:
