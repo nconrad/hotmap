@@ -842,7 +842,7 @@ export default class Heatmap {
         let top = y + cellYDim,
             left = x + cellXDim;
         let tooltip = this.tooltip(top, left);
-        tooltip.innerHTML = this.hover ? this.onHover({
+        tooltip.innerHTML = this.onHover ? this.onHover({
             xLabel, yLabel, value,
             rowCategories: this.rowCategories[i],
             colCategories: this.colCategories[j]
