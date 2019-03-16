@@ -4,7 +4,7 @@
   "description": "WebGL Based Heatmap for Bioinformatics and Big Data",
   "main": "index.js",
   "scripts": {
-    "build": "webpack -p",
+    "build": "NODE_ENV=production webpack -p",
     "start": "webpack-dev-server --hot --inline",
     "start:server": "http-server -o",
     "lint": "node_modules/eslint/bin/eslint.js src/*.js demo/*.js",
@@ -12,7 +12,6 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "eslint-plugin-import": "^2.14.0",
     "pixi.js": "^4.8.3",
     "vanilla-picker": "^2.7.2"
   },
@@ -25,12 +24,14 @@
     "css-loader": "^2.1.0",
     "eslint": "^5.10.0",
     "eslint-config-standard": "^12.0.0",
+    "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-node": "^8.0.0",
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
     "html-loader": "^0.5.5",
     "less": "^3.9.0",
     "less-loader": "^4.1.0",
+    "mini-css-extract-plugin": "^0.5.0",
     "style-loader": "^0.23.1",
     "svg-inline-loader": "^0.8.0",
     "uglifyjs-webpack-plugin": "^2.0.1",

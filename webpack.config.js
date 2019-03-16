@@ -1,11 +1,12 @@
 const path = require('path');
 const webpack = require('webpack');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+
+const devMode = process.env.NODE_ENV !== 'production';
 
 
 module.exports = {
-    watch: true,
     mode: 'development',
     entry: {
         'heatmap': './entry.js',
@@ -28,8 +29,12 @@ module.exports = {
             loader: 'html-loader',
             exclude: /node_modules/
         }, {
-            test: /\.less$/,
-            loaders: ['style-loader', 'css-loader', 'less-loader']
+            test: /\.(less)$/,
+            use: [
+                devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
+                'css-loader',
+                'less-loader'
+            ]
         }, {
             test: /\.svg$/,
             loader: 'svg-inline-loader'
@@ -50,12 +55,9 @@ module.exports = {
         new webpack.optimize.LimitChunkCountPlugin({
             maxChunks: 1
         }),
-        /*
-        new CopyWebpackPlugin([{
-            from: 'src/heatmap.css',
-            to: 'heatmap.css'
-        }])
-        */
+        new MiniCssExtractPlugin({
+            filename: '[name].css'
+        })
     ],
     stats: {
         colors: true
