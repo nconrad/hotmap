@@ -1,0 +1,39 @@
+
+
+<html>
+  <head>
+    <link href="../../dist/heatmap.css" rel="stylesheet" type="text/css">
+    <style>
+      /* let's have the body act as container */
+      body { margin: 0; overflow: hidden;}
+    </style>
+    <script src="../../dist/heatmap.js"></script>
+
+    <script>
+      (function() {
+        var req = new XMLHttpRequest();
+        req.addEventListener('load', onRes);
+        req.open('GET', '../data/med.json');
+        req.send();
+
+        function onRes () {
+          var {rows, cols, matrix} = JSON.parse(this.responseText);
+          var ele = document.getElementById('heatmap');
+
+          var chart = new Heatmap({
+            ele,
+            cols,
+            rows,
+            matrix,
+          })
+        }
+      })()
+     </script>
+
+  </head>
+
+  <body>
+    <div id="heatmap"></div>
+  </body>
+
+</html>
