@@ -936,6 +936,8 @@ export default class Heatmap {
         addLegend(this.ele.querySelector('.legend'),
             this.size.min, this.size.max, this.color);
 
+        // optional color picker
+        if (typeof Picker !== 'undefined')
         this.updateColorPicker();
     }
 
