@@ -868,7 +868,7 @@ export default class Heatmap {
     }
 
     hideHoverTooltip() {
-        let tooltip = this.ele.querySelector('.tooltip');
+        let tooltip = this.ele.querySelector('.hmap-tt');
         tooltip.style.display = 'none';
         this.ele.querySelectorAll('.hover-box').forEach(el => el.remove());
     }
