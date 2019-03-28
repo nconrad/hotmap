@@ -844,8 +844,8 @@ export default class Heatmap {
         let tooltip = this.tooltip(top, left);
         tooltip.innerHTML = this.onHover ? this.onHover({
             xLabel, yLabel, value,
-            rowCategories: this.rowCategories[i],
-            colCategories: this.colCategories[j]
+            ...(this.rowCategories && this.rowCategories[i]),
+            ...(this.colCategories && this.colCategories[j])
         }) : content;
 
         // add hover box
