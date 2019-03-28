@@ -274,8 +274,9 @@ export default class Heatmap {
 
         // use cell size to compute "view box" of sorts
         // Todo: optimize, moving into resize event
-        xViewSize = parseInt((window.innerWidth - margin.left - margin.right) / cellXDim);
-        yViewSize = parseInt((window.innerHeight - margin.top - margin.bottom) / cellYDim);
+        let parent = this.ele.parentNode;
+        xViewSize = parseInt((parent.clientWidth - margin.left - margin.right) / cellXDim);
+        yViewSize = parseInt((parent.clientHeight - margin.top - margin.bottom) / cellYDim);
         if (yViewSize > this.size.y) yViewSize = this.size.y;
 
 
@@ -842,10 +843,14 @@ export default class Heatmap {
         let top = y + cellYDim,
             left = x + cellXDim;
         let tooltip = this.tooltip(top, left);
+
+        let rowCats = this.rowCategories,
+            colCats = this.colCategories;
+
         tooltip.innerHTML = this.onHover ? this.onHover({
             xLabel, yLabel, value,
-            ...(this.rowCategories && this.rowCategories[i]),
-            ...(this.colCategories && this.colCategories[j])
+            ...(rowCats && {rowCategories: this.rowCategories[i]}),
+            ...(colCats && {colCategories: this.colCategories[j]})
         }) : content;
 
         // add hover box
