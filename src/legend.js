@@ -6,10 +6,7 @@
  * Authors: nconrad
  *
  */
-import { setAttributes } from './dom';
-import { svgEle, svgG, svgRect, svgText } from './svg';
 import { parseColorBins, toHex } from './color';
-
 
 export function addLegend(ele, min, max, settings) {
     if (!settings || settings === 'gradient') {
@@ -42,7 +39,7 @@ function binLegend(ele, min, max, settings) {
 
         let rectEl = document.createElement('div');
         rectEl.classList.add('box');
-        rectEl.style.backgroundColor = isNaN(color) ? color : toHex(color);
+        rectEl.style.backgroundColor = isNaN(color) ? color : '#' + toHex(color);
         item.appendChild(rectEl);
 
         let textEl = document.createElement('span');
