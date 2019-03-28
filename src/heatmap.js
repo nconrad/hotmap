@@ -47,7 +47,7 @@ const margin = {
     right: 125 // here we are essentially using right margin for angled text
 };
 
-const minTextW = 2;
+const minTextW = 5;
 const maxTextW = 16;
 let rowCatWidth = 40;
 let colCatWidth = 40;
@@ -856,7 +856,7 @@ export default class Heatmap {
     }
 
     tooltip(top, left) {
-        let tooltip = this.ele.querySelector('.tooltip');
+        let tooltip = this.ele.querySelector('.hmap-tt');
         tooltip.style.display = 'block';
         tooltip.style.top = top; // place at bottom right
         tooltip.style.left = left;
@@ -938,7 +938,7 @@ export default class Heatmap {
 
         // optional color picker
         if (typeof Picker !== 'undefined')
-        this.updateColorPicker();
+            this.updateColorPicker();
     }
 
     updateColorPicker() {
