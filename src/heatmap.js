@@ -104,7 +104,7 @@ export default class Heatmap {
 
         // add container/html
         this.ele.innerHTML = container;
-        if (!params.showLogo)
+        if (params.showLogo == false)
             this.ele.querySelector('.logo').remove();
 
         this.start();
