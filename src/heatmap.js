@@ -88,7 +88,7 @@ export default class Heatmap {
         this.rowCatColors = this.rowCategories
             ? getCategoryColors(this.rowCategories) : [];
 
-        // ***** end params *****
+        // ***** end setting params *****
 
         // m and n (row and cols) dimensions
         this.size = this.getMatrixStats(params.matrix);
@@ -97,12 +97,15 @@ export default class Heatmap {
         this.xStart = 0;
         this.yStart = 0;
 
-        this.ele.innerHTML = container;
-
         // components to be instantiated
         this.scaleCtrl;
         this.scrollBars;
         this.mouseTracker;
+
+        // add container/html
+        this.ele.innerHTML = container;
+        if (!params.showLogo)
+            this.ele.querySelector('.logo').remove();
 
         this.start();
 
