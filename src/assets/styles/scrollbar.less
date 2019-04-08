@@ -1,4 +1,9 @@
 
+.scroll-container {
+  position: absolute;
+  overflow: auto;
+}
+
 .scroll-container::-webkit-scrollbar {
   display: inherit;
   -webkit-appearance: none;
@@ -20,11 +25,6 @@
 .scroll-container::-webkit-scrollbar-track {
   border-radius: 8px;
   background: #f2f2f2;
-}
-
-.scroll-container {
-  position: absolute;
-  overflow: auto;
 }
 
 .scroll-container.ff:hover {

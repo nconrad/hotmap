@@ -71,10 +71,10 @@ export default class MouseTracker {
 
     update({top, left, width, height, cellXSize, cellYSize}) {
         // update container for scaling and whatnot
-        this.mouseContainer.style.top = top;
-        this.mouseContainer.style.left = left;
-        this.mouseContainer.style.width = width;
-        this.mouseContainer.style.height = height;
+        this.mouseContainer.style.top = `${top}px`;
+        this.mouseContainer.style.left = `${left}px`;
+        this.mouseContainer.style.width = `${width}px`;
+        this.mouseContainer.style.height = `${height}px`;
 
         this.cellXSize = cellXSize;
         this.cellYSize = cellYSize;

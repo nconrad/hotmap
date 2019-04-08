@@ -757,7 +757,7 @@ export default class Heatmap {
 
     getMouseTracker() {
         return new MouseTracker({
-            ele: document.querySelector('.scroll-container'),
+            ele: this.ele.querySelector('.scroll-container'),
             top: margin.top,
             left: margin.left,
             width: xViewSize * this.cellXDim,
@@ -866,8 +866,8 @@ export default class Heatmap {
     tooltip(top, left) {
         let tooltip = this.ele.querySelector('.hmap-tt');
         tooltip.style.display = 'block';
-        tooltip.style.top = top; // place at bottom right
-        tooltip.style.left = left;
+        tooltip.style.top = `${top}px`;
+        tooltip.style.left = `${left}px`;
         return tooltip;
     }
 

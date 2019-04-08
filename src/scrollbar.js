@@ -39,29 +39,30 @@ export default class ScrollBar {
 
     init() {
         // setup scroll container
-        let container = document.querySelector('.scroll-container');
-        container.style.padding = `0 ${barOffset}px ${barOffset}px 0`;
+        let container = this.ele.querySelector('.scroll-container');
 
         // for firefox, at least show on hover
         if (navigator.userAgent.search('Firefox') != -1) {
             container.classList.add('ff');
         }
 
-        container.style.top = this.y;
-        container.style.left = this.x;
-        container.style.width = this.width;
-        container.style.height = this.height;
+        container.style.position = 'absolute';
+        container.style.top = `${this.y}px`;
+        container.style.left = `${this.x}px`;
+        container.style.width = `${this.width}px`;
+        container.style.height = `${this.height}px`;
         this.scrollContainer = container;
 
         // setup fake content
         let content = document.createElement('div');
         content.classList.add('scroll-content');
-        content.style.top = this.y;
-        content.style.left = this.x;
-        content.style.width = this.contentWidth - barOffset;
-        content.style.height = this.contentHeight - barOffset;
+        content.style.position = 'absolute';
+        content.style.top = `${this.y}px`;
+        content.style.left = `${this.x}px`;
+        content.style.width = `${this.contentWidth - barOffset}px`;
+        content.style.height = `${this.contentHeight - barOffset}px`;
 
-        this.scrollContainer.append(content);
+        this.scrollContainer.appendChild(content);
         this.content = content;
 
         // scroll event
@@ -103,22 +104,22 @@ export default class ScrollBar {
 
     setWidth(width) {
         this.width = width - barOffset;
-        this.content.style.width = this.width;
+        this.content.style.width = `${this.width}px`;
     }
 
     setHeight(height) {
         this.height = height - barOffset;
-        this.content.style.height = this.height;
+        this.content.style.height = `${this.height}px`;
     }
 
     setContentWidth(width) {
         this.contentWidth = width;
-        this.scrollContainer.style.width = width;
+        this.scrollContainer.style.width = `${width}px`;
     }
 
     setContentHeight(height) {
         this.contentHeight = height;
-        this.scrollContainer.style.height = height;
+        this.scrollContainer.style.height = `${height}px`;
     }
 
     hideY() {
