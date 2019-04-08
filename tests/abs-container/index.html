@@ -1,0 +1,77 @@
+
+
+<html>
+  <head>
+    <link href="../../dist/heatmap.css" rel="stylesheet" type="text/css">
+
+    <style>
+      body {
+        position: absolute;
+        margin: 0;
+        overflow: hidden;
+        z-index: 2;
+      }
+
+      .nav-example {
+        position: absolute;
+        top: 50px;
+        left: 50px;
+        height: 500px;
+        padding: 25px;
+        border: 2px solid rgb(67, 38, 173);
+      }
+
+      .container {
+        position: absolute;
+        height: 500px;
+        width: 800px;
+        left: 300px;
+        top: 50px;
+        z-index: 2;
+      }
+    </style>
+
+    <script src="../../dist/heatmap.js"></script>
+
+    <script>
+      (function() {
+        var req = new XMLHttpRequest();
+        req.addEventListener('load', onRes);
+        req.open('GET', '../data/test-nocat.json');
+        req.send();
+
+        function onRes () {
+          var {rows, cols, matrix} = JSON.parse(this.responseText);
+          var ele = document.getElementById('heatmap');
+
+          var chart = new Heatmap({
+            ele,
+            cols,
+            rows,
+            matrix,
+            color: {
+              bins: ['=0', '=1', '=2', '>=3'],
+              colors: [0x000000, 16440142, 16167991, 16737843]
+            }
+          })
+        }
+      })()
+     </script>
+
+  </head>
+
+  <body>
+    <div class="nav-example">
+      This is just some container
+      <ul>
+        <li>foo1</li>
+        <li>foo2</li>
+        <li>fooooo!</li>
+      </ul>
+    </div>
+    <div class="container">
+      <div id="heatmap"></div>
+    </div>
+  </body>
+
+</html>

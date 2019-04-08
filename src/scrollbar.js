@@ -56,7 +56,6 @@ export default class ScrollBar {
         // setup fake content
         let content = document.createElement('div');
         content.classList.add('scroll-content');
-        content.style.position = 'absolute';
         content.style.top = `${this.y}px`;
         content.style.left = `${this.x}px`;
         content.style.width = `${this.contentWidth - barOffset}px`;
