@@ -19,11 +19,16 @@
   */
 > .header {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   background: #333;
   color: #d8d8d8;
   height: 68px;
+}
+
+> .header.white {
+  background: #fff;
+  color: #333;
 }
 
 > .header > * {
@@ -40,8 +45,8 @@
 }
 
 > .header > .info {
-  margin-left: 30px;
-  font-size: .8em;
+  margin-left: 20px;
+  width: 450px;
 }
 
 .chart {
