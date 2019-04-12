@@ -2,6 +2,8 @@
 
 A WebGL/Canvas Heatmap for Bioinformatics and Big Data, written in vanilla JS and built with [pixi.js](http://www.pixijs.com/).
 
+![screenshot](demo/screenshot.png)
+
 
 ## Usage
 
