@@ -8,12 +8,38 @@ A WebGL/Canvas Heatmap for Bioinformatics and Big Data, written in vanilla JS an
 
 ## Why?
 
-I wanted a heatmap viewer that easy to use and scales to millions of cells.
+I wanted to create a heatmap viewer that easy to use and scales to millions of cells.  The applications in bioinfomatics are endless.
+
 
 
 ## Usage
 
-(more soon)
+Currently requires:
+
+```
+npm install 
+npm build
+```
+
+
+### Basic Usage
+
+```
+    <script src="../../dist/heatmap.js"></script>
+    ...
+    <body>
+        <div id="heatmap"></div>
+    </body>
+```
+
+```javascript
+ let chart = new Heatmap({
+    ele: document.getElementById('heatmap'), 
+    rows: [...] 
+    cols: [...], 
+    matrix: [[...], [...], ...]
+ })
+```
 
 
 ### Config
@@ -27,12 +53,14 @@ I wanted a heatmap viewer that easy to use and scales to millions of cells.
 | onHover | function | optional | Displays row, column, and matrix value in tooltip on hover. |
 
 
+
 ### API Methods
 
 | Method   | Definition                   | Description                                                |
 |----------|------------------------------|------------------------------------------------------------|
 | update   | update({rows, cols, matrix}) | Given object with rows, columns, and matrix, updates chart |
 | getState | getState()                   | Returns current rows, columns and matrix                   |
+
 
 
 ### Example config
@@ -85,12 +113,12 @@ Neal Conrad <nconrad@anl.gov>
 
 Please cite this repo in the meantime:
 
-N. Conrad, A WebGL Heatmap for Bioinformatics and Big Data, (2019), GitHub repository, https://github.com/nconrad/hotmap
+N. Conrad, A WebGL Heatmap for Bioinformatics and Big Data, (2019), GitHub repository, https://github.com/nconrad/heatmap
 
 
 ## License
 
-Released under [the MIT license](https://github.com/nconrad/hotmap/blob/master/LICENSE).
+Released under [the MIT license](https://github.com/nconrad/heatmap/blob/master/LICENSE).
 
 
 
