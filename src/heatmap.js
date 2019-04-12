@@ -88,6 +88,8 @@ export default class Heatmap {
         this.rowCatColors = this.rowCategories
             ? getCategoryColors(this.rowCategories) : [];
 
+        this.noMargins = params.noMargins || false;
+
         // ***** end setting params *****
 
         // m and n (row and cols) dimensions
@@ -104,8 +106,10 @@ export default class Heatmap {
 
         // add container/html
         this.ele.innerHTML = container;
-        if (params.showLogo == false)
+        if (params.noLogo == true)
             this.ele.querySelector('.logo').remove();
+        if (params.light)
+            this.ele.querySelector('.header').classList.add('light');
 
         this.start();
 
@@ -234,7 +238,6 @@ export default class Heatmap {
             this.stage._maxSize = this.size.x * this.size.y;
         } else {
             this.stage = new PIXI.Container();
-            // this.stage._maxSize = this.size.x * this.size.y;
             this.catStage = new PIXI.Container();
             this.stage.addChild(this.catStage);
         }
@@ -248,8 +251,11 @@ export default class Heatmap {
         this.initStage();
 
         if (!resize) {
-            this.cellXDim = this.defaults.cellW || 1; // (canvasWidth - margin.left - margin.right) / this.size.x;
-            this.cellYDim = this.defaults.cellH || 10;
+            let parent = this.ele.parentNode;
+            this.cellXDim = this.defaults.cellW ||
+                (parseInt((parent.clientWidth - margin.left - margin.right) / this.size.x) || 1);
+            this.cellYDim = this.defaults.cellH  ||
+                (parseInt((parent.clientHeight - margin.top - margin.bottom) / this.size.y) || 1);
         }
         this.scaleCtrl._setValues({x: this.cellXDim, y: this.cellYDim});
         this.renderChart(true, true, true);
@@ -281,7 +287,6 @@ export default class Heatmap {
         xViewSize = parseInt((parent.clientWidth - margin.left - margin.right) / cellXDim);
         yViewSize = parseInt((parent.clientHeight - margin.top - margin.bottom) / cellYDim);
         if (yViewSize > this.size.y) yViewSize = this.size.y;
-
 
         // for each row
         for (let i = 0; i < yViewSize; i++) {
@@ -440,7 +445,7 @@ export default class Heatmap {
 
         if (axis == 'y') {
             y += this.cellYDim / 2 + 1;
-            ele.setAttribute('font-size', `${this.cellYDim <= maxTextW ? this.cellYDim - 2 : 16}px`);
+            ele.setAttribute('font-size', `${this.cellYDim <= maxTextW ? this.cellYDim - 4 : 16}px`);
             ele.setAttribute('class', `row-${cellIdx}`);
             ele.setAttribute('fill', '#666');
             ele.setAttribute('x', x);
@@ -481,7 +486,7 @@ export default class Heatmap {
             x += this.cellXDim / 2 + 1;
             ele.innerHTML = text;
             ele.setAttribute('class', `col-${cellIdx}`);
-            ele.setAttribute('font-size', `${this.cellXDim <= maxTextW ? this.cellXDim - 2 : 16}px`);
+            ele.setAttribute('font-size', `${this.cellXDim <= maxTextW ? this.cellXDim - 4 : 16}px`);
             ele.setAttribute('fill', '#666');
             ele.setAttribute('x', x);
             ele.setAttribute('y', y);
@@ -539,8 +544,6 @@ export default class Heatmap {
         let selected = [];
 
         for (let i = i1; i <= i2; i++) {
-            let row = this.matrix[i];
-
             for (let j = j1; j <= j2; j++) {
                 let val = this.matrix[i][j];
 
@@ -548,8 +551,8 @@ export default class Heatmap {
                     val: val,
                     rowName: this.rows[i].name,
                     colName: this.cols[j].name,
-                    rowCats: this.rowCategories[i],
-                    colCats: this.colCategories[j]
+                    ...(this.rowCategories && {rowCats: this.rowCategories[i]}),
+                    ...(this.colCategories && {colCats: this.colCategories[j]})
                 });
             }
         }
@@ -788,7 +791,7 @@ export default class Heatmap {
             // new cell hover styling
             label = this.yAxis.querySelector(`.row-${y}`);
             label.setAttribute('fill', labelHoverColor);
-            label.setAttribute('font-weight', 'bold');
+            label.setAttribute('font-weight', '500');
         }
 
         // if there even is x axis labels and we're changing cells
@@ -801,7 +804,7 @@ export default class Heatmap {
             }
             label = this.xAxis.querySelector(`.col-${x}`);
             label.setAttribute('fill', labelHoverColor);
-            label.setAttribute('font-weight', 'bold');
+            label.setAttribute('font-weight', '500');
         }
 
         let i = this.yStart + y,
