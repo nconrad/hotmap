@@ -1,11 +1,19 @@
-# Hotmap (under dev)
+# Heatmap
 
 A WebGL/Canvas Heatmap for Bioinformatics and Big Data, written in vanilla JS and built with [pixi.js](http://www.pixijs.com/).
 
 ![screenshot](demo/screenshot.png)
 
 
+
+## Why?
+
+I wanted a heatmap viewer that easy to use and scales to millions of cells.
+
+
 ## Usage
+
+(more soon)
 
 
 ### Config
@@ -54,6 +62,7 @@ A WebGL/Canvas Heatmap for Bioinformatics and Big Data, written in vanilla JS an
 npm install
 ```
 
+
 ### Development
 
 ```
@@ -66,16 +75,17 @@ npm start
 npm run build
 ```
 
-## Citation
-
-In the meantime, please cite this repo:
-
-N. Conrad, A WebGL Heatmap for Bioinformatics and Big Data, (2019), GitHub repository, https://github.com/nconrad/hotmap
-
 
 ## Author(s)
 
 Neal Conrad <nconrad@anl.gov>
+
+
+## Citation
+
+Please cite this repo in the meantime:
+
+N. Conrad, A WebGL Heatmap for Bioinformatics and Big Data, (2019), GitHub repository, https://github.com/nconrad/hotmap
 
 
 ## License
