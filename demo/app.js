@@ -68,12 +68,6 @@ function loadViewer({ele, data}) {
     return heatmap;
 }
 
-function colorFunction(val) {
-    if (val < 1) return 0x333333;
-    if (val < 2) return 0xffe8e5;
-    if (val < 20) return 0xff7566;
-    return 0xff0000;
-}
 
 function loading(ele) {
     let i = 0;

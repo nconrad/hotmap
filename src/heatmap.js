@@ -114,7 +114,7 @@ export default class Heatmap {
 
     validateParams(params) {
         let {ele, rows, cols, matrix} = params;
-        let name = `hotmap.js`;
+        let name = `heatmap.js`;
 
         // validate params
         if (!ele) alert(`${name}: Must provide an element to attach chart to.`);
