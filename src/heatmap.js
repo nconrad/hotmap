@@ -55,7 +55,7 @@ let colCatWidth = 40;
 
 // axis label offsets from the grid
 const xAxisLabelOffset = 50;
-const yAxisLabelOffset = 50;
+const yAxisLabelOffset = 30;
 
 export default class Heatmap {
     constructor(params) {
@@ -106,10 +106,6 @@ export default class Heatmap {
         // start coordinates in matrix for "viewbox"
         this.xStart = 0;
         this.yStart = 0;
-
-        // save dimensions for offsetting
-        this.rowCatChartWidth = this.rowCategories * rowCatWidth;
-        this.colCatChartHeight = this.colCategories * colCatWidth;
 
         // components to be instantiated
         this.scaleCtrl;
@@ -574,11 +570,11 @@ export default class Heatmap {
     showYAxisLabel(label) {
         let cls = 'y-axis-label';
         let ele = this.svg.querySelector(`.${cls}`);
-        let x = margin.left - yAxisLabelOffset - this.rowCatChartWidth;
+        let x = margin.left - yAxisLabelOffset - rowCatWidth;
 
         // if label exists, just reposition
         if (ele) {
-            let y = margin.top + (yViewSize * this.cellYDim) / 2 + ele.getBBox().height*2;
+            let y = margin.top + (ele.getBBox().width / 2) + (yViewSize * this.cellYDim) / 2;
             ele.setAttribute('y', y);
             ele.setAttribute('transform', `rotate(-90, ${x}, ${y})`);
             return;
