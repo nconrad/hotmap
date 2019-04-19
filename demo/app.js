@@ -46,6 +46,8 @@ function loadViewer({ele, data}) {
     let rowCatLabels = ['Isolation Country', 'Host', 'Genome Group'];
     let heatmap = new Heatmap({
         ele, rows, cols, matrix,
+        rowsLabel: 'Genomes',
+        colsLabel: 'Protein Families',
         rowCatLabels: rowCatLabels,
         colCatLabels: ['Protein Family ID'],
         color: {

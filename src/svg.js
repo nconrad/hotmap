@@ -24,6 +24,7 @@ export function svgText(text, x, y, opts = {}) {
     ele.setAttribute('y', y);
     ele.setAttribute('fill', opts.fill || '#000');
     if (opts.fontSize) ele.setAttribute('font-size', opts.fontSize);
+    if (opts.class) ele.setAttribute('class', opts.class);
 
     return ele;
 }
@@ -31,7 +32,7 @@ export function svgText(text, x, y, opts = {}) {
 export function svgRect(x, y, w, h, opts = {}) {
     let ele = document.createElementNS(svgNS, 'rect');
 
-    ele.setAttribute('class', opts.class ? opts.class : '');
+    if (opts.class) ele.setAttribute('class', opts.class);
     ele.setAttribute('x', x);
     ele.setAttribute('y', y);
     ele.setAttribute('width', w);
