@@ -18,7 +18,8 @@ module.exports = {
         "padded-blocks": 0,
         "new-cap": 0, // ignore for Pixi.js
         "no-extend-native": 0,
-        "no-throw-literal": 0
+        "no-throw-literal": 0,
+        "no-multi-spaces": 0
     },
     "globals": {
         "PIXI": 1,
