@@ -120,6 +120,7 @@ export default class Heatmap {
             this.ele.querySelector('.header').classList.add('light');
 
         this.start();
+        // testWebGL();
 
         return this;
     }
@@ -240,18 +241,20 @@ export default class Heatmap {
             .appendChild(this.renderer.view);
 
         if (PARTICLE_CONTAINER) {
-            this.stage = new PIXI.particles.ParticleContainer();
-            this.stage.alpha = true;
-            this.stage._maxSize = this.size.x * this.size.y;
+            this.cells = new PIXI.particles.ParticleContainer();
+            this.cells.alpha = true;
+            this.cells._maxSize = this.size.x * this.size.y;
         } else {
-            this.stage = new PIXI.Container();
-            this.catStage = new PIXI.Container();
-            this.stage.addChild(this.catStage);
+            this.chart = new PIXI.Container();
+            this.cells = new PIXI.Container();
+            this.cats = new PIXI.Container();
+            this.chart.addChild(this.cells);
+            this.chart.addChild(this.cats);
         }
 
         // render is used by rAF when needed
         this.render = () => {
-            this.renderer.render(this.stage);
+            this.renderer.render(this.chart);
         };
 
         // initial staging of 1x1 cells
@@ -305,7 +308,7 @@ export default class Heatmap {
                 // set anything below view box to 0 alpha for now
                 for (let k = 0; k < xViewSize; k++) {
                     let idx = i * xViewSize + k + 1,
-                        sprite = this.stage.children[idx];
+                        sprite = this.cells.children[idx];
                     if (sprite) sprite.alpha = 0;
                 }
                 continue;
@@ -326,16 +329,14 @@ export default class Heatmap {
 
                 // enforce bounds
                 if (colIdx >= this.size.x) {
-                    // must add 1 to ignore category container stage
-                    let sprite = this.stage.children[i * xViewSize + j + 1];
+                    let sprite = this.cells.children[i * xViewSize + j];
                     if (sprite) sprite.alpha = 0;
                     continue;
                 }
 
                 // if sprites rendered, just making transformations
                 if (this.isStaged) {
-                    // must add 1 to ignore category container stage
-                    let sprite = this.stage.children[i * xViewSize + j + 1];
+                    let sprite = this.cells.children[i * xViewSize + j];
                     sprite.tint = this.colorMatrix[rowIdx][colIdx];
                     sprite.alpha = 1.0;
                     sprite.x = x;
@@ -348,7 +349,7 @@ export default class Heatmap {
                     sprite.y = y;
                     sprite.height = cellYDim;
                     sprite.width = cellXDim;
-                    this.stage.addChild(sprite);
+                    this.cells.addChild(sprite);
                 }
 
                 if (i == 0 && cellXDim > minTextW && renderX) {
@@ -672,7 +673,7 @@ export default class Heatmap {
             sprite.height = this.cellYDim;
             sprite.width = width - 1; // -1 spacing
 
-            this.catStage.addChild(sprite);
+            this.cats.addChild(sprite);
             x += width;
         }
     }
@@ -724,19 +725,18 @@ export default class Heatmap {
                 this.yAxis.removeChild(this.yAxis.firstChild);
             }
 
-            let i = this.catStage.children.length;
+            let i = this.cats.children.length;
             while (i--) {
-                if (this.catStage.children[i].pluginName == 'sprite')
-                    this.catStage.removeChild(this.catStage.children[i]);
+                if (this.cats.children[i].pluginName == 'sprite')
+                    this.cats.removeChild(this.cats.children[i]);
             };
         }
 
         // Todo: there's possibly some sort of optimization here
         // when cells are out of range
         if (clearStage) {
-            // must ignore category stage
-            for (let i = 1; i < this.stage.children.length; i++) {
-                this.stage.children[i].alpha = 0;
+            for (let i = 0; i < this.cells.children.length; i++) {
+                this.cells.children[i].alpha = 0;
             }
         }
     }
