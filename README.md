@@ -7,18 +7,10 @@ A WebGL/Canvas Heatmap for Bioinformatics and Big Data, written in vanilla JS an
 
 ## Why?
 
-I wanted to create a heatmap viewer that easy to use and scales to millions of cells. 
+I wanted to create a heatmap viewer that easy to use and scales to millions of cells.
 
 
 ## Usage
-
-Currently requires:
-
-```
-npm install 
-npm build
-```
-
 
 #### Global
 
@@ -31,13 +23,11 @@ Add the required CSS/JS:
 
 #### ES6
 
-Add required CSS: 
+Add required CSS, and import JS:
 
 ```
 <link href="dist/heatmap.css" rel="stylesheet" type="text/css">
 ```
-
-Include:
 
 ```
 import Heatmap from 'dist/heatmap';
@@ -45,7 +35,7 @@ import Heatmap from 'dist/heatmap';
 
 #### AMD
 
-Required CSS: 
+Add required Required CSS, and require:
 
 ```
 <link href="dist/heatmap.css" rel="stylesheet" type="text/css">
@@ -94,7 +84,7 @@ requirejs(['heatmap'], function(Heatmap) {
         rows: [{...}],
         cols: [{...}],
         matrix: [[1, 2, 3], [2, 5.3, 0], ...],
-        color: { 
+        color: {
             bins: ['=0', '=1', '=2', '<20', '>=20'],
             colors: [0xffffff, 0xfbe6e2, 0xffadad, 0xff6b6b, 0xff0000]
         },

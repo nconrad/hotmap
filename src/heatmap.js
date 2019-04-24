@@ -92,6 +92,7 @@ export default class Heatmap {
         this.xLabel = params.colsLabel;
 
         this.onHover = params.onHover;
+        this.onSelection = params.onSelection;
 
         // get category colors; Todo: optimize?
         this.rowCatColors = this.rowCategories
@@ -498,9 +499,13 @@ export default class Heatmap {
 
             ele.onclick = () => {
                 let r = this.getRow(cellIdx);
-                alert(`Selected ${r.length} Protein Families from ${this.rows[cellIdx].name}:\n
-                ${r[0].id}, ${r[1].id}, ..., ${r[r.length - 1].id}\n
-                ${r[0].val}, ${r[1].val}, ..., ${r[r.length - 1].val}`);
+                if (this.onSelection) {
+                    this.onSelection(r);
+                } else {
+                    alert(`Selected ${r.length} Protein Families from ${this.rows[cellIdx].name}:\n
+                        ${r[0].id}, ${r[1].id}, ..., ${r[r.length - 1].id}\n
+                        ${r[0].val}, ${r[1].val}, ..., ${r[r.length - 1].val}`);
+                }
             };
 
         } else {
@@ -539,9 +544,13 @@ export default class Heatmap {
 
             ele.onclick = () => {
                 let r = this.getCol(cellIdx);
-                alert(`Selected ${r.length} Genomes with ${this.cols[cellIdx].name}:\n
-                ${r[0].id}, ${r[1].id}, ..., ${r[r.length - 1].id}\n
-                ${r[0].val}, ${r[1].val}, ..., ${r[r.length - 1].val}`);
+                if (this.onSelection) {
+                    this.onSelection(r);
+                } else {
+                    alert(`Selected ${r.length} Genomes with ${this.cols[cellIdx].name}:\n
+                        ${r[0].id}, ${r[1].id}, ..., ${r[r.length - 1].id}\n
+                        ${r[0].val}, ${r[1].val}, ..., ${r[r.length - 1].val}`);
+                }
             };
         }
 
@@ -1042,19 +1051,18 @@ export default class Heatmap {
     }
 
     selectable() {
-        let self = this;
         let box = {}; // i, j coordinates
         let drag = false;
 
         let scrollContainer = this.ele.querySelector('.scroll-container');
 
-        if (this.SmouseDown) {
-            scrollContainer.removeEventListener('mousedown', this.SmouseDown);
-            scrollContainer.removeEventListener('mouseup', this.SmouseUp);
-            scrollContainer.removeEventListener('mousemove', this.SmouseMove);
+        if (this.selectDown) {
+            scrollContainer.removeEventListener('mousedown', this.selectDown);
+            scrollContainer.removeEventListener('mouseup', this.selectUp);
+            scrollContainer.removeEventListener('mousemove', this.selectMove);
         }
 
-        this.SmouseDown = (e) => {
+        this.selectDown = (e) => {
             this.hideHoverTooltip();
             let _xPos = e.offsetX - scrollContainer.scrollLeft,
                 _yPos = e.offsetY - scrollContainer.scrollTop;
@@ -1063,78 +1071,113 @@ export default class Heatmap {
             let x = parseInt(_xPos / this.cellXDim),
                 y = parseInt(_yPos / this.cellYDim);
 
+            // save start of box
             box.x = x;
             box.y = y;
 
             drag = true;
         };
 
-        this.SmouseUp = () => {
+        this.selectMove = (e) => {
+            if (!drag) return;
+
+            let _xPos = e.offsetX - scrollContainer.scrollLeft,
+                _yPos = e.offsetY - scrollContainer.scrollTop;
+
+            // todo: this is a hack to deal with hovering
+            // where the scrollbars normally would be
+            if (_xPos < 0 || _yPos < 0) return;
+
+            // relative position on visible cells
+            let x2 = parseInt(_xPos / this.cellXDim),
+                y2 = parseInt(_yPos / this.cellYDim);
+
+            if (y2 >= yViewSize) y2 = yViewSize;
+            if (x2 >= xViewSize) x2 = xViewSize;
+
+            // save end of box (allowing any direction)
+            box.x2 = x2;
+            box.y2 = y2;
+
+            box.w = Math.abs(x2 - box.x);
+            box.h = Math.abs(y2 - box.y);
+
+            selectDraw();
+        };
+
+        this.selectUp = () => {
             drag = false;
 
-            let i = this.yStart + box.y,
-                j = this.xStart + box.x;
+            let i, j;
+            if (box.x2 < box.x) i = this.yStart + box.y2;
+            else i = this.yStart + box.y;
+
+            if (box.y2 < box.y) j = this.xStart + box.x2;
+            else j = this.xStart + box.x;
 
             let i2 = i + box.h,
                 j2 = j + box.w;
 
-            // todo: fix these bounds
-            if (isNaN(i) || isNaN(j) || isNaN(i2) || isNaN(j2))
-                return;
-
-            if (i2 < i || j2 < j) return;
-
             let selection = this.getSelection(i, j, i2, j2);
 
-            alert(`Selected ${selection.length} cell(s)\n\n` +
-                JSON.stringify(selection, null, 4).slice(0, 10000));
+            if (this.onSelection) {
+                this.onSelection(selection);
+            } else {
+                alert(`Selected ${selection.length} cell(s)\n\n` +
+                   JSON.stringify(selection, null, 4).slice(0, 10000));
+            }
 
             box = {};
             this.svg.querySelectorAll('.select-box').forEach(e => e.remove());
         };
 
-        this.SmouseMove = (e) => {
-            if (drag) {
-                let _xPos = e.offsetX - scrollContainer.scrollLeft,
-                    _yPos = e.offsetY - scrollContainer.scrollTop;
-
-                // relative position on visible cells
-                let x = parseInt(_xPos / this.cellXDim),
-                    y = parseInt(_yPos / this.cellYDim);
-
-
-                box.w = x - box.x;
-                box.h = y - box.y;
-
-                this.Sdraw();
-            }
-        };
-
-        this.Sdraw = () => {
+        let selectDraw = () => {
             this.hideHoverTooltip();
             this.svg.querySelectorAll('.select-box').forEach(e => e.remove());
 
+            // convert x and y to top left coordinates if needed
+            let x, y;
+            if (box.x2 < box.x) x = box.x2;
+            else x = box.x;
+
+            if (box.y2 < box.y) y = box.y2;
+            else y = box.y;
+
+            // compute size of svg box
+            x = margin.left + x * this.cellXDim;
+            y = margin.top + y * this.cellYDim;
+
+            let w = box.w < this.cellXDim
+                ? (box.w + 1) * this.cellXDim : box.w * this.cellXDim;
+            let h = box.h < this.cellYDim
+                ? (box.h + 1) * this.cellYDim : box.h * this.cellYDim;
+
+
+            /*
             let x = margin.left + box.x * this.cellXDim;
             let y = margin.top + box.y * this.cellYDim;
 
             let w = box.w < this.cellXDim
-                ? ((box.w + 1) * this.cellXDim) : box.w * this.cellXDim;
+                ? (box.w + 1) * this.cellXDim : box.w * this.cellXDim;
 
             let h = box.h < this.cellYDim
                 ? (box.h + 1) * this.cellYDim : box.h * this.cellYDim;
+                */
 
-            if (w < 0 || h < 0) return;
+            // console.log('x,y', x, y, w, h)
+
+            // if (w < 0 || h < 0) return;
 
             let rect = svgRect(x, y, w, h, {
                 class: 'select-box',
                 fill: 'rgba(0,0,0,0.1)'
             });
-            self.svg.appendChild(rect);
+            this.svg.appendChild(rect);
         };
 
-        scrollContainer.addEventListener('mousedown', this.SmouseDown, false);
-        scrollContainer.addEventListener('mouseup', this.SmouseUp, false);
-        scrollContainer.addEventListener('mousemove', this.SmouseMove, false);
+        scrollContainer.addEventListener('mousedown', this.selectDown, false);
+        scrollContainer.addEventListener('mouseup', this.selectUp, false);
+        scrollContainer.addEventListener('mousemove', this.selectMove, false);
     }
 
     getMatrixStats(matrix) {
