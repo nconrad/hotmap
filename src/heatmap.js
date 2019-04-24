@@ -372,10 +372,10 @@ export default class Heatmap {
          * also adjust scrollbars if needed
          **/
         if (renderY || this.scaleCtrl.isLocked()) {
-            this.scrollBars.setHeight(cellYDim * this.size.y );
+            this.scrollBars.setContentHeight(cellYDim * this.size.y );
 
             let height = yViewSize * cellYDim;
-            this.scrollBars.setContentHeight(height);
+            this.scrollBars.setContainerHeight(height);
 
             // if y-axis is out-of-range, hide
             if (yViewSize >= this.size.y) {
@@ -386,10 +386,10 @@ export default class Heatmap {
         }
 
         if (renderX || this.scaleCtrl.isLocked()) {
-            this.scrollBars.setWidth(cellXDim * this.size.x);
+            this.scrollBars.setContentWidth(cellXDim * this.size.x);
 
             let width = xViewSize * cellXDim;
-            this.scrollBars.setContentWidth(width);
+            this.scrollBars.setContainerWidth(width);
 
             // if x-axis is out-of-range
             if (xViewSize >= this.size.x) {

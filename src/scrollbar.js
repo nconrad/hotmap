@@ -26,7 +26,6 @@ export default class ScrollBar {
         this._onMove = onMove;
         this._onMouseWheel = onMouseWheel;
 
-
         this.width = width;
         this.height = height;
         this.contentWidth = contentWidth;
@@ -101,23 +100,23 @@ export default class ScrollBar {
         });
     }
 
-    setWidth(width) {
-        this.width = width - barOffset;
-        this.content.style.width = `${this.width}px`;
-    }
-
-    setHeight(height) {
-        this.height = height - barOffset;
-        this.content.style.height = `${this.height}px`;
-    }
-
     setContentWidth(width) {
-        this.contentWidth = width;
-        this.scrollContainer.style.width = `${width}px`;
+        this.contentWidth = width - barOffset;
+        this.content.style.width = `${this.contentWidth}px`;
     }
 
     setContentHeight(height) {
-        this.contentHeight = height;
+        this.contentHeight = height - barOffset;
+        this.content.style.height = `${this.contentHeight}px`;
+    }
+
+    setContainerWidth(width) {
+        this.width = width;
+        this.scrollContainer.style.width = `${width}px`;
+    }
+
+    setContainerHeight(height) {
+        this.height = height;
         this.scrollContainer.style.height = `${height}px`;
     }
 
