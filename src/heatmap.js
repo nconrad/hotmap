@@ -19,7 +19,7 @@ import { addLegend } from './legend';
 import { matMinMax } from './utils';
 import { svgNS, svgG, svgRect, svgText } from './svg';
 import { setAttributes } from './dom';
-import { getColorMatrix, getCategoryColors, rgbToHex, toHex } from './color';
+import { sanitizeColors, getColorMatrix, getCategoryColors, rgbToHex, toHex } from './color';
 
 // import Picker from 'vanilla-picker';
 
@@ -70,8 +70,14 @@ export default class Heatmap {
         this.defaults = params.defaults || {};
 
         this.color = params.color || 'gradient';
-        this.origColorSettings = this.color;
+        this.origColorSettings = (typeof this.color === 'object')
+            ? Object.assign(this.color, {
+                bins: this.color.bins,
+                colors: sanitizeColors(this.color.colors)
+            }) : this.color;
+
         try {
+            // convert values into colors
             this.colorMatrix = getColorMatrix(this.matrix, this.color);
         } catch (error) {
             alert(error);
@@ -121,7 +127,6 @@ export default class Heatmap {
             this.ele.querySelector('.header').classList.add('light');
 
         this.start();
-        // testWebGL();
 
         return this;
     }
@@ -1037,14 +1042,12 @@ export default class Heatmap {
                 color: toHex(this.color.colors[i]),
                 onChange: (color) => {
                     if (!color._rgba) return;
+
                     let hexD = parseInt( rgbToHex(color._rgba) );
                     this.color.colors[i] = hexD;
                     this.colorMatrix = getColorMatrix(this.matrix, this.color);
                     el.querySelector('.box').style.backgroundColor = '#' + toHex(hexD);
                     this.renderChart();
-                },
-                onClose: () => {
-                    this.updateLegend();
                 }
             });
         });
@@ -1143,7 +1146,7 @@ export default class Heatmap {
             if (box.y2 < box.y) y = box.y2;
             else y = box.y;
 
-            // compute size of svg box
+            // compute size of box
             x = margin.left + x * this.cellXDim;
             y = margin.top + y * this.cellYDim;
 
@@ -1151,22 +1154,6 @@ export default class Heatmap {
                 ? (box.w + 1) * this.cellXDim : box.w * this.cellXDim;
             let h = box.h < this.cellYDim
                 ? (box.h + 1) * this.cellYDim : box.h * this.cellYDim;
-
-
-            /*
-            let x = margin.left + box.x * this.cellXDim;
-            let y = margin.top + box.y * this.cellYDim;
-
-            let w = box.w < this.cellXDim
-                ? (box.w + 1) * this.cellXDim : box.w * this.cellXDim;
-
-            let h = box.h < this.cellYDim
-                ? (box.h + 1) * this.cellYDim : box.h * this.cellYDim;
-                */
-
-            // console.log('x,y', x, y, w, h)
-
-            // if (w < 0 || h < 0) return;
 
             let rect = svgRect(x, y, w, h, {
                 class: 'select-box',

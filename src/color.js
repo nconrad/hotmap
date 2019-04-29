@@ -75,8 +75,18 @@ const schemeCategory20 = [
     0x9edae5
 ];
 
+export function sanitizeColors(colors) {
+    let sanitized = colors.map(color => {
+        if (isNaN(color) && color[0] == '#') {
+            return parseInt('0x' + color.slice(1));
+        }
+        return color;
+    });
 
-function getCategoryColors(categories) {
+    return sanitized;
+}
+
+export function getCategoryColors(categories) {
     // assume length of all categories is same
     let indexes = categories[0].map(cat => 0);
     let mappings = categories[0].map(cat => { return {}; });
@@ -107,57 +117,20 @@ function getCategoryColors(categories) {
     return colorMatrix;
 }
 
-// see https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
-function toHex(c) {
+export function toHex(c) {
     var hex = c.toString(16);
     return hex.length == 1 ? '0' + hex : hex;
 }
 
-function rgbToHex(rgb) {
+export function rgbToHex(rgb) {
     return '0x' + toHex(rgb[0]) + toHex(rgb[1]) + toHex(rgb[2]);
 }
-
-// see https://stackoverflow.com/a/30144587
-function pickHex(color1, color2, weight) {
-    var w1 = weight;
-    var w2 = 1 - w1;
-    var rgb = [Math.round(color1[0] * w1 + color2[0] * w2),
-        Math.round(color1[1] * w1 + color2[1] * w2),
-        Math.round(color1[2] * w1 + color2[2] * w2)];
-    return rgb;
-}
-
-/**
- * Returns matrix of hex values given start and stop rgbs of gradient
- * @param {*} matrix matrix to compute
- * @param {*} rgb1 [r, g, b]
- * @param {*} rgb2 [r, g, b]
- */
-function matGradient(matrix, rgb1, rgb2) {
-    let max = matMinMax(matrix).max;
-    matrix = matrix.map(r => r.map(val => rgbToHex( pickHex(rgb1, rgb2, val / max)) ) );
-    return matrix;
-}
-
-function getRandomColorMatrix(m, n) {
-    let colors = [];
-    for (let i = 0; i < n; i++) {
-        let row = [];
-        for (let j = 0; j < m; j++) {
-            let color = '0x' + (Math.random() * 0xFFFFFF << 0).toString(16);
-            row.push(color);
-        }
-        colors.push(row);
-    }
-    return colors;
-}
-
-/**
- *
+/*
+ * getColorMatrix
  * @param {*} matrix matrix of values
  * @param {*} f function for returning color
  */
-function getColorMatrix(matrix, settings) {
+export function getColorMatrix(matrix, settings) {
     if (settings == 'gradient') {
         return matGradient(matrix, [255, 0, 0], [255, 255, 255]);
     }
@@ -192,7 +165,7 @@ function getColorMatrix(matrix, settings) {
     return cMatrix;
 }
 
-function parseColorBins(bins) {
+export function parseColorBins(bins) {
     let opRegex = /(>|<|=|<=|>=)+/gm;
     let valRegex = /(\d+)/gm;
     bins = bins.map(binStr => {
@@ -234,12 +207,40 @@ function binColorFunction(bins, colors) {
     };
 }
 
+// see https://stackoverflow.com/a/30144587
+function pickHex(color1, color2, weight) {
+    var w1 = weight;
+    var w2 = 1 - w1;
+    var rgb = [
+        Math.round(color1[0] * w1 + color2[0] * w2),
+        Math.round(color1[1] * w1 + color2[1] * w2),
+        Math.round(color1[2] * w1 + color2[2] * w2)
+    ];
+    return rgb;
+}
 
-export {
-    getColorMatrix,
-    getRandomColorMatrix,
-    getCategoryColors,
-    parseColorBins,
-    toHex,
-    rgbToHex
-};
+/**
+ * Returns matrix of hex values given start and stop rgbs of gradient
+ * @param {*} matrix matrix to compute
+ * @param {*} rgb1 [r, g, b]
+ * @param {*} rgb2 [r, g, b]
+ */
+function matGradient(matrix, rgb1, rgb2) {
+    let max = matMinMax(matrix).max;
+    matrix = matrix.map(r => r.map(val => rgbToHex( pickHex(rgb1, rgb2, val / max)) ) );
+    return matrix;
+}
+
+function getRandomColorMatrix(m, n) {
+    let colors = [];
+    for (let i = 0; i < n; i++) {
+        let row = [];
+        for (let j = 0; j < m; j++) {
+            let color = '0x' + (Math.random() * 0xFFFFFF << 0).toString(16);
+            row.push(color);
+        }
+        colors.push(row);
+    }
+    return colors;
+}
+
