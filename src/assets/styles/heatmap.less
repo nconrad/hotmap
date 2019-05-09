@@ -5,7 +5,18 @@
   font-family: 'Rubik', sans-serif;
   height: 100%;
 
-  @import "./styles.less";
+  .chart {
+    position: relative;
+  }
+
+  .webgl-canvas {
+    /* must be z-indexed and absolute for safari*/
+    z-index: -1;
+    position: absolute;
+  }
+
+  @import "./styles.less";  /* file for "catch all" */
+  @import "./header.less";
   @import "./buttons.less";
   @import "./legend.less";
   @import "./scale-ctrl.less";

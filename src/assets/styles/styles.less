@@ -1,6 +1,4 @@
 
-
-
 /**
  * general
  */
@@ -15,56 +13,6 @@
 }
 
 /**
-  * app
-  */
-> .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #333;
-  color: #d8d8d8;
-  height: 68px;
-}
-
-> .header.light {
-  background: #fff;
-  color: #333;
-  border-bottom: 1px solid #ddd;
-  box-shadow: 0 3px 10px -6px rgba(0,0,0,0.3);
-}
-
-> .header > * {
-  margin: 0 35px;
-  white-space: nowrap;
-}
-
-> .header > .logo {
-  font-size: 1.5em;
-}
-
-> .header > .logo small {
-  font-size: 0.5em;
-}
-
-> .header > .info {
-  font-size: .9em;
-  width: 450px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.chart {
-  position: relative;
-}
-
-.webgl-canvas {
-  /* must be z-indexed and absolute for safari*/
-  z-index: -1;
-  position: absolute;
-}
-
-
-/**
   * tooltip
   */
 .hmap-tt {
@@ -76,15 +24,6 @@
   border-radius: 5px;
   z-index: 11; /* greater than scroll container */
 }
-
-
-/**
-  * forms
-  */
-.opts-btn {
-  height: 28px;
-}
-
 
 /**
  * svg related stuff
