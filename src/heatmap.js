@@ -921,9 +921,9 @@ export default class Heatmap {
         y = margin.top + y * cellYDim;
 
         let content =
-            `<div><b>row:</b> ${yLabel}</div>` +
-            `<div><b>column:</b> ${xLabel.length > 50 ? xLabel.slice(0, 50) + '...' : xLabel}<div>` +
-            `<div><b>Value:</b> ${value}</div>`;
+            `<b>Row:</b> ${yLabel}<br>` +
+            `<b>Column:</b> ${xLabel}<br>` +
+            `<b>Value:</b> ${value}`;
 
         this.ele.querySelector('.header .info').innerHTML = content;
 
