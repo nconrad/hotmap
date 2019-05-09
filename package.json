@@ -1,52 +1,53 @@
 {
-  "name": "heatmap",
-  "version": "0.0.10",
-  "description": "WebGL Based Heatmap for Bioinformatics and Big Data",
-  "main": "index.js",
-  "scripts": {
-    "build": "NODE_ENV=production webpack -p",
-    "start": "webpack-dev-server --hot --inline",
-    "start:server": "http-server -o",
-    "lint": "node_modules/eslint/bin/eslint.js src/*.js demo/*.js",
-    "lint:fix": "node_modules/eslint/bin/eslint.js --fix src/*.js demo/*.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "dependencies": {
-    "pixi.js": "^4.8.3",
-    "vanilla-picker": "^2.7.2"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.2.2",
-    "@babel/plugin-syntax-dynamic-import": "^7.2.0",
-    "@babel/preset-env": "^7.2.3",
-    "babel-loader": "^8.0.4",
-    "copy-webpack-plugin": "^4.6.0",
-    "css-loader": "^2.1.0",
-    "eslint": "^5.10.0",
-    "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-node": "^8.0.0",
-    "eslint-plugin-promise": "^4.0.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "html-loader": "^0.5.5",
-    "less": "^3.9.0",
-    "less-loader": "^4.1.0",
-    "mini-css-extract-plugin": "^0.5.0",
-    "style-loader": "^0.23.1",
-    "svg-inline-loader": "^0.8.0",
-    "uglifyjs-webpack-plugin": "^2.0.1",
-    "webpack": "^4.28.1",
-    "webpack-cli": "^3.1.2",
-    "webpack-dev-server": "^3.1.14"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nconrad/heatmap.git"
-  },
-  "author": "nconrad",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/nconrad/heatmap/issues"
-  },
-  "homepage": "https://github.com/nconrad/heatmap#readme"
+    "name": "heatmap",
+    "version": "0.1.0",
+    "description": "WebGL Based Heatmap for Bioinformatics and Big Data",
+    "main": "index.js",
+    "scripts": {
+        "build": "NODE_ENV=production webpack -p --env.patch",
+        "start": "webpack-dev-server --hot --inline",
+        "start:server": "http-server -o",
+        "lint": "node_modules/eslint/bin/eslint.js src/*.js demo/*.js",
+        "lint:fix": "node_modules/eslint/bin/eslint.js --fix src/*.js demo/*.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "pixi.js": "^4.8.3",
+        "vanilla-picker": "^2.7.2"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.2.2",
+        "@babel/plugin-syntax-dynamic-import": "^7.2.0",
+        "@babel/preset-env": "^7.2.3",
+        "babel-loader": "^8.0.4",
+        "copy-webpack-plugin": "^4.6.0",
+        "css-loader": "^2.1.0",
+        "eslint": "^5.10.0",
+        "eslint-config-standard": "^12.0.0",
+        "eslint-plugin-import": "^2.14.0",
+        "eslint-plugin-node": "^8.0.0",
+        "eslint-plugin-promise": "^4.0.1",
+        "eslint-plugin-standard": "^4.0.0",
+        "html-loader": "^0.5.5",
+        "less": "^3.9.0",
+        "less-loader": "^4.1.0",
+        "mini-css-extract-plugin": "^0.5.0",
+        "style-loader": "^0.23.1",
+        "svg-inline-loader": "^0.8.0",
+        "uglifyjs-webpack-plugin": "^2.0.1",
+        "webpack": "^4.28.1",
+        "webpack-auto-inject-version": "^1.2.2",
+        "webpack-cli": "^3.1.2",
+        "webpack-dev-server": "^3.1.14"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/nconrad/heatmap.git"
+    },
+    "author": "nconrad",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/nconrad/heatmap/issues"
+    },
+    "homepage": "https://github.com/nconrad/heatmap#readme"
 }

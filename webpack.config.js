@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+const WebpackAutoInject = require('webpack-auto-inject-version');
 
 const devMode = process.env.NODE_ENV !== 'production';
 
@@ -52,6 +53,7 @@ module.exports = {
         ]
     },
     plugins: [
+        new WebpackAutoInject(),
         new webpack.optimize.LimitChunkCountPlugin({
             maxChunks: 1
         }),
