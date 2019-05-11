@@ -268,9 +268,9 @@ export default class Heatmap {
 
         if (!resize) {
             let parent = this.ele.parentNode;
-            this.cellXDim = this.defaults.cellW ||
+            this.cellXDim = this.defaults.cellWidth ||
                 (parseInt((parent.clientWidth - margin.left - margin.right) / this.size.x) || 1);
-            this.cellYDim = this.defaults.cellH ||
+            this.cellYDim = this.defaults.cellHeight ||
                 (parseInt((parent.clientHeight - margin.top - margin.bottom) / this.size.y) || 1);
         }
         this.scaleCtrl._setValues({x: this.cellXDim, y: this.cellYDim});

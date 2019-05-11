@@ -56,17 +56,43 @@ requirejs(['heatmap'], function(Heatmap) {
 
 ### Config
 
-| Param        | Type                   | Required? | Default                                                     |
-|--------------|------------------------|-----------|-------------------------------------------------------------|
-| rows         | list of rows objects   | &check;   | -                                                           |
-| cols         | list of col objects    | &check;   | -                                                           |
-| matrix       | matrix of numbers      | &check;   | -                                                           |
-| rowCatLabels | list lof strings       | -         | -                                                           |
-| colCatLabels | list lof strings       | -         | -                                                           |
-| color        | string \|\| object     | -         | 'gradient'                                                  |
-| onHover      | function(info) {}      | -         | Displays row, column, and matrix value in tooltip on hover. |
-| onSelect     | function(selection) {} | -         | -                                                           |
-| theme        | 'light' \|\| 'dark'    | -         | 'dark'                                                      |
+| Param        | Type                              | Required? | Default                                                     |
+|--------------|-----------------------------------|-----------|-------------------------------------------------------------|
+| rows         | list of `row` objects (see below) | &check;   | -                                                           |
+| cols         | list of `col` objects (see below) | &check;   | -                                                           |
+| matrix       | matrix of numbers                 | &check;   | -                                                           |
+| rowCatLabels | list lof strings                  | -         | -                                                           |
+| colCatLabels | list lof strings                  | -         | -                                                           |
+| defaults     | object                            | -         | computed based on window size                               |
+| color        | string \|\| object                | -         | 'gradient'                                                  |
+| onHover      | function(info) {}                 | -         | Displays row, column, and matrix value in tooltip on hover. |
+| onSelect     | function(selection) {}            | -         | -                                                           |
+| theme        | 'light' \|\| 'dark'               | -         | 'dark'                                                      |
+
+
+##### row object
+```json
+{
+    name: "some label",
+    categories: ["cat 1", "cat 2"]
+}
+```
+
+##### col object
+```json
+{
+    name: "some label",
+    categories: ["cat x", "cat y']
+}
+```
+
+##### defaults object
+```json
+{
+    cellWidth: <initial height of cell (integer)>,
+    cellHeight: <initial height of cell (integer)>
+}
+```
 
 
 ### API Methods
