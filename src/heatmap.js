@@ -1123,6 +1123,9 @@ export default class Heatmap {
 
             let selection = this.getSelection(i, j, i2, j2);
 
+            // Fixme: this is a hack for scrollbar event triggering
+            if (selection.length == 0) return;
+
             if (this.onSelection) {
                 this.onSelection(selection);
             } else {
