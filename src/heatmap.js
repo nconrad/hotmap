@@ -11,8 +11,6 @@
 import 'pixi.js/dist/pixi';
 
 import container from './container.html';
-import lockOpen from './assets/icons/search.svg';
-
 import ScaleCtrl from './scale-ctrl';
 import ScrollBar from './scrollbar';
 import MouseTracker from './mouse-tracker';
@@ -68,8 +66,8 @@ export default class Heatmap {
          **/
         this.ele = params.ele;
 
-        this.rows = params.rows;
-        this.cols = params.cols;
+        this.rows = params.rows.map((r, i) => Object.assign(r, {i}));
+        this.cols = params.cols.map((c, i) => Object.assign(c, {i}));
         this.matrix = params.matrix;
         this.defaults = params.defaults || {};
 
@@ -127,6 +125,7 @@ export default class Heatmap {
         // components to be instantiated
         this.scaleCtrl;
         this.scrollBars;
+        this.autoScrollHandle;
         this.mouseTracker;
 
         // add container/html
@@ -230,7 +229,6 @@ export default class Heatmap {
 
         // start tracking sorting
         this.sorter(this.svg);
-
     }
 
     getRenderer(width, height) {
@@ -539,7 +537,7 @@ export default class Heatmap {
         } else {
             x += this.cellXDim / 2 + 1;
             ele.innerHTML = text;
-            ele.setAttribute('data-i', cellIdx);
+            ele.setAttribute('class', `col-${cellIdx}`);
             ele.setAttribute('font-size', `${this.cellXDim <= maxTextW ? this.cellXDim - 4 : 16}px`);
             ele.setAttribute('fill', '#666');
             ele.setAttribute('x', x);
@@ -598,16 +596,15 @@ export default class Heatmap {
     highlightQuery() {
         let {cols, rows} = this.getViewboxLabels();
 
-        let colMatches = cols.reduce((acc, col, i) => {
-            if (col.name.toLowerCase().includes(this.query)) acc.push(true);
-            else acc.push(false);
-            return acc;
-        }, []);
+        let colMatches = [];
+        cols.forEach((col, i) => {
+            if (!col.name.toLowerCase().includes(this.query)) return;
+            colMatches.push(i);
+        });
 
         this.rmHighlightQuery();
-        colMatches.forEach((isMatch, i) => {
-            if (!isMatch) return;
-
+        colMatches.forEach(i => {
+            // then add marker
             let y = margin.top,
                 x = margin.left + this.cellXDim * i;
 
@@ -620,15 +617,65 @@ export default class Heatmap {
                 })
             );
 
-            // if text is showing, highlight text
+            // if text is showing, also highlight text
             if (this.cellXDim > minTextW) {
-                this.highlightLabel(this.query, this.xAxis.querySelector(`[data-i="${i}"]`), i);
+                this.highlightLabel(this.query, this.xAxis.querySelector(`.col-${i}`), i);
             }
         });
+
+        // display result count
+        let matchInfo = this.getMatches(this.query);
+        this.ele.querySelector('.search-count').innerHTML =
+            `${matchInfo.count} result${matchInfo.count > 1 ? 's' : ''}`;
+
+
+        // then scroll to position if chart is scrollable in x direction
+        if (xViewSize < this.size.x && !this.navInProgress) {
+            let firstMatch = matchInfo.firstIdx;
+            this.scrollTo((firstMatch * this.cellXDim) - this.cellXDim);
+            this.navInProgress = true;
+        }
     }
 
-    highlightLabel(text, ele, i) {
-        let matchText = this.cols[i].name;
+    // test: hypothetical protein - 1350
+    scrollTo(newPos) {
+        let container = this.ele.querySelector('.scroll-container');
+        let currentPos = container.scrollLeft;
+        let diff = Math.abs(currentPos - newPos); // - 5 to ensure in box
+        let steps = 10;
+
+        let amountToScroll = Math.floor(diff / steps);
+        if (this.autoScrollHandle) window.clearInterval(this.autoScrollHandle);
+
+        console.log('new scroll event');
+        this.autoScrollHandle = setInterval(() => {
+            if (newPos >= currentPos) {
+                container.scrollLeft += amountToScroll;
+                if (container.scrollLeft  >= newPos) {
+                    window.clearInterval(this.autoScrollHandle);
+                    this.navInProgress = false;
+                }
+            } else {
+                container.scrollLeft -= amountToScroll;
+                if (container.scrollLeft <= newPos) {
+                    window.clearInterval(this.autoScrollHandle);
+                    this.navInProgress = false;
+                }
+            }
+
+        }, 1);
+    }
+
+    getMatches(query) {
+        let matches = this.cols.filter(c => c.name.toLowerCase().includes(query));
+        return {
+            count: matches.length,
+            firstIdx: matches.length ? matches[0].i : null,
+            lastIdx: matches.length ? matches[matches.length - 1].i : null
+        };
+    }
+
+    highlightLabel(text, ele) {
         let label = ele.innerHTML;
         let idx = label.toLowerCase().indexOf(text);
 
@@ -657,6 +704,8 @@ export default class Heatmap {
         this.xAxis.querySelectorAll('text').forEach(el => {
             el.innerHTML = el.textContent;
         });
+
+        this.ele.querySelector('.search-count').innerHTML = '';
     }
 
     textOverlap(a, b) {
@@ -990,11 +1039,11 @@ export default class Heatmap {
         if (this.xAxis.childNodes.length && x !== oldX) {
             let label;
             if (oldX !== -1 && oldX < xViewSize) {
-                label = this.xAxis.querySelector(`[data-i="${oldX}"]`);
+                label = this.xAxis.querySelector(`.col-${oldX}`);
                 label.setAttribute('fill', labelColor);
                 label.setAttribute('font-weight', 'normal');
             }
-            label = this.xAxis.querySelector(`[data-i="${x}"]`);
+            label = this.xAxis.querySelector(`.col-${x}`);
             label.setAttribute('fill', labelHoverColor);
             label.setAttribute('font-weight', '500');
         }

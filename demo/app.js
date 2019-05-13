@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch(dataPath)
         .then(res => res.json())
         .then(data => {
-            console.log('data file:', data);
+            console.log('data input:', data);
             heatmap = loadViewer({ele, data});
         }).catch((e) => {
             console.log(e);
@@ -54,6 +54,7 @@ function loadViewer({ele, data}) {
             bins: ['=0', '=1', '=2', '<20', '>=20'],
             colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff6b6b, 0xff0000]
         },
+        defaults: {cellWidth: 20},
         onHover: info => {
             let cs = info.rowCategories;
             return `
