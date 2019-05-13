@@ -3,6 +3,8 @@ const webpack = require('webpack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const WebpackAutoInject = require('webpack-auto-inject-version');
+// const HtmlWebpackInlineSVGPlugin = require('html-webpack-inline-svg-plugin');
+//  const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const devMode = process.env.NODE_ENV !== 'production';
 
@@ -28,7 +30,10 @@ module.exports = {
         }, {
             test: /\.html$/,
             loader: 'html-loader',
-            exclude: /node_modules/
+            exclude: /node_modules/,
+            options: {
+                interpolate: true
+            }
         }, {
             test: /\.(less)$/,
             use: [
@@ -53,6 +58,7 @@ module.exports = {
         ]
     },
     plugins: [
+
         new WebpackAutoInject(),
         new webpack.optimize.LimitChunkCountPlugin({
             maxChunks: 1

@@ -11,6 +11,8 @@
 import 'pixi.js/dist/pixi';
 
 import container from './container.html';
+import lockOpen from './assets/icons/search.svg';
+
 import ScaleCtrl from './scale-ctrl';
 import ScrollBar from './scrollbar';
 import MouseTracker from './mouse-tracker';
@@ -61,7 +63,9 @@ export default class Heatmap {
     constructor(params) {
         this.validateParams(params);
 
-        // ***** initialize params *****
+        /**
+         * BEGIN initialize params
+         **/
         this.ele = params.ele;
 
         this.rows = params.rows;
@@ -105,7 +109,10 @@ export default class Heatmap {
             ? getCategoryColors(this.rowCategories) : [];
 
         this.noMargins = params.noMargins || false;
-        // ***** end setting params *****
+
+        /**
+         * END initialize Params
+         **/
 
         // m and n (row and cols) dimensions
         this.size = this.getMatrixStats(params.matrix);
@@ -113,6 +120,9 @@ export default class Heatmap {
         // start coordinates in matrix for "viewbox"
         this.xStart = 0;
         this.yStart = 0;
+
+        // current query for search input
+        this.query;
 
         // components to be instantiated
         this.scaleCtrl;
@@ -163,6 +173,8 @@ export default class Heatmap {
     }
 
     start() {
+        let self = this;
+
         // base all positioning off of parent
         let [canvasWidth, canvasHeight] = this.getContainerSize();
 
@@ -175,6 +187,9 @@ export default class Heatmap {
 
         // initialize scale x/y width controls
         this.scaleCtrl = this.getScaleCtrl();
+
+        // setup search
+        this.initSearch();
 
         // add (fake) scrollbars.
         // we update size of content area on render
@@ -417,7 +432,9 @@ export default class Heatmap {
         this.catLabelsAdded = true;
         this.selectable();
 
-        // only do the following on second render
+        /**
+         * exit now if the first render is finished
+         **/
         if (!this.isStaged) return;
 
         // add axis labels if zoomed out
@@ -426,6 +443,12 @@ export default class Heatmap {
 
         if (cellYDim <= minTextW) this.showYAxisLabel(this.yLabel);
         else this.hideAxisLabel('y');
+
+        if (this.query) {
+            this.highlightQuery();
+        } else {
+            this.rmHighlightQuery();
+        }
 
         // let t1 = performance.now();
         // console.log('render time', t1 - t0);
@@ -516,7 +539,7 @@ export default class Heatmap {
         } else {
             x += this.cellXDim / 2 + 1;
             ele.innerHTML = text;
-            ele.setAttribute('class', `col-${cellIdx}`);
+            ele.setAttribute('data-i', cellIdx);
             ele.setAttribute('font-size', `${this.cellXDim <= maxTextW ? this.cellXDim - 4 : 16}px`);
             ele.setAttribute('fill', '#666');
             ele.setAttribute('x', x);
@@ -560,6 +583,94 @@ export default class Heatmap {
         }
 
         ele.addEventListener('mouseout', this.hideHoverTooltip.bind(this));
+    }
+
+    initSearch() {
+        let self = this;
+        let searchInput = this.ele.querySelector('.search');
+
+        searchInput.onkeyup = function() {
+            self.query = this.value.toLowerCase();
+            self.renderChart();
+        };
+    }
+
+    highlightQuery() {
+        let {cols, rows} = this.getViewboxLabels();
+
+        let colMatches = cols.reduce((acc, col, i) => {
+            if (col.name.toLowerCase().includes(this.query)) acc.push(true);
+            else acc.push(false);
+            return acc;
+        }, []);
+
+        this.rmHighlightQuery();
+        colMatches.forEach((isMatch, i) => {
+            if (!isMatch) return;
+
+            let y = margin.top,
+                x = margin.left + this.cellXDim * i;
+
+            let h = this.cellXDim <= minTextW ? 10 : 1;
+            this.svg.appendChild(
+                svgRect(x, y - h - 2, this.cellXDim, h, {
+                    class: 'search-match',
+                    stroke: '#1187f1',
+                    fill: '#1187f1'
+                })
+            );
+
+            // if text is showing, highlight text
+            if (this.cellXDim > minTextW) {
+                this.highlightLabel(this.query, this.xAxis.querySelector(`[data-i="${i}"]`), i);
+            }
+        });
+    }
+
+    highlightLabel(text, ele, i) {
+        let matchText = this.cols[i].name;
+        let label = ele.innerHTML;
+        let idx = label.toLowerCase().indexOf(text);
+
+        // if not found, the match must be contained within ellipsis
+        if (idx === -1) {
+            let overlap = this.textOverlap(label, text);
+            ele.innerHTML = label
+                .replace(
+                    overlap, `<tspan font-weight='bold' fill='#1187f1'>${overlap}</tspan>`
+                ).replace(
+                    '...', `<tspan font-weight='bold' fill='#1187f1'>...</tspan>`
+                );
+            return;
+        }
+
+        ele.innerHTML = label.slice(0, idx) +
+            `<tspan font-weight='bold' fill='#1187f1'>` +
+            label.slice(idx, idx + text.length) +
+            `</tspan>` +
+            label.slice(idx + text.length);
+    }
+
+    rmHighlightQuery() {
+        // remove both the marker and the label highlighting
+        this.ele.querySelectorAll('.search-match').forEach(el => el.remove());
+        this.xAxis.querySelectorAll('text').forEach(el => {
+            el.innerHTML = el.textContent;
+        });
+    }
+
+    textOverlap(a, b) {
+        if (b.length === 0) return '';
+        if (a.endsWith(b)) return b;
+        if (a.indexOf(b) !== -1) return b;
+        return this.textOverlap(a, b.substring(0, b.length - 1));
+    }
+
+    getViewboxLabels() {
+        return {
+            cols: this.cols.slice(this.xStart, this.xStart + xViewSize),
+            rows: this.rows.slice(this.yStart, this.yStart + yViewSize),
+        };
     }
 
     showXAxisLabel(label) {
@@ -879,11 +990,11 @@ export default class Heatmap {
         if (this.xAxis.childNodes.length && x !== oldX) {
             let label;
             if (oldX !== -1 && oldX < xViewSize) {
-                label = this.xAxis.querySelector(`.col-${oldX}`);
+                label = this.xAxis.querySelector(`[data-i="${oldX}"]`);
                 label.setAttribute('fill', labelColor);
                 label.setAttribute('font-weight', 'normal');
             }
-            label = this.xAxis.querySelector(`.col-${x}`);
+            label = this.xAxis.querySelector(`[data-i="${x}"]`);
             label.setAttribute('fill', labelHoverColor);
             label.setAttribute('font-weight', '500');
         }

@@ -1,8 +1,22 @@
-button {
-  background-color: #fff;
-  border: 1px solid #ddd;
-  font-size: .8em;
-  border-radius: .2rem;
+
+@form-font-size: .8em;
+
+@input-radius: .2rem;
+@input-border: 1px solid #ddd;
+@input-bg: #fff;
+@input-height: 28px;
+@color: #333;
+
+button, input {
+  font-size: @form-font-size;
+  background-color: @input-bg;
+  border: @input-border;
+  border-radius: @input-radius;
+  height: @input-height;
+}
+
+input {
+  padding-left: 10px;
 }
 
 button:hover {
@@ -15,21 +29,36 @@ button:focus {
 
 .btn {
   cursor: pointer;
-  color: #333;
+  color: @color;
 }
 
 .btn:hover {
-  color: #333;
+  color: @color;
 }
 
-.btn svg{
-  fill: #333;
+.btn svg {
+  fill: @color;
 }
 
-/**
- * forms
- */
-.opts-btn {
-  height: 28px;
+input:focus {
+  border-color: #a6cbe9;
+  outline: 0;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
 }
 
+.search-container {
+  position: relative;
+}
+
+.search-container input {
+  padding-left: 33px;
+}
+
+.search-container > i > svg {
+  position: absolute;
+  color: @color;
+  top: 4px;
+  left: 10px;
+  width: 18px;
+}

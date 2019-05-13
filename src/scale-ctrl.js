@@ -15,9 +15,11 @@ export default class ScaleCtrl {
     constructor({ele, xValue, yValue, onXChange, onYChange, onLockClick}) {
         this.ele = ele;
 
-        // set default value
+        // set default values
         this.xValue = xValue;
         this.yValue = yValue;
+
+        // events
         this.onXChange = onXChange;
         this.onYChange = onYChange;
         this.onLockClick = onLockClick;
@@ -29,7 +31,6 @@ export default class ScaleCtrl {
 
     init() {
         let self = this;
-
         let scaleCtrls = this.ele.querySelector('.scale-ctrls');
 
         let xSlider = this._xSlider = scaleCtrls.querySelector('.x-slider');
