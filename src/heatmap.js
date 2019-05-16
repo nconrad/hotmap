@@ -8,7 +8,7 @@
  *      IE polyfill proxy
  *
  */
-import 'pixi.js/dist/pixi';
+import * as PIXI from 'pixi.js';
 
 import container from './container.html';
 import lockOpen from './assets/icons/search.svg';
@@ -234,16 +234,11 @@ export default class Heatmap {
     }
 
     getRenderer(width, height) {
-        let renderer;
-        if (FORCE_CANVAS) {
-            renderer = new PIXI.CanvasRenderer(width, height);
-            renderer.transparent = true;
-        } else {
-            renderer = new PIXI.autoDetectRenderer(width, height, {
-                transparent: true
-            });
-        }
-        return renderer;
+        return new PIXI.Renderer({
+            width,
+            height,
+            transparent: true
+        });
     }
 
     initStage() {
@@ -262,9 +257,11 @@ export default class Heatmap {
             .appendChild(this.renderer.view);
 
         if (PARTICLE_CONTAINER) {
-            this.cells = new PIXI.particles.ParticleContainer();
-            this.cells.alpha = true;
-            this.cells._maxSize = this.size.x * this.size.y;
+            this.cells = new PIXI.ParticleContainer(this.size.x * this.size.y, {
+                position: true,
+                scale: true,
+                tint: true
+            });
         } else {
             this.chart = new PIXI.Container();
             this.cells = new PIXI.Container();
@@ -324,17 +321,6 @@ export default class Heatmap {
             let y = margin.top + cellYDim * i;
             let rowIdx = yStart + i;
 
-            // enforce bounds
-            if (rowIdx >= this.size.y) {
-                // set anything below view box to 0 alpha for now
-                for (let k = 0; k < xViewSize; k++) {
-                    let idx = i * xViewSize + k + 1,
-                        sprite = this.cells.children[idx];
-                    if (sprite) sprite.alpha = 0;
-                }
-                continue;
-            }
-
             if (cellYDim > minTextW && renderY) {
                 this.addLabel('y', this.rows[rowIdx].name, margin.left - rowCatWidth - 10, y + 3, i);
             }
@@ -347,27 +333,17 @@ export default class Heatmap {
                 let x = margin.left + cellXDim * j,
                     colIdx = xStart + j;
 
-
-                // enforce bounds
-                if (colIdx >= this.size.x) {
-                    let sprite = this.cells.children[i * xViewSize + j];
-                    if (sprite) sprite.alpha = 0;
-                    continue;
-                }
-
                 // if sprites rendered, just making transformations
                 if (this.isStaged) {
                     let sprite = this.cells.children[i * xViewSize + j];
                     sprite.tint = this.colorMatrix[rowIdx][colIdx];
-                    sprite.alpha = 1.0;
-                    sprite.x = x;
-                    sprite.y = y;
+                    sprite.visible = true;
+                    sprite.position.set(x, y);
                     sprite.height = cellYDim;
                     sprite.width = cellXDim;
                 } else {
                     let sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
-                    sprite.x = x;
-                    sprite.y = y;
+                    sprite.position.set(x, y);
                     sprite.height = cellYDim;
                     sprite.width = cellXDim;
                     this.cells.addChild(sprite);
@@ -852,8 +828,7 @@ export default class Heatmap {
 
             let i = this.cats.children.length;
             while (i--) {
-                if (this.cats.children[i].pluginName == 'sprite')
-                    this.cats.removeChild(this.cats.children[i]);
+                this.cats.removeChild(this.cats.children[i]);
             };
         }
 
@@ -861,7 +836,7 @@ export default class Heatmap {
         // when cells are out of range
         if (clearStage) {
             for (let i = 0; i < this.cells.children.length; i++) {
-                this.cells.children[i].alpha = 0;
+                this.cells.children[i].visible = false;
             }
         }
     }
