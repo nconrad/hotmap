@@ -61,8 +61,10 @@ requirejs(['heatmap'], function(Heatmap) {
 | [rows](#rows)         | list of `row` objects (see below) | &check;   | -                                                           |
 | [cols](#cols)         | list of `col` objects (see below) | &check;   | -                                                           |
 | matrix                | matrix of numbers                 | &check;   | -                                                           |
-| rowCatLabels          | list lof strings                  | -         | -                                                           |
-| colCatLabels          | list lof strings                  | -         | -                                                           |
+| rowsLabel             | string                            | -         | 'Rows'                                                      |
+| colsLabel             | string                            | -         | 'Columns'                                                   |
+| rowCatLabels          | list lof strings                  | -         | []                                                          |
+| colCatLabels          | list lof strings                  | -         | []                                                          |
 | [defaults](#defaults) | object                            | -         | computed based on window size                               |
 | color                 | string \|\| object                | -         | 'gradient'                                                  |
 | onHover               | function(info) {}                 | -         | Displays row, column, and matrix value in tooltip on hover. |
@@ -82,7 +84,7 @@ requirejs(['heatmap'], function(Heatmap) {
 ```javascript
 {
     name: "some label",
-    categories: ["cat x", "cat y']
+    categories: ["cat foo", "cat bar']
 }
 ```
 

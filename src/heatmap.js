@@ -11,7 +11,6 @@
 import * as PIXI from 'pixi.js';
 
 import container from './container.html';
-import lockOpen from './assets/icons/search.svg';
 
 import ScaleCtrl from './scale-ctrl';
 import ScrollBar from './scrollbar';
@@ -98,8 +97,8 @@ export default class Heatmap {
         this.colCatLabels = params.colCatLabels || [];
 
         // axis labels
-        this.yLabel = params.rowsLabel;
-        this.xLabel = params.colsLabel;
+        this.yLabel = params.rowsLabel || 'Rows';
+        this.xLabel = params.colsLabel || 'Columns';
 
         this.onHover = params.onHover;
         this.onSelection = params.onSelection;
