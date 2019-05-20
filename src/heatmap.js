@@ -20,7 +20,7 @@ import { addLegend } from './legend';
 import { matMinMax } from './utils';
 import { svgNS, svgG, svgRect, svgText } from './svg';
 import { setAttributes } from './dom';
-import { sanitizeColors, getColorMatrix, getCategoryColors, rgbToHex, toHex } from './color';
+import { sanitizeColors, getColorMatrix, getCategoryColors, rgbToHex, hexToHexColor } from './color';
 
 // import Picker from 'vanilla-picker';
 
@@ -1124,14 +1124,14 @@ export default class Heatmap {
                 parent: el,
                 popup: 'bottom',
                 alpha: false,
-                color: toHex(this.color.colors[i]),
+                color: hexToHexColor(this.color.colors[i]),
                 onChange: (color) => {
                     if (!color._rgba) return;
 
                     let hexD = parseInt( rgbToHex(color._rgba) );
                     this.color.colors[i] = hexD;
                     this.colorMatrix = getColorMatrix(this.matrix, this.color);
-                    el.querySelector('.box').style.backgroundColor = '#' + toHex(hexD);
+                    el.querySelector('.box').style.backgroundColor = hexToHexColor(hexD);
                     this.renderChart();
                 }
             });

@@ -80,6 +80,7 @@ export function sanitizeColors(colors) {
         if (isNaN(color) && color[0] == '#') {
             return parseInt('0x' + color.slice(1));
         }
+        console.log('returning ', color)
         return color;
     });
 
@@ -117,8 +118,13 @@ export function getCategoryColors(categories) {
     return colorMatrix;
 }
 
+export function hexToHexColor(decimal) {
+    return decimal == 0 ? '#000000' : '#' + toHex(decimal);
+}
+
 export function toHex(c) {
     var hex = c.toString(16);
+    if (hex === 0) return 0;
     return hex.length == 1 ? '0' + hex : hex;
 }
 
