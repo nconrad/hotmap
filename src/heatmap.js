@@ -132,7 +132,7 @@ export default class Heatmap {
         this.ele.innerHTML = container;
         if (params.noLogo == true)
             this.ele.querySelector('.logo').remove();
-        if (params.light)
+        if (params.theme == 'light')
             this.ele.querySelector('.header').classList.add('light');
 
         this.start();
