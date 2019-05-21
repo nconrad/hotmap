@@ -1,6 +1,6 @@
 {
     "name": "heatmap",
-    "version": "0.1.6",
+    "version": "0.1.7",
     "description": "WebGL Based Heatmap for Bioinformatics and Big Data",
     "main": "index.js",
     "scripts": {

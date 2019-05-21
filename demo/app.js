@@ -37,9 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let rows = data.rows.slice(0, 5),
             matrix = data.matrix.slice(0, 5);
 
-        // select 100 columns (example)
-        let cols = data.cols.slice(0, 100);
-        matrix = matrix.map(row => row.slice(0, 100));
+        // select 200 columns (example)
+        let cols = data.cols.slice(0, 200);
+        matrix = matrix.map(row => row.slice(0, 200));
         heatmap.update({rows, cols, matrix});
     };
 });

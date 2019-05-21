@@ -80,7 +80,6 @@ export function sanitizeColors(colors) {
         if (isNaN(color) && color[0] == '#') {
             return parseInt('0x' + color.slice(1));
         }
-        console.log('returning ', color)
         return color;
     });
 

@@ -60,12 +60,13 @@ const yAxisLabelOffset = 30;
 
 export default class Heatmap {
     constructor(params) {
-        this.validateParams(params);
+        Heatmap.validateParams(params);
 
         /**
          * BEGIN initialize params
          **/
         this.ele = params.ele;
+        this.parent = this.ele.parentNode;
 
         this.rows = params.rows;
         this.cols = params.cols;
@@ -87,8 +88,8 @@ export default class Heatmap {
             return;
         }
 
-        this.rowCategories = this.getCategories(params.rows);
-        this.colCategories = this.getCategories(params.cols);
+        this.rowCategories = Heatmap.getCategories(params.rows);
+        this.colCategories = Heatmap.getCategories(params.cols);
         if (!this.rowCategories) rowCatWidth = 0;
         if (!this.colCategories) colCatWidth = 0;
 
@@ -114,18 +115,22 @@ export default class Heatmap {
          **/
 
         // m and n (row and cols) dimensions
-        this.size = this.getMatrixStats(params.matrix);
+        this.size = Heatmap.getMatrixStats(params.matrix);
 
         // start coordinates in matrix for "viewbox"
         this.xStart = 0;
         this.yStart = 0;
+
+        // cell dimensions
+        this.cellW;
+        this.cellH;
 
         // current query for search input
         this.query;
 
         // components to be instantiated
         this.scaleCtrl;
-        this.scrollBars;
+        this.scrollBox;
         this.mouseTracker;
 
         // add container/html
@@ -140,7 +145,7 @@ export default class Heatmap {
         return this;
     }
 
-    validateParams(params) {
+    static validateParams(params) {
         let {ele, rows, cols, matrix} = params;
         let name = `heatmap.js`;
 
@@ -171,6 +176,14 @@ export default class Heatmap {
         if (!validMat) alert('Must provide matrix with same number of columns.');
     }
 
+    static getCategories(objs) {
+        objs = objs.filter(r => r.categories).map(r => {
+            return r.categories;
+        });
+
+        return !objs.length ? null : objs;
+    }
+
     start() {
         let self = this;
 
@@ -190,9 +203,9 @@ export default class Heatmap {
         // setup search
         this.initSearch();
 
-        // add (fake) scrollbars.
+        // add (fake) scrollBox.
         // we update size of content area on render
-        this.scrollBars = this.getScrollBars();
+        this.scrollBox = this.getscrollBox();
 
         // add mouse tracker.
         // we update the size of the area on render
@@ -200,7 +213,7 @@ export default class Heatmap {
 
         this.updateLegend();
 
-        let renderer = this.getRenderer(canvasWidth, canvasHeight);
+        let renderer = Heatmap.getRenderer(canvasWidth, canvasHeight);
         this.renderer = renderer;
 
         this.init();
@@ -214,7 +227,7 @@ export default class Heatmap {
 
         // initialize options
         this.options = new Options({
-            parentNode: this.ele,
+            parentNode: this.parent,
             openBtn: document.querySelector('.opts-btn'),
             color: this.color,
             onColorChange: (type) => {
@@ -232,7 +245,7 @@ export default class Heatmap {
 
     }
 
-    getRenderer(width, height) {
+    static getRenderer(width, height) {
         return new PIXI.Renderer({
             width,
             height,
@@ -247,7 +260,7 @@ export default class Heatmap {
     }
 
 
-    init(resize) {
+    init({resize} = false) {
         if (this.ele.querySelector('.webgl-canvas canvas')) {
             this.ele.querySelector('.webgl-canvas canvas').remove();
         }
@@ -278,16 +291,20 @@ export default class Heatmap {
         this.initStage();
 
         if (!resize) {
-            let parent = this.ele.parentNode;
-            this.cellXDim = this.defaults.cellWidth ||
-                (parseInt((parent.clientWidth - margin.left - margin.right) / this.size.x) || 1);
-            this.cellYDim = this.defaults.cellHeight ||
-                (parseInt((parent.clientHeight - margin.top - margin.bottom) / this.size.y) || 1);
+            this.cellW = this.defaults.cellWidth || this.computeCellWidth() || 1;
+            this.cellH = this.defaults.cellHeight || this.computeCellHeight() || 1;
         }
-        this.scaleCtrl._setValues({x: this.cellXDim, y: this.cellYDim});
+        this.scaleCtrl._setValues({x: this.cellW, y: this.cellH});
         this.renderChart(true, true, true);
     }
 
+    computeCellWidth() {
+        return parseInt((this.parent.clientWidth - margin.left - margin.right) / this.size.x);
+    }
+
+    computeCellHeight() {
+        return parseInt((this.parent.clientHeight - margin.top - margin.bottom) / this.size.y);
+    }
 
     /**
      * todo: break into stage and update tint
@@ -296,13 +313,13 @@ export default class Heatmap {
         // let t0 = performance.now();
         this.clearStage(renderX, renderY, scale);
 
-        let cellXDim, cellYDim;
+        let cellW, cellH;
         if (this.isStaged) {
-            cellXDim = this.cellXDim;
-            cellYDim = this.cellYDim;
+            cellW = this.cellW;
+            cellH = this.cellH;
         } else {
-            cellXDim = 1;
-            cellYDim = 1;
+            cellW = 1;
+            cellH = 1;
         }
 
         let xStart = this.xStart,
@@ -310,17 +327,17 @@ export default class Heatmap {
 
         // use cell size to compute "view box" of sorts
         // Todo: optimize, moving into resize event
-        let parent = this.ele.parentNode;
-        xViewSize = parseInt((parent.clientWidth - margin.left - margin.right) / cellXDim);
-        yViewSize = parseInt((parent.clientHeight - margin.top - margin.bottom) / cellYDim);
+        xViewSize = parseInt((this.parent.clientWidth - margin.left - margin.right) / cellW);
+        yViewSize = parseInt((this.parent.clientHeight - margin.top - margin.bottom) / cellH);
         if (yViewSize > this.size.y) yViewSize = this.size.y;
+        if (xViewSize > this.size.x) xViewSize = this.size.x;
 
         // for each row
         for (let i = 0; i < yViewSize; i++) {
-            let y = margin.top + cellYDim * i;
+            let y = margin.top + cellH * i;
             let rowIdx = yStart + i;
 
-            if (cellYDim > minTextW && renderY) {
+            if (cellH > minTextW && renderY) {
                 this.addLabel('y', this.rows[rowIdx].name, margin.left - rowCatWidth - 10, y + 3, i);
             }
             if (renderY && this.rowCategories) {
@@ -329,7 +346,7 @@ export default class Heatmap {
 
             // for each column
             for (let j = 0; j < xViewSize; j++) {
-                let x = margin.left + cellXDim * j,
+                let x = margin.left + cellW * j,
                     colIdx = xStart + j;
 
                 // if sprites rendered, just making transformations
@@ -338,17 +355,17 @@ export default class Heatmap {
                     sprite.tint = this.colorMatrix[rowIdx][colIdx];
                     sprite.visible = true;
                     sprite.position.set(x, y);
-                    sprite.height = cellYDim;
-                    sprite.width = cellXDim;
+                    sprite.height = cellH;
+                    sprite.width = cellW;
                 } else {
                     let sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
                     sprite.position.set(x, y);
-                    sprite.height = cellYDim;
-                    sprite.width = cellXDim;
+                    sprite.height = cellH;
+                    sprite.width = cellW;
                     this.cells.addChild(sprite);
                 }
 
-                if (i == 0 && cellXDim > minTextW && renderX) {
+                if (i == 0 && cellW > minTextW && renderX) {
                     this.addLabel('x', this.cols[colIdx].name, x + 2, margin.top - 5, j);
                 }
 
@@ -365,43 +382,43 @@ export default class Heatmap {
         }
 
         /**
-         * also adjust scrollbars if needed
+         * also adjust scrollBox if needed
          **/
         if (renderY || this.scaleCtrl.isLocked()) {
-            this.scrollBars.setContentHeight(cellYDim * this.size.y );
+            this.scrollBox.setContentHeight(cellH * this.size.y );
 
-            let height = yViewSize * cellYDim;
-            this.scrollBars.setContainerHeight(height);
+            let height = yViewSize * cellH;
+            this.scrollBox.setContainerHeight(height);
 
             // if y-axis is out-of-range, hide
             if (yViewSize >= this.size.y) {
-                this.scrollBars.hideY();
+                this.scrollBox.hideY();
             } else {
-                this.scrollBars.showY();
+                this.scrollBox.showY();
             }
         }
 
         if (renderX || this.scaleCtrl.isLocked()) {
-            this.scrollBars.setContentWidth(cellXDim * this.size.x);
+            this.scrollBox.setContentWidth(cellW * this.size.x);
 
-            let width = xViewSize * cellXDim;
-            this.scrollBars.setContainerWidth(width);
+            let width = xViewSize * cellW;
+            this.scrollBox.setContainerWidth(width);
 
             // if x-axis is out-of-range
             if (xViewSize >= this.size.x) {
-                this.scrollBars.hideX();
+                this.scrollBox.hideX();
             } else {
-                this.scrollBars.showX();
+                this.scrollBox.showX();
             }
         }
 
         this.mouseTracker.update({
             top: margin.top,
             left: margin.left,
-            width: xViewSize * cellXDim,
-            height: yViewSize * cellYDim,
-            cellXSize: cellXDim,
-            cellYSize: cellYDim
+            width: xViewSize * cellW,
+            height: yViewSize * cellH,
+            cellXSize: cellW,
+            cellYSize: cellH
         });
         requestAnimationFrame(this.render); // draw
         this.catLabelsAdded = true;
@@ -413,10 +430,10 @@ export default class Heatmap {
         if (!this.isStaged) return;
 
         // add axis labels if zoomed out
-        if (cellXDim <= minTextW) this.showXAxisLabel(this.xLabel);
+        if (cellW <= minTextW) this.showXAxisLabel(this.xLabel);
         else this.hideAxisLabel('x');
 
-        if (cellYDim <= minTextW) this.showYAxisLabel(this.yLabel);
+        if (cellH <= minTextW) this.showYAxisLabel(this.yLabel);
         else this.hideAxisLabel('y');
 
         if (this.query) {
@@ -469,8 +486,8 @@ export default class Heatmap {
         let ele = document.createElementNS(svgNS, 'text');
 
         if (axis == 'y') {
-            y += this.cellYDim / 2 + 1;
-            ele.setAttribute('font-size', `${this.cellYDim <= maxTextW ? this.cellYDim - 4 : 16}px`);
+            y += this.cellH / 2 + 1;
+            ele.setAttribute('font-size', `${this.cellH <= maxTextW ? this.cellH - 4 : 16}px`);
             ele.setAttribute('class', `row-${cellIdx}`);
             ele.setAttribute('fill', '#666');
             ele.setAttribute('x', x);
@@ -512,10 +529,10 @@ export default class Heatmap {
             };
 
         } else {
-            x += this.cellXDim / 2 + 1;
+            x += this.cellW / 2 + 1;
             ele.innerHTML = text;
             ele.setAttribute('data-i', cellIdx);
-            ele.setAttribute('font-size', `${this.cellXDim <= maxTextW ? this.cellXDim - 4 : 16}px`);
+            ele.setAttribute('font-size', `${this.cellW <= maxTextW ? this.cellW - 4 : 16}px`);
             ele.setAttribute('fill', '#666');
             ele.setAttribute('x', x);
             ele.setAttribute('y', y);
@@ -535,7 +552,7 @@ export default class Heatmap {
             ele.addEventListener('mouseover', () => {
                 let tt = this.tooltip(y, x - 5);
 
-                let cats = this.colCatLabels.length === 0 ? ''
+                let cats = !this.colCategories || this.colCatLabels.length === 0 ? ''
                     : this.colCategories[cellIdx].map((cat, i) =>
                         `<br><div><b>${this.colCatLabels[i]}:</b> ${cat}</div>`
                     ).join('');
@@ -584,11 +601,11 @@ export default class Heatmap {
             if (!isMatch) return;
 
             let y = margin.top,
-                x = margin.left + this.cellXDim * i;
+                x = margin.left + this.cellW * i;
 
-            let h = this.cellXDim <= minTextW ? 10 : 1;
+            let h = this.cellW <= minTextW ? 10 : 1;
             this.svg.appendChild(
-                svgRect(x, y - h - 2, this.cellXDim, h, {
+                svgRect(x, y - h - 2, this.cellW, h, {
                     class: 'search-match',
                     stroke: '#1187f1',
                     fill: '#1187f1'
@@ -596,7 +613,7 @@ export default class Heatmap {
             );
 
             // if text is showing, highlight text
-            if (this.cellXDim > minTextW) {
+            if (this.cellW > minTextW) {
                 this.highlightLabel(this.query, this.xAxis.querySelector(`[data-i="${i}"]`), i);
             }
         });
@@ -651,7 +668,7 @@ export default class Heatmap {
     showXAxisLabel(label) {
         let cls = 'x-axis-label';
         let ele = this.svg.querySelector(`.${cls}`);
-        let x = margin.left + (xViewSize * this.cellXDim) / 2;
+        let x = margin.left + (xViewSize * this.cellW) / 2;
 
         // if label exists, just reposition
         if (ele) {
@@ -675,13 +692,13 @@ export default class Heatmap {
 
         // if label exists, just reposition
         if (ele) {
-            let y = margin.top + (ele.getBBox().width / 2) + (yViewSize * this.cellYDim) / 2;
+            let y = margin.top + (ele.getBBox().width / 2) + (yViewSize * this.cellH) / 2;
             ele.setAttribute('y', y);
             ele.setAttribute('transform', `rotate(-90, ${x}, ${y})`);
             return;
         }
 
-        let y = margin.top + (yViewSize * this.cellYDim) / 2;
+        let y = margin.top + (yViewSize * this.cellH) / 2;
         let text = svgText(label, x, y, {
             class: cls,
             fill: '#666'
@@ -770,7 +787,7 @@ export default class Heatmap {
             sprite.tint = this.rowCatColors[index][i];
             sprite.x = x;
             sprite.y = y;
-            sprite.height = this.cellYDim;
+            sprite.height = this.cellH;
             sprite.width = width - 1; // -1 spacing
 
             this.cats.addChild(sprite);
@@ -853,53 +870,53 @@ export default class Heatmap {
     getScaleCtrl() {
         return new ScaleCtrl({
             ele: this.ele,
-            xValue: this.cellXDim,
-            yValue: this.cellYDim,
+            xValue: this.cellW,
+            yValue: this.cellH,
             onXChange: (val, isLocked) => {
-                this.cellXDim = val;
+                this.cellW = val;
                 if (isLocked) {
-                    this.cellYDim = val;
+                    this.cellH = val;
                     this.renderChart(true, true, true);
                 } else {
                     this.renderChart(true, false, true);
                 }
-                return {x: this.cellXDim, y: this.cellYDim};
+                return {x: this.cellW, y: this.cellH};
             },
             onYChange: (val, isLocked) => {
-                this.cellYDim = val;
+                this.cellH = val;
                 if (isLocked) {
-                    this.cellXDim = val;
+                    this.cellW = val;
                     this.renderChart(true, true, true);
                 } else {
                     this.renderChart(false, true, true);
                 }
-                return {x: this.cellXDim, y: this.cellYDim};
+                return {x: this.cellW, y: this.cellH};
             },
             onLockClick: lockOpen => {
-                let x = this.cellXDim,
-                    y = this.cellYDim;
+                let x = this.cellW,
+                    y = this.cellH;
 
                 if (y > x)
-                    this.cellXDim = y;
+                    this.cellW = y;
                 else
-                    this.cellYDim = x;
+                    this.cellH = x;
 
                 this.renderChart(true, true, true);
 
-                return {x: this.cellXDim, y: this.cellYDim};
+                return {x: this.cellW, y: this.cellH};
             }
         });
     }
 
-    getScrollBars() {
+    getscrollBox() {
         return new ScrollBar({
             ele: this.ele,
             x: margin.left,
             y: margin.top,
             width: xViewSize,
             height: yViewSize,
-            contentWidth: this.cellXDim * this.size.x,
-            contentHeight: this.cellYDim * this.size.y,
+            contentWidth: this.cellW * this.size.x,
+            contentHeight: this.cellH * this.size.y,
             xMax: this.size.x,
             yMax: this.size.y,
             onMove: (direction, pos) => {
@@ -912,14 +929,14 @@ export default class Heatmap {
 
                 this.hideHoverTooltip();
                 // update cell size
-                let newXDim = this.cellXDim - deltaY * zoomFactor;
-                this.cellXDim = newXDim < cellXMin
+                let newXDim = this.cellW - deltaY * zoomFactor;
+                this.cellW = newXDim < cellXMin
                     ? cellXMin : (newXDim > cellXMax ? cellXMax : newXDim);
 
                 this.renderChart(true, null, true);
 
                 // update controls
-                this.scaleCtrl._setValues({x: this.cellXDim, y: this.cellYDim});
+                this.scaleCtrl._setValues({x: this.cellW, y: this.cellH});
             }
         });
     }
@@ -929,10 +946,10 @@ export default class Heatmap {
             ele: this.ele.querySelector('.scroll-container'),
             top: margin.top,
             left: margin.left,
-            width: xViewSize * this.cellXDim,
-            height: yViewSize * this.cellYDim,
-            cellXSize: this.cellXDim,
-            cellYSize: this.cellYDim,
+            width: xViewSize * this.cellW,
+            height: yViewSize * this.cellH,
+            cellXSize: this.cellW,
+            cellYSize: this.cellH,
             m: this.size.y,
             n: this.size.x,
             onCellMouseOver: (pos) => this.onCellMouseOver(pos),
@@ -999,11 +1016,11 @@ export default class Heatmap {
     }
 
     setHoverInfo(xLabel, yLabel, value, i, j, x, y) {
-        let cellXDim = this.cellXDim,
-            cellYDim = this.cellYDim;
+        let cellW = this.cellW,
+            cellH = this.cellH;
 
-        x = margin.left + x * cellXDim;
-        y = margin.top + y * cellYDim;
+        x = margin.left + x * cellW;
+        y = margin.top + y * cellH;
 
         let content =
             `<b>Row:</b> ${yLabel}<br>` +
@@ -1012,8 +1029,8 @@ export default class Heatmap {
 
         this.ele.querySelector('.header .info').innerHTML = content;
 
-        let top = y + cellYDim,
-            left = x + cellXDim;
+        let top = y + cellH,
+            left = x + cellW;
         let tooltip = this.tooltip(top, left);
 
         let rowCats = this.rowCategories,
@@ -1028,7 +1045,7 @@ export default class Heatmap {
         // add hover box
         if (x && y) {
             this.ele.querySelectorAll('.hover-box').forEach(el => el.remove());
-            this.svg.appendChild( svgRect(x, y, cellXDim, cellYDim, {class: 'hover-box'}) );
+            this.svg.appendChild( svgRect(x, y, cellW, cellH, {class: 'hover-box'}) );
         }
     }
 
@@ -1051,8 +1068,7 @@ export default class Heatmap {
     }
 
     getContainerSize() {
-        let parent = this.ele.parentNode;
-        return [parent.clientWidth, parent.clientHeight];
+        return [this.parent.clientWidth, this.parent.clientHeight];
     }
 
     resize() {
@@ -1062,7 +1078,7 @@ export default class Heatmap {
         this.svg.setAttribute('width', canvasWidth);
         this.svg.setAttribute('height', canvasHeight);
 
-        this.init(true); // resize init
+        this.init();
         this.renderChart(true, true, true);
     }
 
@@ -1086,26 +1102,17 @@ export default class Heatmap {
         this.rowCatColors = this.rows.map(row => row.catColors);
 
         // update all data
-        this.updateData(true);
+        this.updateData();
+        this.renderChart(true, true, true);
     }
 
     // updates associated data models (such as categorical data
-    updateData(render) {
-        this.rowCategories = this.getCategories(this.rows);
-        this.colCategories = this.getCategories(this.cols);
+    updateData() {
+        this.rowCategories = Heatmap.getCategories(this.rows);
+        this.colCategories = Heatmap.getCategories(this.cols);
 
         // update colors
         this.colorMatrix = getColorMatrix(this.matrix, this.color);
-
-        if (render) this.renderChart(true, true, true);
-    }
-
-    getCategories(objs) {
-        objs = objs.filter(r => r.categories).map(r => {
-            return r.categories;
-        });
-
-        return !objs.length ? null : objs;
     }
 
     updateLegend() {
@@ -1156,8 +1163,8 @@ export default class Heatmap {
                 _yPos = e.offsetY - scrollContainer.scrollTop;
 
             // relative position on visible cells
-            let x = parseInt(_xPos / this.cellXDim),
-                y = parseInt(_yPos / this.cellYDim);
+            let x = parseInt(_xPos / this.cellW),
+                y = parseInt(_yPos / this.cellH);
 
             // save start of box
             box.x = x;
@@ -1173,12 +1180,12 @@ export default class Heatmap {
                 _yPos = e.offsetY - scrollContainer.scrollTop;
 
             // todo: this is a hack to deal with hovering
-            // where the scrollbars normally would be
+            // where the scrollBox normally would be
             if (_xPos < 0 || _yPos < 0) return;
 
             // relative position on visible cells
-            let x2 = parseInt(_xPos / this.cellXDim),
-                y2 = parseInt(_yPos / this.cellYDim);
+            let x2 = parseInt(_xPos / this.cellW),
+                y2 = parseInt(_yPos / this.cellH);
 
             if (y2 >= yViewSize) y2 = yViewSize;
             if (x2 >= xViewSize) x2 = xViewSize;
@@ -1235,13 +1242,13 @@ export default class Heatmap {
             else y = box.y;
 
             // compute size of box
-            x = margin.left + x * this.cellXDim;
-            y = margin.top + y * this.cellYDim;
+            x = margin.left + x * this.cellW;
+            y = margin.top + y * this.cellH;
 
-            let w = box.w < this.cellXDim
-                ? (box.w + 1) * this.cellXDim : box.w * this.cellXDim;
-            let h = box.h < this.cellYDim
-                ? (box.h + 1) * this.cellYDim : box.h * this.cellYDim;
+            let w = box.w < this.cellW
+                ? (box.w + 1) * this.cellW : box.w * this.cellW;
+            let h = box.h < this.cellH
+                ? (box.h + 1) * this.cellH : box.h * this.cellH;
 
             let rect = svgRect(x, y, w, h, {
                 class: 'select-box',
@@ -1255,11 +1262,11 @@ export default class Heatmap {
         scrollContainer.addEventListener('mousemove', this.selectMove, false);
     }
 
-    getMatrixStats(matrix) {
+    static getMatrixStats(matrix) {
         let minMax = matMinMax(matrix);
         return {
-            x: this.matrix[0].length,
-            y: this.matrix.length,
+            x: matrix[0].length,
+            y: matrix.length,
             min: minMax.min,
             max: minMax.max
         };
@@ -1273,10 +1280,13 @@ export default class Heatmap {
         this.cols = cols || this.cols;
         this.rows = rows || this.rows;
         this.matrix = matrix || this.matrix;
+        this.size = Heatmap.getMatrixStats(this.matrix);
 
-        this.size = this.getMatrixStats(this.matrix);
+        // need to update scrollBox
+        this.scrollBox.setMaxes(this.size.x, this.size.y);
 
-        this.updateData(true);
+        this.updateData();
+        this.init({resize: true});
     }
 
     getState() {

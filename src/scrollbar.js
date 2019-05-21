@@ -9,7 +9,7 @@
 
 let barOffset = '15';
 
-export default class ScrollBar {
+export default class ScrollBox {
 
     constructor({
         ele, x, y, width, height, xMax, yMax,
@@ -19,13 +19,13 @@ export default class ScrollBar {
         this.x = x;
         this.y = y;
 
-        this._xMax = xMax;
-        this._yMax = yMax;
+        this.setMaxes(xMax, yMax);
 
         // events
         this._onMove = onMove;
         this._onMouseWheel = onMouseWheel;
 
+        // initial scrollbox dimensions
         this.width = width;
         this.height = height;
         this.contentWidth = contentWidth;
@@ -77,13 +77,13 @@ export default class ScrollBar {
 
             if (xDirection) {
                 let percent = target.scrollLeft / target.scrollWidth;
-                let pos = Math.ceil(percent * this._xMax);
+                let pos = Math.ceil(percent * this.xMax);
                 this._onMove('x', pos);
             }
 
             if (yDirection) {
                 let percent = target.scrollTop / target.scrollHeight;
-                let pos = Math.ceil(percent * this._yMax);
+                let pos = Math.ceil(percent * this.yMax);
                 this._onMove('y', pos);
             }
 
@@ -134,5 +134,10 @@ export default class ScrollBar {
 
     showX() {
         this.scrollContainer.style.paddingBottom = `${barOffset}px`;
+    }
+
+    setMaxes(x, y) {
+        this.xMax = x;
+        this.yMax = y;
     }
 }
