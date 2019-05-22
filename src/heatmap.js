@@ -1282,6 +1282,7 @@ export default class Heatmap {
 
         // need to update scrollBox
         this.scrollBox.setMaxes(this.size.x, this.size.y);
+        this.scrollBox.setPos(0, 0);
 
         this.updateData();
         this.init({resize: true});
