@@ -13,7 +13,7 @@ import * as PIXI from 'pixi.js';
 import container from './container.html';
 
 import ScaleCtrl from './scale-ctrl';
-import ScrollBar from './scrollbar';
+import ScrollBox from './scroll-box';
 import MouseTracker from './mouse-tracker';
 import Options from './options';
 import { addLegend } from './legend';
@@ -21,6 +21,7 @@ import { matMinMax } from './utils';
 import { svgNS, svgG, svgRect, svgText } from './svg';
 import { setAttributes } from './dom';
 import { sanitizeColors, getColorMatrix, getCategoryColors, rgbToHex, hexToHexColor } from './color';
+import { transpose } from './matrix';
 
 // import Picker from 'vanilla-picker';
 
@@ -30,6 +31,8 @@ import './assets/styles/heatmap.less';
 PIXI.utils.skipHello();
 
 const PARTICLE_CONTAINER = false; // experimental
+
+const NAME = `heatmap.js`;
 
 // view size (in terms of size of matrix)
 let yViewSize;
@@ -146,18 +149,17 @@ export default class Heatmap {
 
     static validateParams(params) {
         let {ele, rows, cols, matrix} = params;
-        let name = `heatmap.js`;
 
         // validate params
-        if (!ele) alert(`${name}: Must provide an element to attach chart to.`);
-        else if (!matrix) alert(`${name}: Must provide an matrix of values.`);
-        else if (!rows) alert(`${name}: Must provide some sort of row labels.`);
-        else if (!cols) alert(`${name}: Must provide some sort of column labels.`);
+        if (!ele) alert(`${NAME}: Must provide an element to attach chart to.`);
+        else if (!matrix) alert(`${NAME}: Must provide an matrix of values.`);
+        else if (!rows) alert(`${NAME}: Must provide some sort of row labels.`);
+        else if (!cols) alert(`${NAME}: Must provide some sort of column labels.`);
 
         let rowCatLbls = params.rowCatLabels;
         if (rowCatLbls !== null && !rowCatLbls && 'categories' in rows[0]) {
             console.warn(
-                `${name}: No labels were provided for row categories.
+                `${NAME}: No labels were provided for row categories.
                 Use "rowCatLabels: null" to dismiss`
             );
         }
@@ -165,7 +167,7 @@ export default class Heatmap {
         let colCatLbls = params.colCatLabels;
         if (colCatLbls !== null && !colCatLbls && 'categories' in rows[0]) {
             console.warn(
-                `${name}: No labels were provided for column categories.
+                `${NAME}: No labels were provided for column categories.
                 Use "colCatLabels: null" to dismiss`
             );
         }
@@ -423,7 +425,7 @@ export default class Heatmap {
         this.selectable();
 
         /**
-         * exit now if the first render is finished
+         * exit now if first render
          **/
         if (!this.isStaged) return;
 
@@ -668,9 +670,15 @@ export default class Heatmap {
         let ele = this.svg.querySelector(`.${cls}`);
         let x = margin.left + (xViewSize * this.cellW) / 2;
 
-        // if label exists, just reposition
+        // if label exists, just reuse/reposition
         if (ele) {
             ele.setAttribute('x', x);
+
+            // text may change due to transpose
+            if (label !== ele.innerHTML) {
+                ele.innerHTML = label;
+                ele.setAttribute('transform', `translate(-${ele.getBBox().width / 2})`);
+            }
             return;
         }
 
@@ -688,8 +696,9 @@ export default class Heatmap {
         let ele = this.svg.querySelector(`.${cls}`);
         let x = margin.left - yAxisLabelOffset - rowCatWidth;
 
-        // if label exists, just reposition
+        // if label exists, just reuse
         if (ele) {
+            ele.innerHTML = label;
             let y = margin.top + (ele.getBBox().width / 2) + (yViewSize * this.cellH) / 2;
             ele.setAttribute('y', y);
             ele.setAttribute('transform', `rotate(-90, ${x}, ${y})`);
@@ -744,6 +753,11 @@ export default class Heatmap {
     }
 
     addCategoryLabel(axis, text, x, y, idx) {
+        if (this.isTransposed) {
+            console.warn(`${NAME}: flipAxis does not (currently) support categories.`);
+            return;
+        }
+
         let ele = document.createElementNS(svgNS, 'text');
 
         let g = svgG();
@@ -775,6 +789,11 @@ export default class Heatmap {
     }
 
     addCategories(axis, index, x, y) {
+        if (this.isTransposed) {
+            console.warn(`${NAME}: flipAxis does not yet support categories.`);
+            return;
+        }
+
         let categories = this.rowCategories[index];
 
         // compute width of each category from: total / number-of-cateogries
@@ -907,7 +926,7 @@ export default class Heatmap {
     }
 
     getscrollBox() {
-        return new ScrollBar({
+        return new ScrollBox({
             ele: this.ele,
             x: margin.left,
             y: margin.top,
@@ -1274,10 +1293,12 @@ export default class Heatmap {
      * API methods
      */
     update(data) {
-        let {rows, cols, matrix} = data;
-        this.cols = cols || this.cols;
-        this.rows = rows || this.rows;
-        this.matrix = matrix || this.matrix;
+        this.cols = data.cols || this.cols;
+        this.rows = data.rows || this.rows;
+        this.matrix = data.matrix || this.matrix;
+        this.xLabel = data.colsLabel || this.xLabel;
+        this.yLabel = data.rowsLabel || this.yLabel;
+
         this.size = Heatmap.getMatrixStats(this.matrix);
 
         // need to update scrollBox
@@ -1294,6 +1315,17 @@ export default class Heatmap {
             cols: this.cols,
             matrix: this.matrix
         };
+    }
+
+    flipAxis() {
+        this.isTransposed = !this.isTransposed;
+        this.update({
+            rows: this.cols,
+            cols: this.rows,
+            matrix: transpose(this.matrix),
+            rowsLabel: this.xLabel,
+            colsLabel: this.yLabel
+        });
     }
 
 }
