@@ -63,7 +63,7 @@ function gradientLegend(ele, min, max) {
 
     let low = document.createElement('span');
     low.innerHTML = `${min} `;
-    ele.append(low);
+    ele.appendChild(low);
 
     let high = document.createElement('span');
     high.innerHTML = ` ${max}`;

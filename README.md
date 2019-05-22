@@ -53,6 +53,22 @@ requirejs(['heatmap'], function(Heatmap) {
 })
 ```
 
+### Basic Example Config
+
+```javascript
+    let heatmap = new Heatmap({
+        ele: document.getElementById('heatmap'),
+        rows: [{...}],
+        cols: [{...}],
+        matrix: [[1, 2, 3], [2, 5.3, 0], ...],
+        // the color settings and hover callback are optional
+        color: {
+            bins: ['=0', '=1', '=2', '<20', '>=20'],
+            colors: [0xffffff, 0xfbe6e2, 0xffadad, 0xff6b6b, 0xff0000]
+        },
+        onHover: info => `<div><b>Genome:</b> ${info.yLabel}</div>`
+    })
+```
 
 ### Config
 
@@ -65,11 +81,25 @@ requirejs(['heatmap'], function(Heatmap) {
 | colsLabel             | string                            | -         | 'Columns'                                                   |
 | rowCatLabels          | list lof strings                  | -         | []                                                          |
 | colCatLabels          | list lof strings                  | -         | []                                                          |
-| [defaults](#defaults) | object                            | -         | computed based on window size                               |
 | color                 | string \|\| object                | -         | 'gradient'                                                  |
-| onHover               | function(info) {}                 | -         | Displays row, column, and matrix value in tooltip on hover. |
-| onSelect              | function(selection) {}            | -         | -                                                           |
 | theme                 | 'light' \|\| 'dark'               | -         | 'dark'                                                      |
+| [defaults](#defaults) | object                            | -         | computed based on window size                               |
+
+#### Event Callbacks
+
+| Param    | Type                   | Required? | Default                                                     |
+|----------|------------------------|-----------|-------------------------------------------------------------|
+| onHover  | function(info) {}      | -         | Displays row, column, and matrix value in tooltip on hover. |
+| onSelect | function(selection) {} | -         | -                                                           |
+
+
+### API Methods
+
+| Method   | Definition                   | Description                                                |
+|----------|------------------------------|------------------------------------------------------------|
+| update   | update({rows, cols, matrix}) | Given object with rows, columns, and matrix, updates chart |
+| getState | getState()                   | Returns current rows, columns and matrix                   |
+
 
 
 ##### rows
@@ -97,32 +127,6 @@ requirejs(['heatmap'], function(Heatmap) {
 ```
 
 
-### API Methods
-
-| Method   | Definition                   | Description                                                |
-|----------|------------------------------|------------------------------------------------------------|
-| update   | update({rows, cols, matrix}) | Given object with rows, columns, and matrix, updates chart |
-| getState | getState()                   | Returns current rows, columns and matrix                   |
-
-
-
-### Example config
-
-```javascript
-    let heatmap = new Heatmap({
-        ele: document.getElementById('heatmap'),
-        rows: [{...}],
-        cols: [{...}],
-        matrix: [[1, 2, 3], [2, 5.3, 0], ...],
-        color: {
-            bins: ['=0', '=1', '=2', '<20', '>=20'],
-            colors: [0xffffff, 0xfbe6e2, 0xffadad, 0xff6b6b, 0xff0000]
-        },
-        onHover: info => `<div><b>Genome:</b> ${info.yLabel}</div><br>`
-    })
-```
-
-
 ## Development
 
 ### Local Installation
@@ -138,6 +142,7 @@ npm install
 npm start
 ```
 
+
 ### Build
 
 ```
@@ -147,14 +152,14 @@ npm run build
 
 ## Author(s)
 
-Neal Conrad <nconrad@anl.gov>
+[N Conrad](https://github.com/nconrad)
 
 
 ## Citation
 
-Please cite this repo in the meantime:
+Paper pending.  Please cite this repo in the meantime:
 
-N. Conrad, A WebGL Heatmap for Bioinformatics and Big Data, (2019), GitHub repository, https://github.com/nconrad/heatmap
+N. Conrad, A WebGL Heatmap Viewer for Bioinformatics and Big Data, (2019), GitHub repository, https://github.com/nconrad/heatmap
 
 
 ## License

@@ -29,8 +29,7 @@ import './assets/styles/heatmap.less';
 
 PIXI.utils.skipHello();
 
-const FORCE_CANVAS = false;
-const PARTICLE_CONTAINER = false;
+const PARTICLE_CONTAINER = false; // experimental
 
 // view size (in terms of size of matrix)
 let yViewSize;
@@ -203,8 +202,7 @@ export default class Heatmap {
         // setup search
         this.initSearch();
 
-        // add (fake) scrollBox.
-        // we update size of content area on render
+        // add scrollBox.  we'll update size of content area on each render
         this.scrollBox = this.getscrollBox();
 
         // add mouse tracker.

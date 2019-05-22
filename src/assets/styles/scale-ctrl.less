@@ -1,4 +1,7 @@
 
+@border-radius: 20px;
+@slider-color: #1187f1;;
+
 /**
  * scale control components
  */
@@ -14,10 +17,13 @@
   height: 5px;
   border-radius: 5px;
   background: #d3d3d3;
-  outline: none;
   opacity: 0.7;
   -webkit-transition: .2s;
   transition: opacity .2s;
+}
+
+.slider::-moz-focus-outer {
+  border: 0;
 }
 
 .slider::-webkit-slider-thumb {
@@ -25,16 +31,16 @@
   appearance: none;
   width: 17px;
   height: 17px;
-  border-radius: 4px;
-  background: #1187f1;
+  border-radius: @border-radius;
+  background: @slider-color;
   cursor: pointer;
 }
 
 .slider::-moz-range-thumb {
   width: 17px;
   height: 17px;
-  border-radius: 4px;
-  background: #1187f1;
+  border-radius: @border-radius;
+  background: @slider-color;
   cursor: pointer;
 }
 

@@ -12,9 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let ele = document.querySelector('#chart');
     let dataPath = ele.getAttribute('data-path');
 
+    ele.innerHTML = `<br>loading...`;
     let heatmap;
-
-    let statusHandle = loading(ele);
     fetch(dataPath)
         .then(res => res.json())
         .then(data => {
@@ -24,8 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(e);
             alert(`Could not load viewer. Please contact owner.`);
         });
-
-    clearInterval(statusHandle);
 
     // example of updating the chart
     let updateBtn = document.querySelector('.update-btn');
@@ -54,32 +51,22 @@ function loadViewer({ele, data}) {
         colsLabel: 'Protein Families',
         rowCatLabels: rowCatLabels,
         colCatLabels: ['Protein Family ID'],
+        //theme: 'light',
         color: {
             bins: ['=0', '=1', '=2', '<20', '>=20'],
             colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff6b6b, 0xff0000]
         },
         onHover: info => {
             let cs = info.rowCategories;
-            return `
-             <div><b>Genome:</b> ${info.yLabel}</div><br>
-             <div><b>Protein Family:</b> ${info.xLabel}<div>
-             <div><b>ID:</b> ${info.colCategories[0]}<div><br>
-             <div><b>${rowCatLabels[0]}:</b> ${cs && cs[0] != 'undefined' ? cs[0] : 'N/A'}</div>
-             <div><b>${rowCatLabels[1]}:</b> ${cs && cs[1] != 'undefined' ? cs[1] : 'N/A'}</div>
-             <div><b>${rowCatLabels[2]}:</b> ${cs && cs[2] != 'undefined' ? cs[2] : 'N/A'}</div><br>
-             <div><b>Value:</b> ${info.value}</div>`;
+            return `<div><b>Genome:</b> ${info.yLabel}</div><br>
+              <div><b>Protein Family:</b> ${info.xLabel}<div>
+              <div><b>ID:</b> ${info.colCategories[0]}<div><br>
+              <div><b>${rowCatLabels[0]}:</b> ${cs && cs[0] != 'undefined' ? cs[0] : 'N/A'}</div>
+              <div><b>${rowCatLabels[1]}:</b> ${cs && cs[1] != 'undefined' ? cs[1] : 'N/A'}</div>
+              <div><b>${rowCatLabels[2]}:</b> ${cs && cs[2] != 'undefined' ? cs[2] : 'N/A'}</div><br>
+              <div><b>Value:</b> ${info.value}</div>`;
         }
     });
 
     return heatmap;
-}
-
-function loading(ele) {
-    let i = 0;
-    let handle = setInterval(() => {
-        ele.innerHTML = `<br>loading${'.'.repeat(i % 4)}`;
-        i += 1;
-    }, 300);
-
-    return handle;
 }
