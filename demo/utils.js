@@ -64,7 +64,6 @@ export function trimData(data) {
     });
 
     // let matrix = transpose(data.mat);
-
-    return {rows, cols, matrix};
+    return {rows, cols, matrix: data.mat};
 }
 

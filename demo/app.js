@@ -51,7 +51,7 @@ function loadViewer({ele, data}) {
         colsLabel: 'Protein Families',
         rowCatLabels: rowCatLabels,
         colCatLabels: ['Protein Family ID'],
-        //theme: 'light',
+        // theme: 'light',
         color: {
             bins: ['=0', '=1', '=2', '<20', '>=20'],
             colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff6b6b, 0xff0000]

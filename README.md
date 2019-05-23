@@ -99,7 +99,7 @@ requirejs(['heatmap'], function(Heatmap) {
 |----------|------------------------------|------------------------------------------------------------|
 | update   | update({rows, cols, matrix}) | Given object with rows, columns, and matrix, updates chart |
 | getState | getState()                   | Returns current rows, columns and matrix                   |
-| flipAxis | flipAxis()                   | Swaps rows, cols, and labels                               |
+| flipAxis | flipAxis()                   | Swaps rows, cols, labels, and scaling                      |
 
 
 

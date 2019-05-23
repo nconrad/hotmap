@@ -294,7 +294,7 @@ export default class Heatmap {
             this.cellW = this.defaults.cellWidth || this.computeCellWidth() || 1;
             this.cellH = this.defaults.cellHeight || this.computeCellHeight() || 1;
         }
-        this.scaleCtrl._setValues({x: this.cellW, y: this.cellH});
+        this.scaleCtrl.setPos(this.cellW, this.cellH);
         this.renderChart(true, true, true);
     }
 
@@ -887,8 +887,8 @@ export default class Heatmap {
     getScaleCtrl() {
         return new ScaleCtrl({
             ele: this.ele,
-            xValue: this.cellW,
-            yValue: this.cellH,
+            x: this.cellW,
+            y: this.cellH,
             onXChange: (val, isLocked) => {
                 this.cellW = val;
                 if (isLocked) {
@@ -953,7 +953,7 @@ export default class Heatmap {
                 this.renderChart(true, null, true);
 
                 // update controls
-                this.scaleCtrl._setValues({x: this.cellW, y: this.cellH});
+                this.scaleCtrl.setPos(this.cellW, this.cellH);
             }
         });
     }
@@ -1319,6 +1319,15 @@ export default class Heatmap {
 
     flipAxis() {
         this.isTransposed = !this.isTransposed;
+
+        // flip scaling
+        let ctrl = this.scaleCtrl;
+        ctrl.setPos(ctrl.y, ctrl.x);
+        let cellW = this.cellW;
+        this.cellW = this.cellH;
+        this.cellH = cellW;
+
+        // transpose all the things
         this.update({
             rows: this.cols,
             cols: this.rows,
