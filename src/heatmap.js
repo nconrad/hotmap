@@ -738,11 +738,15 @@ export default class Heatmap {
         for (let i = i1; i <= i2; i++) {
             for (let j = j1; j <= j2; j++) {
                 let val = this.matrix[i][j];
+                let rowID = this.rows[i].id,
+                    colID = this.cols[j].id;
 
                 selected.push({
                     val: val,
                     rowName: this.rows[i].name,
                     colName: this.cols[j].name,
+                    ...(rowID && {rowID}),
+                    ...(colID && {colID}),
                     ...(this.rowCategories && {rowCats: this.rowCategories[i]}),
                     ...(this.colCategories && {colCats: this.colCategories[j]})
                 });
@@ -1261,7 +1265,6 @@ export default class Heatmap {
             // compute size of box
             x = margin.left + x * this.cellW;
             y = margin.top + y * this.cellH;
-
             let w = box.w < this.cellW
                 ? (box.w + 1) * this.cellW : box.w * this.cellW;
             let h = box.h < this.cellH
@@ -1269,7 +1272,8 @@ export default class Heatmap {
 
             let rect = svgRect(x, y, w, h, {
                 class: 'select-box',
-                fill: 'rgba(0,0,0,0.1)'
+                stroke: 'rgb(14, 135, 241)',
+                fill: 'rgba(14, 135, 241, .1)'
             });
             this.svg.appendChild(rect);
         };
