@@ -8,22 +8,19 @@
  */
 export default class MouseTracker {
 
-    constructor({
-        ele, top, left, width, height, cellXSize, cellYSize,
-        m, n, onCellMouseOver, onCellMouseOut
-    }) {
-        this.mouseContainer = ele;
+    constructor(params) {
+        this.mouseContainer = params.ele;
 
-        this.m = m; // number of rows
-        this.n = n; // number of columns
-        this.cellXSize = cellXSize;
-        this.cellYSize = cellYSize;
+        this.m = params.m; // number of rows
+        this.n = params.n; // number of columns
+        this.cellXSize = params.cellXSize;
+        this.cellYSize = params.cellYSize;
 
         // events
-        this.onCellMouseOver = onCellMouseOver;
-        this.onCellMouseOut = onCellMouseOut;
+        this.onCellMouseOver = params.onCellMouseOver;
+        this.onCellMouseOut = params.onCellMouseOut;
 
-        this.init(top, left, width, height);
+        this.init(params.top, params.left, params.width, params.height);
     }
 
 
@@ -33,7 +30,7 @@ export default class MouseTracker {
         // here we use -1 since new to old cell comparison is made
         let coordinates = {x: -1, y: -1};
 
-        this.onMove = evt => {
+        this._onMove = evt => {
             // look at container for scroll offsets
             let scrollCtner = evt.target.parentNode;
 
@@ -59,13 +56,13 @@ export default class MouseTracker {
             coordinates = {x, y};
         };
 
-        this.onMouseOut = () => {
+        this._onMouseOut = () => {
             this.onCellMouseOut();
             this.coordinates = {x: -1, y: -1};
         };
 
-        this.mouseContainer.addEventListener('mousemove', this.onMove);
-        this.mouseContainer.addEventListener('mouseout', this.onMouseOut);
+        this.mouseContainer.addEventListener('mousemove', this._onMove);
+        this.mouseContainer.addEventListener('mouseout', this._onMouseOut);
     }
 
 

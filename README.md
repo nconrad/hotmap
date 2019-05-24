@@ -87,11 +87,11 @@ requirejs(['heatmap'], function(Heatmap) {
 
 #### Event Callbacks
 
-| Param    | Type                   | Required? | Default                                                     |
-|----------|------------------------|-----------|-------------------------------------------------------------|
-| onHover  | function(info) {}      | -         | Displays row, column, and matrix value in tooltip on hover. |
-| onSelect | function(selection) {} | -         | -                                                           |
-
+| Param       | Type                  | Required? | Default                                                     |
+|-------------|-----------------------|-----------|-------------------------------------------------------------|
+| onHover     | function(object) {}   | -         | Displays row, column, and matrix value in tooltip on hover. |
+| onSelection | function([object]) {} | -         | -                                                           |
+| onClick     | function(object) {}   | -         | -                                                           |
 
 ### API Methods
 
@@ -105,18 +105,24 @@ requirejs(['heatmap'], function(Heatmap) {
 
 ##### rows
 ```javascript
-{
-    name: "some label",
-    categories: ["cat 1", "cat 2"]
-}
+[
+    {
+        name: "some label",
+        categories: ["cat 1", "cat 2"]
+    },
+    ...
+]
 ```
 
 ##### cols
 ```javascript
-{
-    name: "some label",
-    categories: ["cat foo", "cat bar']
-}
+[
+    {
+        name: "some label",
+        categories: ["cat foo", "cat bar']
+    },
+    ...
+]
 ```
 
 ##### defaults

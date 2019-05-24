@@ -65,6 +65,13 @@ function loadViewer({ele, data}) {
               <div><b>${rowCatLabels[1]}:</b> ${cs && cs[1] != 'undefined' ? cs[1] : 'N/A'}</div>
               <div><b>${rowCatLabels[2]}:</b> ${cs && cs[2] != 'undefined' ? cs[2] : 'N/A'}</div><br>
               <div><b>Value:</b> ${info.value}</div>`;
+        },
+        onSelection: selection => {
+            alert(`Selected ${selection.length} cell(s)\n\n` +
+                JSON.stringify(selection, null, 4).slice(0, 10000));
+        },
+        onClick: selection => {
+            alert(JSON.stringify(selection, null, 4));
         }
     });
 

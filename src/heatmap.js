@@ -105,6 +105,7 @@ export default class Heatmap {
 
         this.onHover = params.onHover;
         this.onSelection = params.onSelection;
+        this.onClick = params.onClick;
 
         // get category colors; Todo: optimize?
         this.rowCatColors = this.rowCategories
@@ -518,14 +519,9 @@ export default class Heatmap {
             });
 
             ele.onclick = () => {
+                if (!this.onSelection) return
                 let r = this.getRow(cellIdx);
-                if (this.onSelection) {
-                    this.onSelection(r);
-                } else {
-                    alert(`Selected ${r.length} Protein Families from ${this.rows[cellIdx].name}:\n
-                        ${r[0].id}, ${r[1].id}, ..., ${r[r.length - 1].id}\n
-                        ${r[0].val}, ${r[1].val}, ..., ${r[r.length - 1].val}`);
-                }
+                this.onSelection(r);
             };
 
         } else {
@@ -563,14 +559,9 @@ export default class Heatmap {
             });
 
             ele.onclick = () => {
+                if (!this.onSelection) return;
                 let r = this.getCol(cellIdx);
-                if (this.onSelection) {
-                    this.onSelection(r);
-                } else {
-                    alert(`Selected ${r.length} Genomes with ${this.cols[cellIdx].name}:\n
-                        ${r[0].id}, ${r[1].id}, ..., ${r[r.length - 1].id}\n
-                        ${r[0].val}, ${r[1].val}, ..., ${r[r.length - 1].val}`);
-                }
+                this.onSelection(r);
             };
         }
 
@@ -722,13 +713,15 @@ export default class Heatmap {
 
     getRow(i) {
         return this.matrix[i].map((val, j) => {
-            return { id: this.cols[j].categories[0], val };
+            let colID = this.cols[j].id;
+            return { name: this.cols[j].name, val, ...(colID && {colID}) };
         });
     }
 
     getCol(j) {
         return this.matrix.map((val, i) => {
-            return { id: this.rows[i].name, val: val[j] };
+            let rowID = this.rows[i].id;
+            return { name: this.rows[i].name, val: val[j], ...(rowID && {rowID}) };
         });
     }
 
@@ -974,7 +967,7 @@ export default class Heatmap {
             m: this.size.y,
             n: this.size.x,
             onCellMouseOver: (pos) => this.onCellMouseOver(pos),
-            onCellMouseOut: () => this.onCellMouseOut(),
+            onCellMouseOut: () => this.onCellMouseOut()
         });
     }
 
@@ -1167,7 +1160,7 @@ export default class Heatmap {
     }
 
     selectable() {
-        let box = {}; // i, j coordinates
+        let box = {};
         let drag = false;
 
         let scrollContainer = this.ele.querySelector('.scroll-container');
@@ -1224,12 +1217,18 @@ export default class Heatmap {
         this.selectUp = () => {
             drag = false;
 
+            // otherwise, compute selection
             let i, j;
             if (box.x2 < box.x) i = this.yStart + box.y2;
             else i = this.yStart + box.y;
 
             if (box.y2 < box.y) j = this.xStart + box.x2;
             else j = this.xStart + box.x;
+
+            // if width is not set, then this is actually a 'click' event
+            if (!box.h && box.h != 0 && this.onClick) {
+                this.onClick(this.getSelection(i, j, i, j)[0]);
+            }
 
             let i2 = i + box.h,
                 j2 = j + box.w;
@@ -1241,9 +1240,6 @@ export default class Heatmap {
 
             if (this.onSelection) {
                 this.onSelection(selection);
-            } else {
-                alert(`Selected ${selection.length} cell(s)\n\n` +
-                   JSON.stringify(selection, null, 4).slice(0, 10000));
             }
 
             box = {};
@@ -1253,6 +1249,9 @@ export default class Heatmap {
         let selectDraw = () => {
             this.hideHoverTooltip();
             this.svg.querySelectorAll('.select-box').forEach(e => e.remove());
+
+            // don't bother drawing if there's no callback
+            if (!this.onSelection) return;
 
             // convert x and y to top left coordinates if needed
             let x, y;
