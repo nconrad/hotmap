@@ -86,7 +86,7 @@ export function sanitizeColors(colors) {
     return sanitized;
 }
 
-export function getCategoryColors(categories) {
+export function categoryColors(categories) {
     // assume length of all categories is same
     let indexes = categories[0].map(cat => 0);
     let mappings = categories[0].map(cat => { return {}; });
@@ -131,11 +131,11 @@ export function rgbToHex(rgb) {
     return '0x' + toHex(rgb[0]) + toHex(rgb[1]) + toHex(rgb[2]);
 }
 /*
- * getColorMatrix
+ * colorMatrix
  * @param {*} matrix matrix of values
  * @param {*} f function for returning color
  */
-export function getColorMatrix(matrix, settings) {
+export function colorMatrix(matrix, settings) {
     if (settings == 'gradient') {
         return matGradient(matrix, [255, 0, 0], [255, 255, 255]);
     }

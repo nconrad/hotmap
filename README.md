@@ -61,7 +61,7 @@ requirejs(['heatmap'], function(Heatmap) {
         rows: [{...}],
         cols: [{...}],
         matrix: [[1, 2, 3], [2, 5.3, 0], ...],
-        // the color settings and hover callback are optional
+        // note the following configs are optional
         color: {
             bins: ['=0', '=1', '=2', '<20', '>=20'],
             colors: [0xffffff, 0xfbe6e2, 0xffadad, 0xff6b6b, 0xff0000]
@@ -85,7 +85,7 @@ requirejs(['heatmap'], function(Heatmap) {
 | theme                 | 'light' \|\| 'dark'               | -         | 'dark'                                                      |
 | [defaults](#defaults) | object                            | -         | computed based on window size                               |
 
-#### Event Callbacks
+### Event Callbacks
 
 | Param       | Type                  | Required? | Default                                                     |
 |-------------|-----------------------|-----------|-------------------------------------------------------------|

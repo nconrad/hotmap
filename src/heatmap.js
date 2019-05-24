@@ -4,6 +4,7 @@
  * Author: https://github.com/nconrad
  *
  * Todo:
+ *      IE polyfill assign
  *      IE polyfill remove()/append()
  *      IE polyfill proxy
  *
@@ -20,7 +21,7 @@ import { addLegend } from './legend';
 import { matMinMax } from './utils';
 import { svgNS, svgG, svgRect, svgText } from './svg';
 import { setAttributes } from './dom';
-import { sanitizeColors, getColorMatrix, getCategoryColors, rgbToHex, hexToHexColor } from './color';
+import { sanitizeColors, colorMatrix, categoryColors, rgbToHex, hexToHexColor } from './color';
 import { transpose } from './matrix';
 
 // import Picker from 'vanilla-picker';
@@ -43,11 +44,11 @@ const cellXMax = 100;
 const zoomFactor = 0.1; // speed at which to zoom with mouse
 
 // general chart settings
-const margin = {
+let margin = {
     top: 200,
     bottom: 150,
     left: 275,
-    right: 125 // here we are essentially using right margin for angled text
+    right: 125
 };
 
 const minTextW = 5;
@@ -84,7 +85,7 @@ export default class Heatmap {
 
         try {
             // convert values into colors
-            this.colorMatrix = getColorMatrix(this.matrix, this.color);
+            this.colorMatrix = colorMatrix(this.matrix, this.color);
         } catch (error) {
             alert(error);
             return;
@@ -107,15 +108,15 @@ export default class Heatmap {
         this.onSelection = params.onSelection;
         this.onClick = params.onClick;
 
-        // get category colors; Todo: optimize?
         this.rowCatColors = this.rowCategories
-            ? getCategoryColors(this.rowCategories) : [];
+            ? categoryColors(this.rowCategories) : [];
 
+        Object.assign(margin, params.margin);
         this.noMargins = params.noMargins || false;
-
         /**
          * END initialize Params
          **/
+
 
         // m and n (row and cols) dimensions
         this.size = Heatmap.getMatrixStats(params.matrix);
@@ -233,7 +234,7 @@ export default class Heatmap {
             color: this.color,
             onColorChange: (type) => {
                 this.color = type === 'gradient' ? type : this.origColorSettings;
-                this.colorMatrix = getColorMatrix(this.matrix, this.color);
+                this.colorMatrix = colorMatrix(this.matrix, this.color);
 
                 // change legend
                 this.updateLegend();
@@ -510,16 +511,16 @@ export default class Heatmap {
 
                 let cats = !this.rowCategories || this.rowCatLabels.length == 0 ? ''
                     : this.rowCategories[cellIdx].map((cat, i) =>
-                        `<br><div><b>${this.rowCatLabels[i]}:</b> ${cat}</div>`
+                        `<div><b>${this.rowCatLabels[i]}:</b> ${cat}</div>`
                     ).join('');
 
                 tt.innerHTML =
                     `<div>${this.rows[cellIdx].name}</div>
-                    ${cats}`;
+                    ${cats.length ? '<br>' + cats : cats}`;
             });
 
             ele.onclick = () => {
-                if (!this.onSelection) return
+                if (!this.onSelection) return;
                 let r = this.getRow(cellIdx);
                 this.onSelection(r);
             };
@@ -550,12 +551,12 @@ export default class Heatmap {
 
                 let cats = !this.colCategories || this.colCatLabels.length === 0 ? ''
                     : this.colCategories[cellIdx].map((cat, i) =>
-                        `<br><div><b>${this.colCatLabels[i]}:</b> ${cat}</div>`
+                        `<div><b>${this.colCatLabels[i]}:</b> ${cat}</div>`
                     ).join('');
 
                 tt.innerHTML =
                     `<div>${this.cols[cellIdx].name}</div>
-                    ${cats}`;
+                    ${cats.length ? '<br>' + cats : cats}`;
             });
 
             ele.onclick = () => {
@@ -713,15 +714,17 @@ export default class Heatmap {
 
     getRow(i) {
         return this.matrix[i].map((val, j) => {
-            let colID = this.cols[j].id;
-            return { name: this.cols[j].name, val, ...(colID && {colID}) };
+            let rowID = this.rows[i].id,
+                colID = this.cols[j].id;
+            return Object.assign({ name: this.cols[j].name, val }, { rowID, colID });
         });
     }
 
     getCol(j) {
         return this.matrix.map((val, i) => {
-            let rowID = this.rows[i].id;
-            return { name: this.rows[i].name, val: val[j], ...(rowID && {rowID}) };
+            let rowID = this.rows[i].id,
+                colID = this.cols[j].id;
+            return Object.assign({ name: this.rows[i].name, val: val[j] }, { colID, rowID });
         });
     }
 
@@ -1093,7 +1096,6 @@ export default class Heatmap {
         this.svg.setAttribute('height', canvasHeight);
 
         this.init();
-        this.renderChart(true, true, true);
     }
 
     rowCatSort(category, dsc) {
@@ -1126,7 +1128,7 @@ export default class Heatmap {
         this.colCategories = Heatmap.getCategories(this.cols);
 
         // update colors
-        this.colorMatrix = getColorMatrix(this.matrix, this.color);
+        this.colorMatrix = colorMatrix(this.matrix, this.color);
     }
 
     updateLegend() {
@@ -1151,7 +1153,7 @@ export default class Heatmap {
 
                     let hexD = parseInt( rgbToHex(color._rgba) );
                     this.color.colors[i] = hexD;
-                    this.colorMatrix = getColorMatrix(this.matrix, this.color);
+                    this.colorMatrix = colorMatrix(this.matrix, this.color);
                     el.querySelector('.box').style.backgroundColor = hexToHexColor(hexD);
                     this.renderChart();
                 }
@@ -1214,7 +1216,7 @@ export default class Heatmap {
             selectDraw();
         };
 
-        this.selectUp = () => {
+        this.selectUp = (e) => {
             drag = false;
 
             // otherwise, compute selection
@@ -1226,7 +1228,9 @@ export default class Heatmap {
             else j = this.xStart + box.x;
 
             // if width is not set, then this is actually a 'click' event
-            if (!box.h && box.h != 0 && this.onClick) {
+            if (!box.h && box.h != 0 && this.onClick &&
+                e.offsetY < yViewSize * this.cellH &&
+                e.offsetX < xViewSize * this.cellW) {
                 this.onClick(this.getSelection(i, j, i, j)[0]);
             }
 
