@@ -1095,7 +1095,7 @@ export default class Heatmap {
         this.svg.setAttribute('width', canvasWidth);
         this.svg.setAttribute('height', canvasHeight);
 
-        this.init();
+        this.init({resize: true});
     }
 
     rowCatSort(category, dsc) {
@@ -1216,7 +1216,7 @@ export default class Heatmap {
             selectDraw();
         };
 
-        this.selectUp = (e) => {
+        this.selectUp = () => {
             drag = false;
 
             // otherwise, compute selection
@@ -1229,8 +1229,7 @@ export default class Heatmap {
 
             // if width is not set, then this is actually a 'click' event
             if (!box.h && box.h != 0 && this.onClick &&
-                e.offsetY < yViewSize * this.cellH &&
-                e.offsetX < xViewSize * this.cellW) {
+                i < yViewSize && j < xViewSize ) {
                 this.onClick(this.getSelection(i, j, i, j)[0]);
             }
 
