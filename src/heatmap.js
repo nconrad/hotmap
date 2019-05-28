@@ -342,7 +342,7 @@ export default class Heatmap {
             if (cellH > minTextW && renderY) {
                 this.addLabel('y', this.rows[rowIdx].name, margin.left - rowCatWidth - 10, y + 3, i);
             }
-            if (renderY && this.rowCategories) {
+            if (renderY && this.rowCategories && rowIdx < this.size.y) {
                 this.addCategories('y', rowIdx, margin.left - rowCatWidth, y);
             }
 
