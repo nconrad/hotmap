@@ -254,7 +254,7 @@ export default class Heatmap {
 
                 // change legend
                 this.updateLegend();
-                this.renderChart();
+                this.draw();
             }
         });
 
@@ -273,7 +273,7 @@ export default class Heatmap {
 
     initStage() {
         this.isStaged = false;
-        this.renderChart(true, true);
+        this.draw(true, true);
         this.isStaged = true;
     }
 
@@ -313,7 +313,7 @@ export default class Heatmap {
             this.cellH = this.defaults.cellHeight || this.computeCellHeight() || 1;
         }
         this.scaleCtrl.setPos(this.cellW, this.cellH);
-        this.renderChart(true, true, true);
+        this.draw(true, true, true);
     }
 
     computeCellWidth() {
@@ -327,7 +327,7 @@ export default class Heatmap {
     /**
      * todo: break into stage and update tint
      */
-    renderChart(renderX, renderY, scale) {
+    draw(renderX, renderY, scale) {
         // let t0 = performance.now();
         this.clearStage(renderX, renderY, scale);
 
@@ -595,7 +595,7 @@ export default class Heatmap {
 
         searchInput.onkeyup = function() {
             self.query = this.value.toLowerCase();
-            self.renderChart();
+            self.draw();
         };
     }
 
@@ -895,12 +895,12 @@ export default class Heatmap {
 
     onHorizontalScroll(xStart) {
         this.xStart = xStart;
-        this.renderChart(true);
+        this.draw(true);
     }
 
     onVerticalScroll(yStart) {
         this.yStart = yStart;
-        this.renderChart(false, true);
+        this.draw(false, true);
     }
 
     getScaleCtrl() {
@@ -912,9 +912,9 @@ export default class Heatmap {
                 this.cellW = val;
                 if (isLocked) {
                     this.cellH = val;
-                    this.renderChart(true, true, true);
+                    this.draw(true, true, true);
                 } else {
-                    this.renderChart(true, false, true);
+                    this.draw(true, false, true);
                 }
                 return {x: this.cellW, y: this.cellH};
             },
@@ -922,9 +922,9 @@ export default class Heatmap {
                 this.cellH = val;
                 if (isLocked) {
                     this.cellW = val;
-                    this.renderChart(true, true, true);
+                    this.draw(true, true, true);
                 } else {
-                    this.renderChart(false, true, true);
+                    this.draw(false, true, true);
                 }
                 return {x: this.cellW, y: this.cellH};
             },
@@ -937,7 +937,7 @@ export default class Heatmap {
                 else
                     this.cellH = x;
 
-                this.renderChart(true, true, true);
+                this.draw(true, true, true);
 
                 return {x: this.cellW, y: this.cellH};
             }
@@ -969,7 +969,7 @@ export default class Heatmap {
                 this.cellW = newXDim < cellXMin
                     ? cellXMin : (newXDim > cellXMax ? cellXMax : newXDim);
 
-                this.renderChart(true, null, true);
+                this.draw(true, null, true);
 
                 // update controls
                 this.scaleCtrl.setPos(this.cellW, this.cellH);
@@ -1138,7 +1138,7 @@ export default class Heatmap {
 
         // update all data
         this.updateData();
-        this.renderChart(true, true, true);
+        this.draw(true, true, true);
     }
 
     // updates associated data models (such as categorical data
@@ -1174,7 +1174,7 @@ export default class Heatmap {
                     this.color.colors[i] = hexD;
                     this.colorMatrix = colorMatrix(this.matrix, this.color);
                     el.querySelector('.box').style.backgroundColor = hexToHexColor(hexD);
-                    this.renderChart();
+                    this.draw();
                 }
             });
         });
@@ -1247,8 +1247,8 @@ export default class Heatmap {
             else j = this.xStart + box.x;
 
             // if width is not set, then this is actually a 'click' event
-            if (!box.h && box.h != 0 && this.onClick &&
-                i < yViewSize && j < xViewSize ) {
+            if (!box.h && box.h != 0 && this.onClick
+                && ('x' in box && 'y' in box)) {
                 this.onClick(this.getSelection(i, j, i, j)[0]);
             }
 
