@@ -4,7 +4,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const WebpackAutoInject = require('webpack-auto-inject-version');
 // const HtmlWebpackInlineSVGPlugin = require('html-webpack-inline-svg-plugin');
-//  const HtmlWebpackPlugin = require('html-webpack-plugin');
+// const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const devMode = process.env.NODE_ENV !== 'production';
 
@@ -12,14 +12,16 @@ const devMode = process.env.NODE_ENV !== 'production';
 module.exports = {
     mode: 'development',
     entry: {
-        'heatmap': './entry.js',
+        'heatmap': './src/heatmap.js',
         'app': ['./demo/app.js']
+        // tree module is bundled separately
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
         publicPath: '/dist/',
         filename: '[name].js',
         library: 'Heatmap',
+        libraryExport: 'default',
         libraryTarget: 'umd'
     },
     module: {
@@ -58,7 +60,6 @@ module.exports = {
         ]
     },
     plugins: [
-
         new WebpackAutoInject(),
         new webpack.optimize.LimitChunkCountPlugin({
             maxChunks: 1

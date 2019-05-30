@@ -8,17 +8,31 @@
  */
 import Heatmap from '../src/heatmap';
 
+const SHOW_TREE = false;
+
 document.addEventListener('DOMContentLoaded', () => {
     let ele = document.querySelector('#chart');
     let dataPath = ele.getAttribute('data-path');
 
     ele.innerHTML = `<br>loading...`;
     let heatmap;
+
     fetch(dataPath)
         .then(res => res.json())
         .then(data => {
             console.log('data file:', data);
-            heatmap = loadViewer({ele, data});
+
+            if (!SHOW_TREE) {
+                heatmap = loadViewer({ele, data});
+                return;
+            }
+
+            fetch('data/test-tree.nwk')
+                .then(res => {
+                    res.text().then((newick) => {
+                        heatmap = loadViewer({ele, data, newick});
+                    });
+                });
         }).catch((e) => {
             console.log(e);
             alert(`Could not load viewer. Please contact owner.`);
@@ -42,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-function loadViewer({ele, data}) {
+function loadViewer({ele, data, newick}) {
     let {rows, cols, matrix} = data;
     let rowCatLabels = ['Isolation Country', 'Host', 'Genome Group'];
     let heatmap = new Heatmap({
@@ -56,6 +70,7 @@ function loadViewer({ele, data}) {
             bins: ['=0', '=1', '=2', '<20', '>=20'],
             colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff6b6b, 0xff0000]
         },
+        newick: newick,
         onHover: info => {
             let cs = info.rowCategories;
             return `<div><b>Genome:</b> ${info.yLabel}</div><br>

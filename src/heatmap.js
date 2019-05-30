@@ -10,6 +10,7 @@
  *
  */
 import * as PIXI from 'pixi.js';
+import 'regenerator-runtime/runtime';
 
 import container from './container.html';
 
@@ -23,6 +24,7 @@ import { svgNS, svgG, svgRect, svgText } from './svg';
 import { setAttributes } from './dom';
 import { sanitizeColors, colorMatrix, categoryColors, rgbToHex, hexToHexColor } from './color';
 import { transpose } from './matrix';
+
 
 // import Picker from 'vanilla-picker';
 
@@ -74,6 +76,8 @@ export default class Heatmap {
         this.rows = params.rows;
         this.cols = params.cols;
         this.matrix = params.matrix;
+        this.newick = params.newick;
+
         this.defaults = params.defaults || {};
 
         this.color = params.color || 'gradient';
@@ -187,7 +191,7 @@ export default class Heatmap {
         return !objs.length ? null : objs;
     }
 
-    start() {
+    async start() {
         let self = this;
 
         // base all positioning off of parent
@@ -209,9 +213,21 @@ export default class Heatmap {
         // add scrollBox.  we'll update size of content area on each render
         this.scrollBox = this.getscrollBox();
 
-        // add mouse tracker.
-        // we update the size of the area on render
+        // add mouse tracker. update the size of the area on render
         this.mouseTracker = this.getMouseTracker();
+
+        // optional tree (experimental)
+        if (this.newick) {
+            const Tree = await import(/* webpackChunkName: "heatmap-tree" */ './tree.js')
+            this.tree = new Tree.default({
+                ele: this.ele,
+                newick: this.newick,
+                margin,
+                width: margin.left - rowCatWidth - 30
+            });
+
+            margin.left = 400 + rowCatWidth + 30;
+        }
 
         this.updateLegend();
 
@@ -339,7 +355,7 @@ export default class Heatmap {
             let y = margin.top + cellH * i;
             let rowIdx = yStart + i;
 
-            if (cellH > minTextW && renderY) {
+            if (renderY && cellH > minTextW && !this.tree) {
                 this.addLabel('y', this.rows[rowIdx].name, margin.left - rowCatWidth - 10, y + 3, i);
             }
             if (renderY && this.rowCategories && rowIdx < this.size.y) {
@@ -367,7 +383,7 @@ export default class Heatmap {
                     this.cells.addChild(sprite);
                 }
 
-                if (i == 0 && cellW > minTextW && renderX) {
+                if (renderX && i == 0 && cellW > minTextW) {
                     this.addLabel('x', this.cols[colIdx].name, x + 2, margin.top - 5, j);
                 }
 
@@ -438,10 +454,14 @@ export default class Heatmap {
         if (cellH <= minTextW) this.showYAxisLabel(this.yLabel);
         else this.hideAxisLabel('y');
 
-        if (this.query) {
-            this.highlightQuery();
-        } else {
-            this.rmHighlightQuery();
+        // height any query matches
+        if (this.query) this.highlightQuery();
+        else this.rmHighlightQuery();
+
+
+        if (this.tree && (renderY || scale)) {
+            console.log('setting height')
+            this.tree.setHeight(this.size.y * cellH)
         }
 
         // let t1 = performance.now();
@@ -795,7 +815,6 @@ export default class Heatmap {
         }
 
         let categories = this.rowCategories[index];
-
         // compute width of each category from: total / number-of-cateogries
         let width = parseInt(rowCatWidth / categories.length );
 
