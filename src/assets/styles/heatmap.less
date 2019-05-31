@@ -1,6 +1,4 @@
 
-
-
 .heatmap {
   font-family: 'Rubik', sans-serif;
   height: 100%;
@@ -29,3 +27,20 @@
   @import "./svg.less";
 }
 
+
+/* force fullscreen mode */
+.hmap-fullscreen {
+  z-index: 9999 !important;
+  width: 100% !important;
+  height: 100% !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  transition: all .5s linear;
+}
+
+.hmap-force-z-index {
+  z-index: 0 !important;
+}

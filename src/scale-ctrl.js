@@ -9,6 +9,7 @@
  */
 import lock from './assets/icons/lock.svg';
 import lockOpen from './assets/icons/lock-open.svg';
+import arrowAlt from './assets/icons/arrows-alt.svg';
 
 
 export default class ScaleCtrl {
@@ -28,12 +29,14 @@ export default class ScaleCtrl {
         this._ySlider;
         this._isLocked = false;
 
+        this._isFullWindow = false;
+
         this.init();
     }
 
     init() {
         let self = this;
-        let scaleCtrls = this.ele.querySelector('.scale-ctrls');
+        let scaleCtrls = this.scaleCtrls = this.ele.querySelector('.scale-ctrls');
 
         let xSlider = this._xSlider = scaleCtrls.querySelector('.x-slider');
         xSlider.value = this.x;
@@ -51,12 +54,12 @@ export default class ScaleCtrl {
 
         let lockBtn = scaleCtrls.querySelector('.lock-btn');
         lockBtn.innerHTML = lockOpen;
-        lockBtn.addEventListener('click', () => {
+        lockBtn.onclick = () => {
             this._isLocked = !this._isLocked;
             let {x, y} = this.onLockClick(this._isLockOpen);
             self.setPos(x, y);
             lockBtn.innerHTML = this._isLocked ? lock : lockOpen;
-        });
+        };
     }
 
     setPos(x, y) {
@@ -66,5 +69,19 @@ export default class ScaleCtrl {
 
     isLocked() {
         return this._isLocked;
+    }
+
+    fullWindow(width, height, parent, resize) {
+        // only provide full window option if needed
+        if (width >= window.innerWidth - 100 && height >= window.innerHeight - 100)
+            return;
+
+        let fsBtn = this.scaleCtrls.querySelector('.fullscreen-btn');
+        fsBtn.innerHTML = arrowAlt;
+        fsBtn.onclick = () => {
+            parent.classList.toggle('hmap-fullscreen');
+            this._isFullWindow = !this._isFullWindow;
+            resize();
+        };
     }
 }

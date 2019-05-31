@@ -17,7 +17,7 @@ export default class Tree {
 
     init() {
         let container = this.container = this.ele.querySelector('.tree');
-        container.style.top = this.margin.top  - 12 + 'px';
+        container.style.top = this.margin.top  - 10 + 'px';
         container.style.marginLeft = '30px';
 
         var tree = Phylocanvas.createTree(container);

@@ -191,13 +191,14 @@ export default class Heatmap {
         return !objs.length ? null : objs;
     }
 
-    async start() {
-        let self = this;
 
+    /**
+     * Responsible for setup/instantiation of components
+     */
+    async start() {
         // base all positioning off of parent
         let [canvasWidth, canvasHeight] = this.getContainerSize();
 
-        // create renderer
         let obj = this.initSVGContainers(canvasWidth, canvasHeight);
         this.svg = obj.svg;
         this.xAxis = obj.xAxis;
@@ -205,20 +206,26 @@ export default class Heatmap {
         this.cAxis = obj.cAxis;
 
         // initialize scale x/y width controls
-        this.scaleCtrl = this.getScaleCtrl();
+        this.scaleCtrl = this.initScaleCtr();
 
         // setup search
         this.initSearch();
 
         // add scrollBox.  we'll update size of content area on each render
-        this.scrollBox = this.getscrollBox();
+        this.scrollBox = this.initScrollBox();
 
-        // add mouse tracker. update the size of the area on render
-        this.mouseTracker = this.getMouseTracker();
+        // add mouse tracker. we'll update the size of the area on render
+        this.mouseTracker = this.initMouseTracker();
+
+        // init legend
+        this.updateLegend();
+
+        // initialize options
+        this.options = this.initOptions();
 
         // optional tree (experimental)
         if (this.newick) {
-            const Tree = await import(/* webpackChunkName: "heatmap-tree" */ './tree.js')
+            const Tree = await import(/* webpackChunkName: "heatmap-tree" */ './tree.js');
             this.tree = new Tree.default({
                 ele: this.ele,
                 newick: this.newick,
@@ -226,15 +233,13 @@ export default class Heatmap {
                 width: margin.left - rowCatWidth - 30
             });
 
-            margin.left = 400 + rowCatWidth + 30;
+            margin.left = 400 + rowCatWidth + 50;
         }
-
-        this.updateLegend();
 
         let renderer = Heatmap.getRenderer(canvasWidth, canvasHeight);
         this.renderer = renderer;
 
-        this.init();
+        this.initChart();
 
         // adjust canvas on resize
         let resizeTO;
@@ -243,24 +248,8 @@ export default class Heatmap {
             resizeTO = setTimeout(this.resize.bind(this), 100);
         });
 
-        // initialize options
-        this.options = new Options({
-            parentNode: this.parent,
-            openBtn: document.querySelector('.opts-btn'),
-            color: this.color,
-            onColorChange: (type) => {
-                this.color = type === 'gradient' ? type : this.origColorSettings;
-                this.colorMatrix = colorMatrix(this.matrix, this.color);
-
-                // change legend
-                this.updateLegend();
-                this.draw();
-            }
-        });
-
         // start tracking sorting
         this.sorter(this.svg);
-
     }
 
     static getRenderer(width, height) {
@@ -278,7 +267,7 @@ export default class Heatmap {
     }
 
 
-    init({resize} = false) {
+    initChart({resize} = false) {
         if (this.ele.querySelector('.webgl-canvas canvas')) {
             this.ele.querySelector('.webgl-canvas canvas').remove();
         }
@@ -460,7 +449,6 @@ export default class Heatmap {
 
 
         if (this.tree && (renderY || scale)) {
-            console.log('setting height')
             this.tree.setHeight(this.size.y * cellH)
         }
 
@@ -587,16 +575,6 @@ export default class Heatmap {
         }
 
         ele.addEventListener('mouseout', this.hideHoverTooltip.bind(this));
-    }
-
-    initSearch() {
-        let self = this;
-        let searchInput = this.ele.querySelector('.search');
-
-        searchInput.onkeyup = function() {
-            self.query = this.value.toLowerCase();
-            self.draw();
-        };
     }
 
     highlightQuery() {
@@ -903,8 +881,8 @@ export default class Heatmap {
         this.draw(false, true);
     }
 
-    getScaleCtrl() {
-        return new ScaleCtrl({
+    initScaleCtr() {
+        let scaleCtrl = new ScaleCtrl({
             ele: this.ele,
             x: this.cellW,
             y: this.cellH,
@@ -942,9 +920,14 @@ export default class Heatmap {
                 return {x: this.cellW, y: this.cellH};
             }
         });
+
+        let [w, h] = this.getContainerSize();
+        scaleCtrl.fullWindow(w, h, this.parent, this.resize.bind(this));
+
+        return scaleCtrl;
     }
 
-    getscrollBox() {
+    initScrollBox() {
         return new ScrollBox({
             ele: this.ele,
             x: margin.left,
@@ -977,7 +960,7 @@ export default class Heatmap {
         });
     }
 
-    getMouseTracker() {
+    initMouseTracker() {
         return new MouseTracker({
             ele: this.ele.querySelector('.scroll-container'),
             top: margin.top,
@@ -990,6 +973,32 @@ export default class Heatmap {
             n: this.size.x,
             onCellMouseOver: (pos) => this.onCellMouseOver(pos),
             onCellMouseOut: () => this.onCellMouseOut()
+        });
+    }
+
+    initSearch() {
+        let self = this;
+        let searchInput = this.ele.querySelector('.search');
+
+        searchInput.onkeyup = function() {
+            self.query = this.value.toLowerCase();
+            self.draw();
+        };
+    }
+
+    initOptions() {
+        return new Options({
+            parentNode: this.parent,
+            openBtn: document.querySelector('.opts-btn'),
+            color: this.color,
+            onColorChange: (type) => {
+                this.color = type === 'gradient' ? type : this.origColorSettings;
+                this.colorMatrix = colorMatrix(this.matrix, this.color);
+
+                // change legend
+                this.updateLegend();
+                this.draw();
+            }
         });
     }
 
@@ -1114,7 +1123,7 @@ export default class Heatmap {
         this.svg.setAttribute('width', canvasWidth);
         this.svg.setAttribute('height', canvasHeight);
 
-        this.init({resize: true});
+        this.initChart({resize: true});
     }
 
     rowCatSort(category, dsc) {
@@ -1141,7 +1150,7 @@ export default class Heatmap {
         this.draw(true, true, true);
     }
 
-    // updates associated data models (such as categorical data
+    // updates associated data models (such as categorical data)
     updateData() {
         this.rowCategories = Heatmap.getCategories(this.rows);
         this.colCategories = Heatmap.getCategories(this.cols);
@@ -1331,7 +1340,7 @@ export default class Heatmap {
         this.scrollBox.setPos(0, 0);
 
         this.updateData();
-        this.init({resize: true});
+        this.initChart({resize: true});
     }
 
     getState() {
