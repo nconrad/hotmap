@@ -81,6 +81,13 @@ export default class ScaleCtrl {
         fsBtn.onclick = () => {
             parent.classList.toggle('hmap-fullscreen');
             this._isFullWindow = !this._isFullWindow;
+
+            // toggle z-index to 0 for all other elements in body
+            document.body.querySelectorAll('*').forEach(el => {
+                if (el.closest('.heatmap')) return;
+                el.classList.toggle('hmap-force-z-index');
+            });
+
             resize();
         };
     }

@@ -111,6 +111,7 @@ export default class Heatmap {
         this.onHover = params.onHover;
         this.onSelection = params.onSelection;
         this.onClick = params.onClick;
+        this.onFSClick = params.onFullscreenClick;
 
         this.rowCatColors = this.rowCategories
             ? categoryColors(this.rowCategories) : [];
@@ -922,7 +923,10 @@ export default class Heatmap {
         });
 
         let [w, h] = this.getContainerSize();
-        scaleCtrl.fullWindow(w, h, this.parent, this.resize.bind(this));
+        scaleCtrl.fullWindow(w, h, this.parent, () => {
+            if (this.onFSClick) this.onFSClick();
+            this.resize();
+        });
 
         return scaleCtrl;
     }
