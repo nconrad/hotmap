@@ -5,14 +5,14 @@
             <span>Heatmap</span> <small>[AIV]v{version}[/AIV]</small>
         </div>
 
-        <button class="btn opts-btn">
-            Options <span class="caret-down"></span>
-        </button>
-
         <div class="search-container">
             <i>${require('./assets/icons/search.svg')}</i>
-            <input type="text" class="search" placeholder="Search..." />
+            <input type="text" class="search" placeholder="Highlight columns..." />
         </div>
+
+        <button class="btn opts-btn">
+            Colors <span class="caret-down"></span>
+        </button>
 
         <div class="legend-container">
             <div class="title">Legend</div>
@@ -26,9 +26,8 @@
         <button class="close-btn btn">&times;</button>
 
         <div class="colors option-set" style="display: none;">
-            <div class="option-title">Colors</div>
+            <div class="option-title">Color Scheme</div>
             <div class="option-group">
-                <i>Type:</i>&nbsp;&nbsp;
                 <a data-id="bins" class="active">Bins</a>
                 <a data-id="gradient">Gradient</a>
             </div>

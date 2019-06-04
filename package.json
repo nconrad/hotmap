@@ -1,6 +1,6 @@
 {
     "name": "heatmap",
-    "version": "0.1.16",
+    "version": "0.1.18",
     "description": "WebGL Based Heatmap Viewer for Bioinformatics and Big Data",
     "main": "index.js",
     "scripts": {
@@ -13,11 +13,11 @@
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "dependencies": {
-        "@babel/polyfill": "^7.4.4",
         "pixi.js": "^5.0",
         "vanilla-picker": "^2.7.2"
     },
     "devDependencies": {
+        "@babel/polyfill": "^7.4.4",
         "@babel/core": "^7.2.2",
         "@babel/plugin-syntax-dynamic-import": "^7.2.0",
         "@babel/preset-env": "^7.2.3",
@@ -53,5 +53,6 @@
     "bugs": {
         "url": "https://github.com/nconrad/heatmap/issues"
     },
-    "homepage": "https://github.com/nconrad/heatmap#readme"
+    "homepage": "https://github.com/nconrad/heatmap#readme",
+    "dojoBuild": "app.profile.js"
 }

@@ -597,7 +597,7 @@ export default class Heatmap {
             let h = this.cellW <= minTextW ? 10 : 1;
             this.svg.appendChild(
                 svgRect(x, y - h - 2, this.cellW, h, {
-                    class: 'search-match',
+                    'class': 'search-match',
                     stroke: '#1187f1',
                     fill: '#1187f1'
                 })
@@ -675,7 +675,7 @@ export default class Heatmap {
 
         let y = margin.top - xAxisLabelOffset;
         let text = svgText(label, x, y, {
-            class: cls,
+            'class': cls,
             fill: '#666'
         });
         this.svg.appendChild(text);
@@ -698,7 +698,7 @@ export default class Heatmap {
 
         let y = margin.top + (yViewSize * this.cellH) / 2;
         let text = svgText(label, x, y, {
-            class: cls,
+            'class': cls,
             fill: '#666'
         });
         this.svg.appendChild(text);
@@ -1094,7 +1094,7 @@ export default class Heatmap {
         // add hover box
         if (x && y) {
             this.ele.querySelectorAll('.hover-box').forEach(el => el.remove());
-            this.svg.appendChild( svgRect(x, y, cellW, cellH, {class: 'hover-box'}) );
+            this.svg.appendChild( svgRect(x, y, cellW, cellH, {'class': 'hover-box'}) );
         }
     }
 
@@ -1305,7 +1305,7 @@ export default class Heatmap {
                 ? (box.h + 1) * this.cellH : box.h * this.cellH;
 
             let rect = svgRect(x, y, w, h, {
-                class: 'select-box',
+                'class': 'select-box',
                 stroke: 'rgb(14, 135, 241)',
                 fill: 'rgba(14, 135, 241, .1)'
             });
