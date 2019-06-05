@@ -188,7 +188,7 @@ function binColorFunction(bins, colors) {
         let color = null;
         for (let i = 0; i < bins.length; i++) {
             let bin = bins[i],
-                v = parseInt(bin.val);
+                v = parseFloat(bin.val);
 
             if (bin.op === '=' && val == v) {
                 color = colors[i];
