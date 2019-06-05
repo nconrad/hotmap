@@ -132,8 +132,8 @@ export function rgbToHex(rgb) {
 }
 /*
  * colorMatrix
- * @param {*} matrix matrix of values
- * @param {*} f function for returning color
+ * @param {[[]]} matrix matrix of values
+ * @param {Object} settings {bins: string, colors}
  */
 export function colorMatrix(matrix, settings) {
     if (settings == 'gradient') {
@@ -148,10 +148,6 @@ export function colorMatrix(matrix, settings) {
 
     if (binObjs.length !== colors.length)
         throw 'When specifying "bins", the number of bins and colors must be equal.';
-
-    // parse bin list and create function to return color
-    bins = parseColorBins(bins);
-    let f = binColorFunction(bins, colors);
 
     let n = matrix[0].length,
         m = matrix.length;
@@ -179,7 +175,7 @@ export function colorMatrix(matrix, settings) {
 
 export function parseColorBins(bins) {
     let opRegex = /(>|<|=|<=|>=)+/gm;
-    let valRegex = /(\d+)/gm;
+    let valRegex = /(\-|\+)*\d+/gm;
     bins = bins.map(binStr => {
         return {
             op: binStr.match(opRegex)[0],
