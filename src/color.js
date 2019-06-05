@@ -142,7 +142,11 @@ export function colorMatrix(matrix, settings) {
 
     let {bins, colors} = settings;
 
-    if (bins.length !== colors.length)
+    // parse bin list and create function to return color
+    let binObjs = parseColorBins(bins);
+    let f = binColorFunction(binObjs, colors);
+
+    if (binObjs.length !== colors.length)
         throw 'When specifying "bins", the number of bins and colors must be equal.';
 
     // parse bin list and create function to return color
@@ -160,7 +164,10 @@ export function colorMatrix(matrix, settings) {
             let color = f(val);
 
             if (color === null)
-                throw Error(`Could not map value ${val} to a color.  (i,j)=(${i},${j})`);
+                throw Error(
+                    `Could not map value ${val} to a color for (i,j)=(${i},${j})\n\n` +
+                    `The bins provided were parsed as:\n ${JSON.stringify(binObjs)}`
+                );
 
             row.push(color);
         }
