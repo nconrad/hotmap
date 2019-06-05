@@ -7,12 +7,25 @@ A WebGL/Canvas Heatmap for Bioinformatics and Big Data, written in vanilla JS an
 ![screenshot](demo/screenshot.png)
 
 
+## Some Features
+
+- panning/scaling/zoom
+- resizing
+- various color/binning options
+- search
+- cell/row/column selection
+- categorical/meta data display
+- flip axises
+- customizable tooltips
+
+
+
 ## Why?
 
 I wanted to create a heatmap viewer that easy to use and scales to millions of cells.
 
 
-## Usage
+## Prototype Usage
 
 #### Global
 
@@ -37,7 +50,7 @@ import Heatmap from 'dist/heatmap';
 
 #### AMD
 
-Add required Required CSS, and require:
+Add required required CSS, and require:
 
 ```
 <link href="dist/heatmap.css" rel="stylesheet" type="text/css">
