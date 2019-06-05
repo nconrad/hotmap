@@ -71,27 +71,28 @@ requirejs(['heatmap'], function(Heatmap) {
 ```
 
 ### Config
+| Param                 | Type                              | Required? | Default                       |
+|-----------------------|-----------------------------------|-----------|-------------------------------|
+| [rows](#rows)         | list of `row` objects (see below) | &check;   | -                             |
+| [cols](#cols)         | list of `col` objects (see below) | &check;   | -                             |
+| matrix                | matrix of numbers                 | &check;   | -                             |
+| rowsLabel             | string                            | -         | 'Rows'                        |
+| colsLabel             | string                            | -         | 'Columns'                     |
+| rowCatLabels          | list of strings                  | -         | []                            |
+| colCatLabels          | list of strings                  | -         | []                            |
+| color                 | string \|\| object                | -         | 'gradient'                    |
+| theme                 | 'light' \|\| 'dark'               | -         | 'dark'                        |
+| [defaults](#defaults) | Object                            | -         | computed based on window size |
+| [options](#options)   | Object                            | -         | -                             |
 
-| Param                 | Type                              | Required? | Default                                                     |
-|-----------------------|-----------------------------------|-----------|-------------------------------------------------------------|
-| [rows](#rows)         | list of `row` objects (see below) | &check;   | -                                                           |
-| [cols](#cols)         | list of `col` objects (see below) | &check;   | -                                                           |
-| matrix                | matrix of numbers                 | &check;   | -                                                           |
-| rowsLabel             | string                            | -         | 'Rows'                                                      |
-| colsLabel             | string                            | -         | 'Columns'                                                   |
-| rowCatLabels          | list lof strings                  | -         | []                                                          |
-| colCatLabels          | list lof strings                  | -         | []                                                          |
-| color                 | string \|\| object                | -         | 'gradient'                                                  |
-| theme                 | 'light' \|\| 'dark'               | -         | 'dark'                                                      |
-| [defaults](#defaults) | object                            | -         | computed based on window size                               |
 
 ### Event Callbacks
 
 | Param       | Type                  | Required? | Default                                                     |
 |-------------|-----------------------|-----------|-------------------------------------------------------------|
-| onHover     | function(object) {}   | -         | Displays row, column, and matrix value in tooltip on hover. |
-| onSelection | function([object]) {} | -         | -                                                           |
-| onClick     | function(object) {}   | -         | -                                                           |
+| onHover     | function(Object) {}   | -         | Displays row, column, and matrix value in tooltip on hover. |
+| onSelection | function([Object]) {} | -         | -                                                           |
+| onClick     | function(Object) {}   | -         | -                                                           |
 
 ### API Methods
 
@@ -130,6 +131,14 @@ requirejs(['heatmap'], function(Heatmap) {
 {
     cellWidth: <initial height of cell (integer)>,
     cellHeight: <initial height of cell (integer)>
+}
+```
+
+##### options
+```javascript
+{
+    hideLegend: true|false
+    hideLogo: true|false
 }
 ```
 

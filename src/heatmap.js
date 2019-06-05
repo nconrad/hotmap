@@ -117,10 +117,25 @@ export default class Heatmap {
             ? categoryColors(this.rowCategories) : [];
 
         Object.assign(margin, params.margin);
-        this.noMargins = params.noMargins || false;
+
+        this.opts = params.options || {};
+        console.log('options', this.opts)
         /**
          * END initialize Params
          **/
+
+        // handle basic options
+        this.ele.innerHTML = container;
+        if (this.opts.hideLogo)
+            this.ele.querySelector('.logo').remove();
+        if (this.opts.theme == 'light')
+            this.ele.querySelector('.header').classList.add('light');
+
+        if (params.legend) {
+            this.opts.hideLegend = true;
+            this.ele.querySelector('.legend').innerHTML = params.legend;
+        } else if (this.opts.hideLegend)
+            this.ele.querySelector('.legend-container').remove();
 
 
         // m and n (row and cols) dimensions
@@ -141,13 +156,6 @@ export default class Heatmap {
         this.scaleCtrl;
         this.scrollBox;
         this.mouseTracker;
-
-        // add container/html
-        this.ele.innerHTML = container;
-        if (params.noLogo == true)
-            this.ele.querySelector('.logo').remove();
-        if (params.theme == 'light')
-            this.ele.querySelector('.header').classList.add('light');
 
         this.start();
 
@@ -219,7 +227,7 @@ export default class Heatmap {
         this.mouseTracker = this.initMouseTracker();
 
         // init legend
-        this.updateLegend();
+        if (!this.opts.hideLegend) this.updateLegend();
 
         // initialize options
         this.options = this.initOptions();
