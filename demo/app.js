@@ -23,14 +23,14 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('data file:', data);
 
             if (!SHOW_TREE) {
-                heatmap = loadViewer({ele, data});
+                heatmap = pfExample({ele, data});
                 return;
             }
 
             fetch('data/test-tree.nwk')
                 .then(res => {
                     res.text().then((newick) => {
-                        heatmap = loadViewer({ele, data, newick});
+                        heatmap = pfExample({ele, data, newick});
                     });
                 });
         }).catch((e) => {
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-function loadViewer({ele, data, newick}) {
+function pfExample({ele, data, newick}) {
     let {rows, cols, matrix} = data;
     let rowCatLabels = ['Isolation Country', 'Host', 'Genome Group'];
     let heatmap = new Heatmap({
@@ -81,6 +81,37 @@ function loadViewer({ele, data, newick}) {
               <div><b>${rowCatLabels[2]}:</b> ${cs && cs[2] != 'undefined' ? cs[2] : 'N/A'}</div><br>
               <div><b>Value:</b> ${info.value}</div>`;
         },
+        onSelection: selection => {
+            alert(`Selected ${selection.length} cell(s)\n\n` +
+                JSON.stringify(selection, null, 4).slice(0, 10000));
+        },
+        onClick: selection => {
+            alert(JSON.stringify(selection, null, 4));
+        }
+    });
+
+    return heatmap;
+}
+
+function transcriptomicsExample({ele, data, newick}) {
+    let {rows, cols, matrix} = data;
+
+    let heatmap = new Heatmap({
+        ele, rows, cols, matrix,
+        rowsLabel: 'Genomes',
+        colsLabel: 'Protein Families',
+        legend: '⬆ red | black | green ⬇ ',
+        color: {
+            bins: [
+                '<-4', '<-3', '<-2', '<-1', '<0', '=0',
+                '<=1', '<=2', '<=3', '<=4', '>4'
+            ],
+            colors: [
+                0x00FF00, 0x00cc00, 0x009900, 0x006600, 0x003300, 0x000000,
+                0x330000, 0x660000, 0x990000, 0xcc0000, 0xFF0000
+            ]
+        },
+        newick: newick,
         onSelection: selection => {
             alert(`Selected ${selection.length} cell(s)\n\n` +
                 JSON.stringify(selection, null, 4).slice(0, 10000));
