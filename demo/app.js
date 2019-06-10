@@ -123,3 +123,31 @@ function transcriptomicsExample({ele, data, newick}) {
 
     return heatmap;
 }
+
+
+function pathwayExample({ele, data, newick}) {
+    let {rows, cols, matrix} = data;
+
+    let heatmap = new Heatmap({
+        ele, rows, cols, matrix,
+        rowsLabel: 'Protein Families',
+        colsLabel: 'Genomes',
+        color: {
+            bins: ['=0', '=1', '=2', '>=3'],
+            colors: [0x000000, 16440142, 16167991, 16737843]
+        },
+        options: {
+            theme: 'light',
+            hideLogo: true
+        },
+        onSelection: selection => {
+            alert(`Selected ${selection.length} cell(s)\n\n` +
+                JSON.stringify(selection, null, 4).slice(0, 10000));
+        },
+        onClick: selection => {
+            alert(JSON.stringify(selection, null, 4));
+        }
+    });
+
+    return heatmap;
+}

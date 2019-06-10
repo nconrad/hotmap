@@ -119,7 +119,7 @@ export default class Heatmap {
         Object.assign(margin, params.margin);
 
         this.opts = params.options || {};
-        console.log('options', this.opts)
+
         /**
          * END initialize Params
          **/
@@ -128,6 +128,10 @@ export default class Heatmap {
         this.ele.innerHTML = container;
         if (this.opts.hideLogo)
             this.ele.querySelector('.logo').remove();
+        if (this.opts.optionsLabel)
+            this.ele.querySelector('.opts-label').innerHTML = this.opts.optionsLabel;
+        if (this.opts.hideOptions)
+            this.ele.querySelector('.opts-btn').remove();
         if (this.opts.theme == 'light')
             this.ele.querySelector('.header').classList.add('light');
 
@@ -230,7 +234,8 @@ export default class Heatmap {
         if (!this.opts.hideLegend) this.updateLegend();
 
         // initialize options
-        this.options = this.initOptions();
+        if (!this.opts.hideOptions)
+             this.options = this.initOptions();
 
         // optional tree (experimental)
         if (this.newick) {
