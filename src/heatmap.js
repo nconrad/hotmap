@@ -18,7 +18,7 @@ import ScaleCtrl from './scale-ctrl';
 import ScrollBox from './scroll-box';
 import MouseTracker from './mouse-tracker';
 import Options from './options';
-import { addLegend } from './legend';
+import { legend } from './legend';
 import { matMinMax } from './utils';
 import { svgNS, svgG, svgRect, svgText } from './svg';
 import { setAttributes } from './dom';
@@ -1177,9 +1177,8 @@ export default class Heatmap {
     }
 
     updateLegend() {
-        this.ele.querySelector('.legend').innerHTML = '';
-        addLegend(this.ele.querySelector('.legend'),
-            this.size.min, this.size.max, this.color);
+        this.ele.querySelector('.legend').innerHTML =
+            legend(this.size.min, this.size.max, this.color);
 
         // optional color picker
         if (typeof Picker !== 'undefined')

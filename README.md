@@ -181,7 +181,7 @@ npm run build
 
 ## Author(s)
 
-[N Conrad](https://github.com/nconrad)
+[nconrad](https://github.com/nconrad)
 
 
 ## Citation

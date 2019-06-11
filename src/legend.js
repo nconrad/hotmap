@@ -6,19 +6,20 @@
  * Authors: nconrad
  *
  */
-import { parseColorBins, toHex } from './color';
+import { parseColorBins, hexToHexColor } from './color';
 
-export function addLegend(ele, min, max, settings) {
+export function legend(min, max, settings) {
     if (!settings || settings === 'gradient') {
-        gradientLegend(ele, min, max);
-        return;
+        return gradientLegend(min, max);
     }
 
-    binLegend(ele, min, max, settings);
+    return binLegend(settings);
 }
 
 
-function binLegend(ele, min, max, settings) {
+function binLegend(settings) {
+    let ele = document.createElement('div');
+
     let bins = parseColorBins(settings.bins),
         colors = settings.colors;
 
@@ -39,7 +40,7 @@ function binLegend(ele, min, max, settings) {
 
         let rectEl = document.createElement('div');
         rectEl.classList.add('box');
-        rectEl.style.backgroundColor = isNaN(color) ? color : '#' + toHex(color);
+        rectEl.style.backgroundColor = hexToHexColor(color);
         item.appendChild(rectEl);
 
         let textEl = document.createElement('span');
@@ -48,10 +49,14 @@ function binLegend(ele, min, max, settings) {
 
         ele.appendChild(item);
     });
+
+    return ele.innerHTML;
 }
 
 
-function gradientLegend(ele, min, max) {
+function gradientLegend(min, max) {
+    let ele = document.createElement('div');
+
     let w = 100,
         h = 14;
 
@@ -71,4 +76,6 @@ function gradientLegend(ele, min, max) {
     ele.appendChild(low);
     ele.appendChild(gradient);
     ele.appendChild(high);
+
+    return ele.innerHTML;
 }
