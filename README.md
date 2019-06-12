@@ -84,6 +84,7 @@ requirejs(['heatmap'], function(Heatmap) {
 ```
 
 ### Config
+
 | Param                 | Type                              | Required? | Default                       |
 |-----------------------|-----------------------------------|-----------|-------------------------------|
 | [rows](#rows)         | list of `row` objects (see below) | &check;   | -                             |
@@ -91,10 +92,9 @@ requirejs(['heatmap'], function(Heatmap) {
 | matrix                | matrix of numbers                 | &check;   | -                             |
 | rowsLabel             | string                            | -         | 'Rows'                        |
 | colsLabel             | string                            | -         | 'Columns'                     |
-| rowCatLabels          | list of strings                  | -         | []                            |
-| colCatLabels          | list of strings                  | -         | []                            |
+| rowCatLabels          | list of strings                   | -         | []                            |
+| colCatLabels          | list of strings                   | -         | []                            |
 | color                 | string \|\| object                | -         | 'gradient'                    |
-| theme                 | 'light' \|\| 'dark'               | -         | 'dark'                        |
 | [defaults](#defaults) | Object                            | -         | computed based on window size |
 | [options](#options)   | Object                            | -         | -                             |
 
@@ -109,11 +109,12 @@ requirejs(['heatmap'], function(Heatmap) {
 
 ### API Methods
 
-| Method   | Definition                   | Description                                                |
-|----------|------------------------------|------------------------------------------------------------|
-| update   | update({rows, cols, matrix}) | Given object with rows, columns, and matrix, updates chart |
-| getState | getState()                   | Returns current rows, columns and matrix                   |
-| flipAxis | flipAxis()                   | Swaps rows, cols, labels, and scaling                      |
+| Method      | Definition                                      | Description                                                |
+|-------------|-------------------------------------------------|------------------------------------------------------------|
+| update      | update({rows, cols, matrix})                    | Given object with rows, columns, and matrix, updates chart |
+| getState    | getState()                                      | Returns current rows, columns and matrix                   |
+| flipAxis    | flipAxis()                                      | Swaps rows, cols, labels, and scaling                      |
+| downloadSVG | downloadSVG({{fileName = 'heatmap.svg', full}}) | Downloads chart as SVG.  "full" will include all data.     |
 
 
 
@@ -150,8 +151,11 @@ requirejs(['heatmap'], function(Heatmap) {
 ##### options
 ```javascript
 {
-    hideLegend: true|false
-    hideLogo: true|false
+    theme: 'dark' | 'light'
+    hideLegend: <bool>
+    optionsLabel: 'Options',
+    legend: <some_html>,
+    showVersion: <bool>     // shows version number bottom right
 }
 ```
 

@@ -8,12 +8,14 @@
  */
 export default class Options {
 
-    constructor({openBtn, onSortChange, color, onColorChange}) {
-        this.openBtn = openBtn;
-        this.onSortChange = onSortChange;
-        this.onColorChange = onColorChange;
+    constructor(args) {
+        this.openBtn = args.openBtn;
+        this.onSortChange = args.onSortChange;
+        this.onColorChange = args.onColorChange;
+        this.onSnapshot = args.onSnapshot;
+        this.onFullSnapshot = args.onFullSnapshot;
 
-        this._color = color;
+        this._color = args.color;
         this._viewerNode = this.openBtn.parentNode.parentNode;
         this._show = false;
 
@@ -44,18 +46,19 @@ export default class Options {
 
         ele.querySelector('.close-btn').onclick = () => this.hide();
 
-
         if (this._color !== 'gradient') {
             let el = ele.querySelector('.colors');
             el.style.display = 'block';
             el.onclick = () => this._onColor;
-            ele.querySelector('.colors [data-id="bins"]');
         }
 
         this.colorEventInit();
 
-        // click events for sorting
-        // this.sortEventInit();
+        let snapshotBtn = ele.querySelector('.download [data-id="snapshot"]');
+        snapshotBtn.onclick = () => { this.onSnapshot(); }
+
+        let fullSnapshotBtn = ele.querySelector('.download [data-id="full-chart"]');
+        fullSnapshotBtn.onclick = () => this.onFullSnapshot();
     }
 
     show(evt) {
@@ -71,6 +74,7 @@ export default class Options {
         });
     }
 
+    // not currently used
     sortEventInit() {
         let sortNodes = this._viewerNode.querySelectorAll('.options .sorting a');
         sortNodes.forEach(node => {

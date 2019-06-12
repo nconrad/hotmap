@@ -65,7 +65,9 @@ function pfExample({ele, data, newick}) {
         colsLabel: 'Protein Families',
         rowCatLabels: rowCatLabels,
         colCatLabels: ['Protein Family ID'],
-        // theme: 'light',
+        options: {
+            showVersion: true
+        },
         color: {
             bins: ['=0', '=1', '=2', '<20', '>=20'],
             colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff6b6b, 0xff0000]
@@ -137,8 +139,7 @@ function pathwayExample({ele, data, newick}) {
             colors: [0x000000, 16440142, 16167991, 16737843]
         },
         options: {
-            theme: 'light',
-            hideLogo: true
+            theme: 'light'
         },
         onSelection: selection => {
             alert(`Selected ${selection.length} cell(s)\n\n` +

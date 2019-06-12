@@ -1,10 +1,6 @@
 <div class="heatmap">
 
     <div class="header">
-        <div class="logo">
-            <span>Heatmap</span> <small>[AIV]v{version}[/AIV]</small>
-        </div>
-
         <div class="search-container">
             <i>${require('./assets/icons/search.svg')}</i>
             <input type="text" class="search" placeholder="Search columns..." />
@@ -32,6 +28,18 @@
                 <a data-id="gradient">Gradient</a>
             </div>
         </div>
+
+        <div class="download option-set">
+            <div class="option-title">Download SVG</div>
+            <div class="option-group">
+                <a data-id="snapshot">Snapshot</a>
+                <a data-id="full-chart">Entire Chart</a>
+            </div>
+        </div>
+
+        <a class="logo" href="https://github.com/nconrad/heatmap.git" target="_blank">
+            <span>Heatmap</span> <small>[AIV]v{version}[/AIV]</small>
+        </a>
     </div>
 
     <div class="chart">
@@ -50,5 +58,10 @@
         <div class="hmap-tt" style="display: none;"></div>
         <div class="scroll-container"></div>
     </div>
+
+    <a class="version" href="https://github.com/nconrad/heatmap.git"
+        target="_blank" style="display: none;">
+        [AIV]v{version}[/AIV]
+    </a>
 
 </div>
