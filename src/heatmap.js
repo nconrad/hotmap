@@ -20,7 +20,7 @@ import MouseTracker from './mouse-tracker';
 import Options from './options';
 import { legend } from './legend';
 import { matMinMax } from './utils';
-import { svgNS, svgG, svgRect, svgText } from './svg';
+import { svgNS, svgG, svgEle, svgRect, svgText } from './svg';
 import { setAttributes } from './dom';
 import { sanitizeColors, colorMatrix, categoryColors, rgbToHex, hexToHexColor } from './color';
 import { transpose } from './matrix';
@@ -197,11 +197,9 @@ export default class Heatmap {
     }
 
     static getCategories(objs) {
-        objs = objs.filter(r => r.categories).map(r => {
-            return r.categories;
-        });
+        objs = objs.filter(r => r.categories).map(r => r.categories)
 
-        return !objs.length ? null : objs;
+        return objs.length ? objs : null;
     }
 
 
@@ -390,8 +388,9 @@ export default class Heatmap {
                     this.addLabel('x', this.cols[colIdx].name, x + 2, margin.top - 5, j);
                 }
 
-                if (this.colCategories && !this.catLabelsAdded && i == 0 &&
+                if (this.rowCategories && !this.catLabelsAdded && i == 0 &&
                     renderX && colIdx < this.rowCatLabels.length) {
+                        console.log('cat labels', this.colCategories)
                     let k = this.rowCatLabels.length - colIdx - 1;
                     this.addCategoryLabel(
                         'x', this.rowCatLabels[k],
@@ -807,6 +806,7 @@ export default class Heatmap {
         }
 
         let categories = this.rowCategories[index];
+
         // compute width of each category from: total / number-of-cateogries
         let width = parseInt(rowCatWidth / categories.length );
 
@@ -1107,7 +1107,10 @@ export default class Heatmap {
         // add hover box
         if (x && y) {
             this.ele.querySelectorAll('.hover-box').forEach(el => el.remove());
-            this.svg.appendChild( svgRect(x, y, cellW, cellH, {'class': 'hover-box'}) );
+            this.svg.appendChild(svgRect(x, y, cellW, cellH, {
+                'class': 'hover-box',
+                stroke: '#000000'
+            }));
         }
     }
 
@@ -1339,6 +1342,80 @@ export default class Heatmap {
         };
     }
 
+    snapshot() {
+        let svg = svgEle('svg');
+
+        // draw cells
+        let cellW = this.cellW,
+            cellH = this.cellH;
+
+        let xStart = this.xStart,
+            yStart = this.yStart;
+
+        // use cell size to compute "view box" of sorts
+
+
+        // for each row
+        for (let i = 0; i < yViewSize; i++) {
+            let y = margin.top + cellH * i;
+            let rowIdx = yStart + i;
+
+            if (this.rowCategories && rowIdx < this.size.y) {
+                let categories = this.rowCategories[rowIdx];
+                let width = parseInt(rowCatWidth / categories.length );
+                let x = margin.left - rowCatWidth;
+                for (let i = 0; i < categories.length; i++) {
+                    let color = this.rowCatColors[rowIdx][i];
+                    let rect = svgRect(x, y, width - 1, cellH, { fill: hexToHexColor(color) })
+                    svg.appendChild(rect);
+                    x += width
+                }
+
+            }
+
+            // for each column
+            for (let j = 0; j < xViewSize; j++) {
+                let x = margin.left + cellW * j,
+                    colIdx = xStart + j;
+
+                let color = this.colorMatrix[rowIdx][colIdx];
+                let rect = svgRect(x, y, cellW, cellH, { fill: hexToHexColor(color) });
+                svg.appendChild(rect);
+
+            }
+        }
+
+        // add labels if needed
+        let xLabel = this.ele.querySelector(`.x-axis-label`);
+        let yLabel = this.ele.querySelector(`.y-axis-label`);
+        if (cellH <= minTextW && xLabel) svg.appendChild(xLabel);
+        if (cellW <= minTextW && yLabel) svg.appendChild(yLabel);
+
+        // add labels if needed
+        if (cellH > minTextW && !this.tree) svg.appendChild(this.yAxis);
+        if (cellW > minTextW && !this.tree) svg.appendChild(this.xAxis);
+
+        // add categories if needed
+        if (this.rowCategories) svg.appendChild(this.cAxis);
+
+        return svg;
+    }
+
+    saveSVG(svgEl, name) {
+        // see https://stackoverflow.com/q/23218174
+        svgEl.setAttribute('xmlns', svgNS);
+        let svgData = svgEl.outerHTML;
+        let preface = '<?xml version="1.0" standalone="no"?>\r\n';
+        let svgBlob = new Blob([preface, svgData], {type:"image/svg+xml;charset=utf-8"});
+        let svgUrl = URL.createObjectURL(svgBlob);
+        let downloadLink = document.createElement('a');
+        downloadLink.href = svgUrl;
+        downloadLink.download = name;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+    }
+
     /**
      * API methods
      */
@@ -1385,6 +1462,11 @@ export default class Heatmap {
             rowsLabel: this.xLabel,
             colsLabel: this.yLabel
         });
+    }
+
+    downloadSVG(fileName = 'heatmap.svg') {
+        let svg = this.snapshot(fileName);
+        this.saveSVG(svg, fileName)
     }
 
 }

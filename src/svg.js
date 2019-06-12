@@ -39,7 +39,7 @@ export function svgRect(x, y, w, h, opts = {}) {
     ele.setAttribute('height', h);
     ele.setAttribute('fill', opts.fill || 'none');
     ele.setAttribute('stroke-width', opts.strokeWidth || 1);
-    ele.setAttribute('stroke', opts.stroke || 'rgb(0,0,0)');
+    if (opts.stroke) ele.setAttribute('stroke', opts.stroke);
 
     return ele;
 }
