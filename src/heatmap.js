@@ -41,8 +41,8 @@ const NAME = `heatmap.js`;
 let yViewSize;
 let xViewSize;
 
-const cellXMin = 1;
-const cellXMax = 100;
+const cellMin = 1;
+const cellMax  = 100;
 const zoomFactor = 0.1; // speed at which to zoom with mouse
 
 // general chart settings
@@ -57,7 +57,6 @@ const minTextW = 5;
 const maxTextW = 16;
 let rowCatWidth = 40;
 let colCatWidth = 40;
-// const cellPadding = 1;
 
 // axis label offsets from the grid
 const xAxisLabelOffset = 50;
@@ -319,11 +318,13 @@ export default class Heatmap {
     }
 
     computeCellWidth() {
-        return parseInt((this.parent.clientWidth - margin.left - margin.right) / this.size.x);
+        let w = parseInt((this.parent.clientWidth - margin.left - margin.right) / this.size.x);
+        return w < cellMax ? w : cellMax;
     }
 
     computeCellHeight() {
-        return parseInt((this.parent.clientHeight - margin.top - margin.bottom) / this.size.y);
+        let h = parseInt((this.parent.clientHeight - margin.top - margin.bottom) / this.size.y);
+        return h < cellMax ? h : cellMax;
     }
 
     /**
@@ -971,8 +972,8 @@ export default class Heatmap {
                 this.hideHoverTooltip();
                 // update cell size
                 let newXDim = this.cellW - deltaY * zoomFactor;
-                this.cellW = newXDim < cellXMin
-                    ? cellXMin : (newXDim > cellXMax ? cellXMax : newXDim);
+                this.cellW = newXDim < cellMin
+                    ? cellMin : (newXDim > cellMax ? cellMax : newXDim);
 
                 this.draw(true, null, true);
 
@@ -1443,6 +1444,7 @@ export default class Heatmap {
         downloadLink.click();
         document.body.removeChild(downloadLink);
     }
+
 
     /**
      * API methods
