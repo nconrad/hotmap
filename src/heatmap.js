@@ -129,7 +129,7 @@ export default class Heatmap {
         if (this.opts.theme == 'light')
             this.ele.querySelector('.header').classList.add('light');
         if (this.opts.showVersion)
-            this.ele.querySelector('.version').style.display = 'block';
+            this.ele.querySelector('.version').classList.remove('hidden');
         if (this.opts.optionsLabel)
             this.ele.querySelector('.opts-label').innerHTML = this.opts.optionsLabel;
         if (this.opts.hideOptions)

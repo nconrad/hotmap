@@ -49,7 +49,7 @@ export default class Options {
 
         if (this._altColors) {
             let el = ele.querySelector('.colors');
-            el.style.display = 'block';
+            el.classList.remove('hidden');
             el.onclick = () => this._onColor;
         }
 
