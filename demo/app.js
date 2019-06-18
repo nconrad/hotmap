@@ -70,7 +70,8 @@ function pfExample({ele, data, newick}) {
         },
         color: {
             bins: ['=0', '=1', '=2', '<20', '>=20'],
-            colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff6b6b, 0xff0000]
+            colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff6b6b, 0xff0000],
+            altColors: ['gradient']
         },
         newick: newick,
         onHover: info => {

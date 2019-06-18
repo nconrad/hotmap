@@ -1013,6 +1013,7 @@ export default class Heatmap {
             parentNode: this.parent,
             openBtn: document.querySelector('.opts-btn'),
             color: this.color,
+            altColors: ('altColors' in this.origColorSettings),
             onColorChange: (type) => {
                 this.color = type === 'gradient' ? type : this.origColorSettings;
                 this.colorMatrix = colorMatrix(this.matrix, this.color);

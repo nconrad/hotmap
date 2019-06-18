@@ -15,6 +15,7 @@ export default class Options {
         this.onSnapshot = args.onSnapshot;
         this.onFullSnapshot = args.onFullSnapshot;
 
+        this._altColors = args.altColors;
         this._color = args.color;
         this._viewerNode = this.openBtn.parentNode.parentNode;
         this._show = false;
@@ -46,7 +47,7 @@ export default class Options {
 
         ele.querySelector('.close-btn').onclick = () => this.hide();
 
-        if (this._color !== 'gradient') {
+        if (this._altColors) {
             let el = ele.querySelector('.colors');
             el.style.display = 'block';
             el.onclick = () => this._onColor;
