@@ -122,8 +122,8 @@ requirejs(['heatmap'], function(Heatmap) {
 ```javascript
 [
     {
-        name: "some label",
-        categories: ["cat 1", "cat 2"]
+        name: 'some label',
+        categories: ['cat 1', 'cat 2']
     },
     ...
 ]
@@ -133,8 +133,8 @@ requirejs(['heatmap'], function(Heatmap) {
 ```javascript
 [
     {
-        name: "some label",
-        categories: ["cat foo", "cat bar']
+        name: 'some label',
+        categories: ['cat foo', 'cat bar']
     },
     ...
 ]

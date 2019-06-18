@@ -9,7 +9,8 @@
  */
 import lock from './assets/icons/lock.svg';
 import lockOpen from './assets/icons/lock-open.svg';
-import arrowAlt from './assets/icons/arrows-alt.svg';
+import fsIcon from './assets/icons/fullscreen.svg';
+import exitFSIcon from './assets/icons/exit-fullscreen.svg';
 
 
 export default class ScaleCtrl {
@@ -29,7 +30,7 @@ export default class ScaleCtrl {
         this._ySlider;
         this._isLocked = false;
 
-        this._isFullWindow = false;
+        this._isFullscreen = false;
 
         this.init();
     }
@@ -71,16 +72,16 @@ export default class ScaleCtrl {
         return this._isLocked;
     }
 
-    fullWindow(width, height, parent, resize) {
+    fullscreen(width, height, parent, resize) {
         // only provide full window option if needed
         if (width >= window.innerWidth - 100 && height >= window.innerHeight - 100)
             return;
 
         let fsBtn = this.scaleCtrls.querySelector('.fullscreen-btn');
-        fsBtn.innerHTML = arrowAlt;
+        fsBtn.innerHTML = fsIcon;
         fsBtn.onclick = () => {
             parent.classList.toggle('hmap-fullscreen');
-            this._isFullWindow = !this._isFullWindow;
+            this._isFullscreen = !this._isFullscreen;
 
             // toggle z-index to 0 for all other elements in body
             document.body.querySelectorAll('*').forEach(el => {
@@ -89,6 +90,24 @@ export default class ScaleCtrl {
             });
 
             resize();
+
+            fsBtn.innerHTML = this._isFullscreen ? exitFSIcon : fsIcon;
+            fsBtn.title = this._isFullscreen ? 'exit fullscreen' : 'make heatmap fullscreen';
+
+            if (this._isFullscreen) {
+                this._exitHandle = function(e) {
+                    if (e.keyCode == 27) fsBtn.click();
+                };
+                document.addEventListener('keydown', this._exitHandle);
+            } else {
+                document.removeEventListener('keydown', this._exitHandle);
+            }
+
+            // also enable exit fullscreen btn
+            let backBtn = this.ele.querySelector('.back-btn');
+            backBtn.classList.toggle('hidden');
+            backBtn.onclick = () => fsBtn.click();
         };
+
     }
 }

@@ -103,7 +103,7 @@ function transcriptomicsExample({ele, data, newick}) {
         ele, rows, cols, matrix,
         rowsLabel: 'Genomes',
         colsLabel: 'Protein Families',
-        legend: '⬆ red | black | green ⬇ ',
+        legend: '⬆ red | black | green ⬇',
         color: {
             bins: [
                 '<-4', '<-3', '<-2', '<-1', '<0', '=0',

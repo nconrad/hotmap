@@ -941,7 +941,7 @@ export default class Heatmap {
         });
 
         let [w, h] = this.getContainerSize();
-        scaleCtrl.fullWindow(w, h, this.parent, () => {
+        scaleCtrl.fullscreen(w, h, this.parent, () => {
             if (this.onFSClick) this.onFSClick();
             this.resize();
         });
