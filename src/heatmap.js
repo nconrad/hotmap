@@ -208,9 +208,10 @@ export default class Heatmap {
      */
     async start() {
         // base all positioning off of parent
-        let [canvasWidth, canvasHeight] = this.getContainerSize();
+        let [width, height] = this.getContainerSize();
 
-        let obj = this.initSVGContainers(canvasWidth, canvasHeight);
+        let svgContainer = this.ele.querySelector('.svg-canvas');
+        let obj = this.initSVGContainers(svgContainer, width, height);
         this.svg = obj.svg;
         this.xAxis = obj.xAxis;
         this.yAxis = obj.yAxis;
@@ -248,7 +249,7 @@ export default class Heatmap {
             margin.left = 400 + rowCatWidth + 50;
         }
 
-        let renderer = Heatmap.getRenderer(canvasWidth, canvasHeight);
+        let renderer = Heatmap.getRenderer(width, height);
         this.renderer = renderer;
 
         this.initChart();
@@ -357,7 +358,7 @@ export default class Heatmap {
             let rowIdx = yStart + i;
 
             if (renderY && cellH > minTextW && !this.tree) {
-                this.addLabel('y', this.rows[rowIdx].name, margin.left - rowCatWidth - 10, y + 3, i);
+                this.addYLabel(this.yAxis, this.rows[rowIdx].name, margin.left - rowCatWidth - 10, y + 3, i);
             }
             if (renderY && this.rowCategories && rowIdx < this.size.y) {
                 this.addCategories('y', rowIdx, margin.left - rowCatWidth, y);
@@ -385,7 +386,7 @@ export default class Heatmap {
                 }
 
                 if (renderX && i == 0 && cellW > minTextW) {
-                    this.addLabel('x', this.cols[colIdx].name, x + 2, margin.top - 5, j);
+                    this.addXLabel(this.xAxis, this.cols[colIdx].name, x + 2, margin.top - 5, j);
                 }
 
                 if (this.rowCategories && !this.catLabelsAdded && i == 0 &&
@@ -468,8 +469,8 @@ export default class Heatmap {
         // console.log('render time', t1 - t0);
     }
 
-    initSVGContainers(width, height) {
-        let svg = document.createElementNS(svgNS, 'svg');
+    initSVGContainers(el, width, height) {
+        let svg = createSVG();
         svg.style.position = 'absolute';
         svg.style.top = 0;
         svg.style.left = 0;
@@ -490,103 +491,108 @@ export default class Heatmap {
         svg.appendChild(xAxis);
         svg.appendChild(yAxis);
         svg.appendChild(cAxis);
-        this.ele.querySelector('.svg-canvas').appendChild(svg);
+        el.appendChild(svg);
 
         return {svg, xAxis, yAxis, cAxis};
     }
 
     /**
      * addLabel
-     * @param {string} axis the axis to append to
+     * @param {string} svgEl the svg element (<g> usually) to append to
      * @param {number} index the row or col index for the provided matrix
      * @param {number} x the x position of the text element
      * @param {number} y the y position of the text element
      * @param {number} cellIdx the row or col index in the "viewbox" the user sees
      *                    this is currently used for classes
      */
-    addLabel(axis, text, x, y, cellIdx) {
+    addYLabel(svgEl, text, x, y, cellIdx) {
         let ele = document.createElementNS(svgNS, 'text');
 
-        if (axis == 'y') {
-            y += this.cellH / 2 + 1;
-            ele.setAttribute('font-size', `${this.cellH <= maxTextW ? this.cellH - 4 : 16}px`);
-            ele.setAttribute('class', `row-${cellIdx}`);
-            ele.setAttribute('fill', '#666');
-            ele.setAttribute('x', x);
-            ele.setAttribute('y', y);
-            this.yAxis.appendChild(ele);
+        y += this.cellH / 2 + 1;
+        ele.setAttribute('font-size', `${this.cellH <= maxTextW ? this.cellH - 4 : 16}px`);
+        ele.setAttribute('class', `row-${cellIdx}`);
+        ele.setAttribute('fill', '#666');
+        ele.setAttribute('x', x);
+        ele.setAttribute('y', y);
+        svgEl.appendChild(ele);
 
-            // add ellipsis
-            if (text.length > 28 ) {
-                text = text.slice(0, 28) + '...';
-            }
-
-            ele.innerHTML = text;
-
-            let width = ele.getBBox().width;
-            ele.setAttribute('transform', `translate(-${width})`);
-
-            ele.addEventListener('mouseover', () => {
-                let tt = this.tooltip(y - ele.getBBox().height - 5, x + 10);
-
-                let cats = !this.rowCategories || this.rowCatLabels.length == 0 ? ''
-                    : this.rowCategories[cellIdx].map((cat, i) =>
-                        `<div><b>${this.rowCatLabels[i]}:</b> ${cat}</div>`
-                    ).join('');
-
-                tt.innerHTML =
-                    `<div>${this.rows[cellIdx].name}</div>
-                    ${cats.length ? '<br>' + cats : cats}`;
-            });
-
-            ele.onclick = () => {
-                if (!this.onSelection) return;
-                let r = this.getRow(cellIdx);
-                this.onSelection(r);
-            };
-
-        } else {
-            x += this.cellW / 2 + 1;
-            ele.innerHTML = text;
-            ele.setAttribute('data-i', cellIdx);
-            ele.setAttribute('font-size', `${this.cellW <= maxTextW ? this.cellW - 4 : 16}px`);
-            ele.setAttribute('fill', '#666');
-            ele.setAttribute('x', x);
-            ele.setAttribute('y', y);
-            this.xAxis.appendChild(ele);
-
-            let width = ele.getBBox().width;
-
-            // add ellipsis
-            if (width > margin.top) {
-                text = text.slice(0, 28) + '...';
-                ele.innerHTML = text;
-            }
-
-            ele.setAttribute('transform', `translate(-${width})`);
-            ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
-
-            ele.addEventListener('mouseover', () => {
-                let tt = this.tooltip(y, x - 5);
-
-                let cats = !this.colCategories || this.colCatLabels.length === 0 ? ''
-                    : this.colCategories[cellIdx].map((cat, i) =>
-                        `<div><b>${this.colCatLabels[i]}:</b> ${cat}</div>`
-                    ).join('');
-
-                tt.innerHTML =
-                    `<div>${this.cols[cellIdx].name}</div>
-                    ${cats.length ? '<br>' + cats : cats}`;
-            });
-
-            ele.onclick = () => {
-                if (!this.onSelection) return;
-                let r = this.getCol(cellIdx);
-                this.onSelection(r);
-            };
+        // add ellipsis
+        if (text.length > 28 ) {
+            text = text.slice(0, 28) + '...';
         }
 
-        ele.addEventListener('mouseout', this.hideHoverTooltip.bind(this));
+        ele.innerHTML = text;
+
+        let width = ele.getBBox().width;
+        ele.setAttribute('transform', `translate(-${width})`);
+
+        let rowIdx = this.yStart + cellIdx;
+        ele.onmouseover = () => {
+            let tt = this.tooltip(y - ele.getBBox().height - 5, x + 10);
+
+            let cats = !this.rowCategories || this.rowCatLabels.length == 0 ? ''
+                : this.rowCategories[rowIdx].map((cat, i) =>
+                    `<div><b>${this.rowCatLabels[i]}:</b> ${cat}</div>`
+                ).join('');
+
+            tt.innerHTML =
+                `<div>${this.rows[rowIdx].name}</div>
+                ${cats.length ? '<br>' + cats : cats}`;
+        };
+
+        ele.onclick = () => {
+            if (!this.onSelection) return;
+            let r = this.getRow(rowIdx);
+            this.onSelection(r);
+        };
+
+        ele.onmouseout = () => this.hideHoverTooltip();
+    }
+
+    addXLabel(svgEl, text, x, y, cellIdx) {
+        let ele = document.createElementNS(svgNS, 'text');
+
+        x += this.cellW / 2 + 1;
+        ele.innerHTML = text;
+        ele.setAttribute('data-i', cellIdx);
+        ele.setAttribute('font-size', `${this.cellW <= maxTextW ? this.cellW - 4 : 16}px`);
+        ele.setAttribute('fill', '#666');
+        ele.setAttribute('x', x);
+        ele.setAttribute('y', y);
+        svgEl.appendChild(ele);
+
+        let width = ele.getBBox().width;
+
+        // add ellipsis
+        if (width > margin.top) {
+            text = text.slice(0, 28) + '...';
+            ele.innerHTML = text;
+        }
+
+        ele.setAttribute('transform', `translate(-${width})`);
+        ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
+
+        let colIdx = this.xStart + cellIdx
+        ele.onmouseover = () => {
+            let tt = this.tooltip(y, x - 5);
+
+            let cats = !this.colCategories || this.colCatLabels.length === 0 ? ''
+                : this.colCategories[colIdx].map((cat, i) =>
+                    `<div><b>${this.colCatLabels[i]}:</b> ${cat}</div>`
+                ).join('');
+
+            tt.innerHTML =
+                `<div>${this.cols[colIdx].name}</div>
+                ${cats.length ? '<br>' + cats : cats}`;
+        };
+
+        ele.onclick = () => {
+            if (!this.onSelection) return;
+            let r = this.getCol(colIdx);
+            this.onSelection(r);
+        };
+
+        ele.onmouseout = () => this.hideHoverTooltip();
     }
 
     highlightQuery() {
@@ -1345,7 +1351,21 @@ export default class Heatmap {
     }
 
     snapshot(fullChart) {
-        let svg = createSVG();
+        let t0 = performance.now();
+        // need to use hidden, rendered div for text widths
+        let div = document.createElement('div');
+        div.style.visibility = 'hidden';
+        document.body.appendChild(div);
+
+        let width, height;
+        if (fullChart) {
+            width = margin.left + this.size.x * this.cellW + margin.right;
+            height = margin.top + this.size.y * this.cellH + margin.bottom;
+        } else {
+            [width, height] = this.getContainerSize();
+        }
+
+        let {svg, xAxis, yAxis, cAxis} = this.initSVGContainers(div, width, height);
 
         // draw cells
         let cellW = this.cellW,
@@ -1361,6 +1381,11 @@ export default class Heatmap {
         for (let i = 0; i < ySize; i++) {
             let y = margin.top + cellH * i;
             let rowIdx = yStart + i;
+
+
+            if (cellH > minTextW && !this.tree) {
+                this.addYLabel(yAxis, this.rows[rowIdx].name, margin.left - rowCatWidth - 10, y + 3, i);
+            }
 
             // add row categories and category labels
             if (this.rowCategories && rowIdx < this.size.y) {
@@ -1380,25 +1405,26 @@ export default class Heatmap {
                 let x = margin.left + cellW * j,
                     colIdx = xStart + j;
 
+                if (i == 0 && cellW > minTextW) {
+                    this.addXLabel(xAxis, this.cols[colIdx].name, x + 2, margin.top - 5, j);
+                }
+
                 let color = this.colorMatrix[rowIdx][colIdx];
                 let rect = svgRect(x, y, cellW, cellH, { fill: hexToHexColor(color) });
                 svg.appendChild(rect);
             }
         }
 
-        // add labels if needed
+        // add axis labels if needed
         let xLabel = this.ele.querySelector(`.x-axis-label`);
         let yLabel = this.ele.querySelector(`.y-axis-label`);
         if (cellW <= minTextW && xLabel) svg.appendChild(xLabel.cloneNode(true));
         if (cellH <= minTextW && yLabel) svg.appendChild(yLabel.cloneNode(true));
 
-        // add labels if needed
-        if (cellH > minTextW && !this.tree) svg.appendChild(this.yAxis.cloneNode(true));
-        if (cellW > minTextW && !this.tree) svg.appendChild(this.xAxis.cloneNode(true));
-
-        // add categories if needed
+        // add category labels if needed
         if (this.rowCategories) svg.appendChild(this.cAxis.cloneNode(true));
 
+        div.remove();
         return svg;
     }
 

@@ -55,10 +55,24 @@ export default class Options {
         this.colorEventInit();
 
         let snapshotBtn = ele.querySelector('.download [data-id="snapshot"]');
-        snapshotBtn.onclick = () => { this.onSnapshot(); }
+        snapshotBtn.onclick = () => {
+            let progress = ele.querySelector('.download-progress');
+            progress.innerHTML = 'Creating SVG...';
+            setTimeout(() => {
+                this.onSnapshot();
+                progress.innerHTML = '';
+            }, 100);
+        };
 
         let fullSnapshotBtn = ele.querySelector('.download [data-id="full-chart"]');
-        fullSnapshotBtn.onclick = () => this.onFullSnapshot();
+        fullSnapshotBtn.onclick = () => {
+            let progress = ele.querySelector('.download-progress');
+            progress.innerHTML = 'Creating SVG... This may take awhile for large charts.';
+            setTimeout(() => {
+                this.onFullSnapshot();
+                progress.innerHTML = '';
+            }, 100);
+        };
     }
 
     show(evt) {
