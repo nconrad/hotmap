@@ -1461,6 +1461,7 @@ export default class Heatmap {
         // need to update scrollBox
         this.scrollBox.setMaxes(this.size.x, this.size.y);
         this.scrollBox.setPos(0, 0);
+        [this.xStart, this.yStart] = [0, 0];
 
         this.updateData();
         this.initChart({resize: true});
@@ -1480,9 +1481,7 @@ export default class Heatmap {
         // flip scaling
         let ctrl = this.scaleCtrl;
         ctrl.setPos(ctrl.y, ctrl.x);
-        let cellW = this.cellW;
-        this.cellW = this.cellH;
-        this.cellH = cellW;
+        [this.cellW, this.cellH] = [this.cellH, this.cellW];
 
         // transpose all the things
         this.update({
