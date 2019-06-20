@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('data file:', data);
 
             if (!SHOW_TREE) {
-                heatmap = pfExample({ele, data});
+                heatmap = transcriptomicsExample({ele, data});
                 return;
             }
 
@@ -43,6 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!updateBtn) return;
 
     document.querySelector('.update-btn').onclick = () => {
+        heatmap.flipAxis();
+        return;
+
         let data = heatmap.getState();
         // remove some rows (example)
         let rows = data.rows.slice(0, 5),
@@ -70,8 +73,7 @@ function pfExample({ele, data, newick}) {
         },
         color: {
             bins: ['=0', '=1', '=2', '<20', '>=20'],
-            colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff6b6b, 0xff0000],
-            altColors: ['gradient']
+            colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff6b6b, 0xff0000]
         },
         newick: newick,
         onHover: info => {
