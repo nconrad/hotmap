@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('data file:', data);
 
             if (!SHOW_TREE) {
-                heatmap = transcriptomicsExample({ele, data});
+                heatmap = pfExample({ele, data});
                 return;
             }
 
@@ -43,9 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!updateBtn) return;
 
     document.querySelector('.update-btn').onclick = () => {
-        heatmap.flipAxis();
-        return;
-
         let data = heatmap.getState();
         // remove some rows (example)
         let rows = data.rows.slice(0, 5),
