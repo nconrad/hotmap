@@ -328,7 +328,10 @@ export default class Heatmap {
     }
 
     /**
-     * todo: break into stage and update tint
+     * main rendering function
+     * @param {bool} renderX should render x axis
+     * @param {bool} renderY should render y axis
+     * @param {bool} scale should rescale (zoom / update cell dimensions)
      */
     draw(renderX, renderY, scale) {
         // let t0 = performance.now();
@@ -347,7 +350,7 @@ export default class Heatmap {
             yStart = this.yStart;
 
         // use cell size to compute "view box" of sorts
-        // Todo: optimize, moving into resize event
+        // Todo: optimize, moving into resize event?
         xViewSize = parseInt((this.parent.clientWidth - margin.left - margin.right) / cellW);
         yViewSize = parseInt((this.parent.clientHeight - margin.top - margin.bottom) / cellH);
         if (yViewSize > this.size.y) yViewSize = this.size.y;
@@ -357,6 +360,9 @@ export default class Heatmap {
         for (let i = 0; i < yViewSize; i++) {
             let y = margin.top + cellH * i;
             let rowIdx = yStart + i;
+
+            // enforce bounds when scrolled and scaling
+            if (rowIdx >= this.size.y) break;
 
             if (renderY && cellH > minTextW && !this.tree) {
                 this.addYLabel(this.yAxis, this.rows[rowIdx].name, margin.left - rowCatWidth - 10, y + 3, i);
@@ -369,6 +375,9 @@ export default class Heatmap {
             for (let j = 0; j < xViewSize; j++) {
                 let x = margin.left + cellW * j,
                     colIdx = xStart + j;
+
+                // enforce bounds when scrolled and scaling
+                if (colIdx >= this.size.x) break;
 
                 // if sprites rendered, just making transformations
                 if (this.isStaged) {
