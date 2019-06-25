@@ -1011,6 +1011,7 @@ export default class Heatmap {
     initSearch() {
         let self = this;
         let searchInput = this.ele.querySelector('.search');
+        let reset = this.ele.querySelector('.reset-btn');
 
         searchInput.onkeyup = function() {
             let q = this.value.toLowerCase();
@@ -1028,16 +1029,19 @@ export default class Heatmap {
             if (self.query) {
                 let searchInfo = self.ele.querySelector('.search-info');
                 searchInfo.innerHTML = `${self.query.count} results`
+                reset.classList.remove('hidden');
             } else {
                 self.ele.querySelector('.search-info').innerHTML = '';
+                reset.classList.add('hidden');
             }
 
             self.draw();
         };
 
-        let reset = this.ele.querySelector('.reset-btn');
         reset.onclick = function() {
             self.query = null;
+            reset.classList.add('hidden');
+            self.ele.querySelector('.search').value = '';
             self.ele.querySelector('.search-info').innerHTML = '';
             self.draw();
         }
