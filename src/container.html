@@ -5,10 +5,13 @@
             Exit fullscreen
         </button>
 
-        <div class="search-container">
+        <form class="search-container">
             <i>${require('./assets/icons/search.svg')}</i>
-            <input type="text" class="search" placeholder="Search columns..." />
-        </div>
+            <input type="text" class="search" placeholder="Search columns..." required />
+            <button class="reset-btn" type="reset"></button>
+        </form>
+
+        <span class="search-info"></span>
 
         <button class="btn opts-btn">
             <span class="opts-label">Options</span> <span class="caret-down"></span>

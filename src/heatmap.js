@@ -609,7 +609,7 @@ export default class Heatmap {
         let {cols, rows} = this.getViewboxLabels();
 
         let colMatches = cols.reduce((acc, col, i) => {
-            if (col.name.toLowerCase().includes(this.query)) acc.push(true);
+            if (col.name.toLowerCase().includes(this.query.q)) acc.push(true);
             else acc.push(false);
             return acc;
         }, []);
@@ -1013,9 +1013,33 @@ export default class Heatmap {
         let searchInput = this.ele.querySelector('.search');
 
         searchInput.onkeyup = function() {
-            self.query = this.value.toLowerCase();
+            let q = this.value.toLowerCase();
+
+            if (!q.length) {
+                self.query = null;
+            } else {
+                self.query = {
+                    q: q,
+                    count: self.cols.filter(c => c.name.toLowerCase().includes(q)).length
+                }
+            }
+
+            // display count
+            if (self.query) {
+                let searchInfo = self.ele.querySelector('.search-info');
+                searchInfo.innerHTML = `${self.query.count} results`
+            } else {
+                self.ele.querySelector('.search-info').innerHTML = '';
+            }
+
             self.draw();
         };
+
+        let reset = this.ele.querySelector('.reset-btn');
+        reset.onclick = function() {
+            self.query = null;
+            self.ele.querySelector('.search-info').innerHTML = '';
+        }
     }
 
     initOptions() {
