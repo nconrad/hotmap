@@ -1039,6 +1039,7 @@ export default class Heatmap {
         reset.onclick = function() {
             self.query = null;
             self.ele.querySelector('.search-info').innerHTML = '';
+            self.draw();
         }
     }
 
