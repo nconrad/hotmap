@@ -5,6 +5,7 @@
 /**
  * scale control components
  */
+
 .scale-ctrls {
   position: absolute;
   top: 20px;
@@ -48,26 +49,49 @@
 
 .y-slider {
   height: 5px;
-  transform-origin: 15px 40px;
+  transform-origin: 10px 45px;
   transform: rotate(90deg);
 }
 
 .x-slider {
   width: 130px;
   position: absolute;
-  top: 0;
+  top: 10px;
   left: 75px;
 }
+
+.y-slider-label,
+.x-slider-label {
+  position: absolute;
+  color: #666;
+  font-weight: bold;
+
+}
+
+.y-slider-label {
+  top: 88px;
+  left: 28px;
+}
+
+.x-slider-label {
+  top: -15px;
+  left: 136px;
+}
+
 
 .lock-btn,
 .fullscreen-btn {
   position: absolute;
-  top: -10px;
+  top: 0;
   left: 40px;
   width: 28px;
   height: 28px;
   background: none;
   border: none;
+}
+
+.fullscreen-btn:empty {
+  display: none;
 }
 
 .lock-btn svg {

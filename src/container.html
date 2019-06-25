@@ -11,8 +11,6 @@
             <button class="reset-btn hidden" type="reset"></button>
         </div>
 
-        <span class="search-info"></span>
-
         <button class="btn opts-btn">
             <span class="opts-label">Options</span> <span class="caret-down"></span>
         </button>
@@ -45,25 +43,26 @@
             <small class="download-progress muted"></small>
         </div>
 
-        <a class="logo" href="https://github.com/nconrad/heatmap.git" target="_blank">
-            <span>Heatmap</span> <small>[AIV]v{version}[/AIV]</small>
-        </a>
     </div>
 
     <div class="chart">
         <div class="scale-ctrls">
             <button class="btn lock-btn" title="Lock x and y scaling"></button>
             <input type="range" min="1" max="100" class="slider y-slider">
-            <input type="range" min="1" max="100" class="slider x-slider">
+            <span class="y-slider-label">y</span>
+            <input type="range" min="1" 1max="100" class="slider x-slider">
+            <span class="x-slider-label">x</span>
             <button class="btn fullscreen-btn" title="make heatmap fullscreen"></button>
         </div>
+
+        <div class="search-info"></div>
 
         <div class="select-count"></div>
 
         <div class="tree"></div>
         <div class="webgl-canvas"></div>
         <div class="svg-canvas"></div>
-        <div class="hmap-tt hidden"></div>
+        <div class="hmap-tt"></div>
         <div class="scroll-container"></div>
     </div>
 

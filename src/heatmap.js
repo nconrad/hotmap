@@ -47,7 +47,7 @@ const zoomFactor = 0.1; // speed at which to zoom with mouse
 
 // general chart settings
 let margin = {
-    top: 200,
+    top: 210,
     bottom: 150,
     left: 275,
     right: 125
@@ -952,6 +952,9 @@ export default class Heatmap {
 
         let [w, h] = this.getContainerSize();
         scaleCtrl.fullscreen(w, h, this.parent, () => {
+            this.scrollBox.setPos(0,0);
+            [this.xStart, this.yStart] = [0, 0];
+
             if (this.onFSClick) this.onFSClick();
             this.resize();
         });
@@ -1133,9 +1136,9 @@ export default class Heatmap {
         y = margin.top + y * cellH;
 
         let content =
-            `<b>Row:</b> ${yLabel}<br>` +
-            `<b>Column:</b> ${xLabel}<br>` +
-            `<b>Value:</b> ${value}`;
+            `<b>x:</b> ${xLabel}<br>` +
+            `<b>y:</b> ${yLabel}<br>` +
+            `<b>value:</b> ${value}`;
 
         this.ele.querySelector('.header .info').innerHTML = content;
 
@@ -1308,6 +1311,10 @@ export default class Heatmap {
             box.w = Math.abs(x2 - box.x);
             box.h = Math.abs(y2 - box.y);
 
+            let countEl = this.ele.querySelector('.select-count');
+            let count = (box.w + 1) * (box.h + 1);
+            countEl.innerHTML = `${count} selected`
+
             selectDraw();
         };
 
@@ -1342,6 +1349,7 @@ export default class Heatmap {
 
             box = {};
             this.svg.querySelectorAll('.select-box').forEach(e => e.remove());
+            this.ele.querySelector('.select-count').innerHTML = '';
         };
 
         let selectDraw = () => {
