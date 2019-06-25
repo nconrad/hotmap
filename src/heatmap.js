@@ -632,7 +632,7 @@ export default class Heatmap {
 
             // if text is showing, highlight text
             if (this.cellW > minTextW) {
-                this.highlightLabel(this.query, this.xAxis.querySelector(`[data-i="${i}"]`), i);
+                this.highlightLabel(this.query.q, this.xAxis.querySelector(`[data-i="${i}"]`), i);
             }
         });
     }
