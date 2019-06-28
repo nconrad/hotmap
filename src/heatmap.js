@@ -45,7 +45,9 @@ const cellMin = 1;
 const cellMax  = 100;
 const zoomFactor = 0.1; // speed at which to zoom with mouse
 
-// general chart settings
+/*
+ * general chart defaults
+ */
 let margin = {
     top: 200,
     bottom: 150,
@@ -53,8 +55,11 @@ let margin = {
     right: 125
 };
 
-const minTextW = 5;
-const maxTextW = 16;
+// default font sizes
+const minTextW = 5;      // show text if cell is at least this big
+const maxFontSize = 16;  // largest possible font size
+const fontPadding = 4;   // padding between text
+
 let rowCatWidth = 40;
 let colCatWidth = 40;
 
@@ -117,7 +122,9 @@ export default class Heatmap {
 
         Object.assign(margin, params.margin);
 
-        this.opts = params.options || {};
+        this.opts = Object.assign({
+            maxFontSize
+        }, params.options);
 
         /**
          * END initialize Params
@@ -510,7 +517,9 @@ export default class Heatmap {
         let ele = document.createElementNS(svgNS, 'text');
 
         y += this.cellH / 2 + 1;
-        ele.setAttribute('font-size', `${this.cellH <= maxTextW ? this.cellH - 4 : 16}px`);
+        let fontSize = this.cellH - fontPadding;
+        fontSize = fontSize <= this.opts.maxFontSize ? fontSize : this.opts.maxFontSize;
+        ele.setAttribute('font-size', `${fontSize}px`);
         ele.setAttribute('class', `row-${cellIdx}`);
         ele.setAttribute('fill', '#666');
         ele.setAttribute('x', x);
@@ -554,9 +563,11 @@ export default class Heatmap {
         let ele = document.createElementNS(svgNS, 'text');
 
         x += this.cellW / 2 + 1;
+        let fontSize = this.cellW - fontPadding;
+        fontSize = fontSize <= this.opts.maxFontSize ? fontSize : this.opts.maxFontSize;
         ele.innerHTML = text;
         ele.setAttribute('data-i', cellIdx);
-        ele.setAttribute('font-size', `${this.cellW <= maxTextW ? this.cellW - 4 : 16}px`);
+        ele.setAttribute('font-size', `${fontSize}px`);
         ele.setAttribute('fill', '#666');
         ele.setAttribute('x', x);
         ele.setAttribute('y', y);

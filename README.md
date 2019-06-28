@@ -156,6 +156,7 @@ requirejs(['heatmap'], function(Heatmap) {
     optionsLabel: 'Options',
     legend: <some_html>,
     showVersion: <bool>     // shows version number bottom right
+    maxFontSize: <int>      // pixels
 }
 ```
 
