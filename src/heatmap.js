@@ -49,7 +49,7 @@ const zoomFactor = 0.1; // speed at which to zoom with mouse
  * general chart defaults
  */
 let margin = {
-    top: 200,
+    top: 210,
     bottom: 150,
     left: 275,
     right: 125
@@ -336,7 +336,10 @@ export default class Heatmap {
     }
 
     /**
-     * todo: break into stage and update tint
+     * main rendering function
+     * @param {bool} renderX should render x axis
+     * @param {bool} renderY should render y axis
+     * @param {bool} scale should rescale (zoom / update cell dimensions)
      */
     draw(renderX, renderY, scale) {
         // let t0 = performance.now();
@@ -355,7 +358,7 @@ export default class Heatmap {
             yStart = this.yStart;
 
         // use cell size to compute "view box" of sorts
-        // Todo: optimize, moving into resize event
+        // Todo: optimize, moving into resize event?
         xViewSize = parseInt((this.parent.clientWidth - margin.left - margin.right) / cellW);
         yViewSize = parseInt((this.parent.clientHeight - margin.top - margin.bottom) / cellH);
         if (yViewSize > this.size.y) yViewSize = this.size.y;
@@ -365,6 +368,9 @@ export default class Heatmap {
         for (let i = 0; i < yViewSize; i++) {
             let y = margin.top + cellH * i;
             let rowIdx = yStart + i;
+
+            // enforce bounds when scrolled and scaling
+            if (rowIdx >= this.size.y) break;
 
             if (renderY && cellH > minTextW && !this.tree) {
                 this.addYLabel(this.yAxis, this.rows[rowIdx].name, margin.left - rowCatWidth - 10, y + 3, i);
@@ -377,6 +383,9 @@ export default class Heatmap {
             for (let j = 0; j < xViewSize; j++) {
                 let x = margin.left + cellW * j,
                     colIdx = xStart + j;
+
+                // enforce bounds when scrolled and scaling
+                if (colIdx >= this.size.x) break;
 
                 // if sprites rendered, just making transformations
                 if (this.isStaged) {
@@ -614,7 +623,7 @@ export default class Heatmap {
         let {cols, rows} = this.getViewboxLabels();
 
         let colMatches = cols.reduce((acc, col, i) => {
-            if (col.name.toLowerCase().includes(this.query)) acc.push(true);
+            if (col.name.toLowerCase().includes(this.query.q)) acc.push(true);
             else acc.push(false);
             return acc;
         }, []);
@@ -637,7 +646,7 @@ export default class Heatmap {
 
             // if text is showing, highlight text
             if (this.cellW > minTextW) {
-                this.highlightLabel(this.query, this.xAxis.querySelector(`[data-i="${i}"]`), i);
+                this.highlightLabel(this.query.q, this.xAxis.querySelector(`[data-i="${i}"]`), i);
             }
         });
     }
@@ -957,6 +966,9 @@ export default class Heatmap {
 
         let [w, h] = this.getContainerSize();
         scaleCtrl.fullscreen(w, h, this.parent, () => {
+            this.scrollBox.setPos(0,0);
+            [this.xStart, this.yStart] = [0, 0];
+
             if (this.onFSClick) this.onFSClick();
             this.resize();
         });
@@ -1016,11 +1028,40 @@ export default class Heatmap {
     initSearch() {
         let self = this;
         let searchInput = this.ele.querySelector('.search');
+        let reset = this.ele.querySelector('.reset-btn');
 
         searchInput.onkeyup = function() {
-            self.query = this.value.toLowerCase();
+            let q = this.value.toLowerCase();
+
+            if (!q.length) {
+                self.query = null;
+            } else {
+                self.query = {
+                    q: q,
+                    count: self.cols.filter(c => c.name.toLowerCase().includes(q)).length
+                }
+            }
+
+            // display count
+            if (self.query) {
+                let searchInfo = self.ele.querySelector('.search-info');
+                searchInfo.innerHTML = `${self.query.count} results`
+                reset.classList.remove('hidden');
+            } else {
+                self.ele.querySelector('.search-info').innerHTML = '';
+                reset.classList.add('hidden');
+            }
+
             self.draw();
         };
+
+        reset.onclick = function() {
+            self.query = null;
+            reset.classList.add('hidden');
+            self.ele.querySelector('.search').value = '';
+            self.ele.querySelector('.search-info').innerHTML = '';
+            self.draw();
+        }
     }
 
     initOptions() {
@@ -1109,9 +1150,9 @@ export default class Heatmap {
         y = margin.top + y * cellH;
 
         let content =
-            `<b>Row:</b> ${yLabel}<br>` +
-            `<b>Column:</b> ${xLabel}<br>` +
-            `<b>Value:</b> ${value}`;
+            `<b>x:</b> ${xLabel}<br>` +
+            `<b>y:</b> ${yLabel}<br>` +
+            `<b>value:</b> ${value}`;
 
         this.ele.querySelector('.header .info').innerHTML = content;
 
@@ -1278,6 +1319,10 @@ export default class Heatmap {
             box.w = Math.abs(x2 - box.x);
             box.h = Math.abs(y2 - box.y);
 
+            let countEl = this.ele.querySelector('.select-count');
+            let count = (box.w + 1) * (box.h + 1);
+            countEl.innerHTML = `${count} selected`
+
             selectDraw();
         };
 
@@ -1312,6 +1357,7 @@ export default class Heatmap {
 
             box = {};
             this.svg.querySelectorAll('.select-box').forEach(e => e.remove());
+            this.ele.querySelector('.select-count').innerHTML = '';
         };
 
         let selectDraw = () => {

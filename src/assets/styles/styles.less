@@ -4,7 +4,7 @@
  */
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .caret-down {
@@ -16,10 +16,30 @@
   display: inline-block;
 }
 
-.select-count {
+
+.select-count,
+.search-info {
+  padding: 5px;
+  font-size: .9em;
+  color: #fff;
   position: absolute;
-  top: 10px;
-  left: 225px;
+}
+
+.select-count {
+  top: 60px;
+  left: 80px;
+  background: #888;
+}
+
+.search-info {
+  top: 20px;
+  left: 250px;
+  background: #1187f1;
+}
+
+.select-count:empty,
+.search-info:empty {
+  display: none;
 }
 
 /**
@@ -33,6 +53,10 @@
   font-size: .8em;
   border-radius: 5px;
   z-index: 11; /* greater than scroll container */
+}
+
+.hmap-tt:empty {
+  display: none;
 }
 
 /**
