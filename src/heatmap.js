@@ -58,7 +58,7 @@ let margin = {
 // default font sizes
 const minTextW = 5;      // show text if cell is at least this big
 const maxFontSize = 16;  // largest possible font size
-const fontPadding = 4;   // padding between text
+const textPadding = 4;   // padding between text
 
 let rowCatWidth = 40;
 let colCatWidth = 40;
@@ -123,7 +123,8 @@ export default class Heatmap {
         Object.assign(margin, params.margin);
 
         this.opts = Object.assign({
-            maxFontSize
+            maxFontSize,
+            textPadding
         }, params.options);
 
         /**
@@ -448,7 +449,9 @@ export default class Heatmap {
             cellXSize: cellW,
             cellYSize: cellH
         });
-        requestAnimationFrame(this.render); // draw
+
+        // render!
+        requestAnimationFrame(this.render);
         this.catLabelsAdded = true;
         this.selectable();
 
@@ -517,7 +520,7 @@ export default class Heatmap {
         let ele = document.createElementNS(svgNS, 'text');
 
         y += this.cellH / 2 + 1;
-        let fontSize = this.cellH - fontPadding;
+        let fontSize = this.cellH - this.opts.textPadding;
         fontSize = fontSize <= this.opts.maxFontSize ? fontSize : this.opts.maxFontSize;
         ele.setAttribute('font-size', `${fontSize}px`);
         ele.setAttribute('class', `row-${cellIdx}`);
@@ -563,7 +566,7 @@ export default class Heatmap {
         let ele = document.createElementNS(svgNS, 'text');
 
         x += this.cellW / 2 + 1;
-        let fontSize = this.cellW - fontPadding;
+        let fontSize = this.cellW - this.opts.textPadding;
         fontSize = fontSize <= this.opts.maxFontSize ? fontSize : this.opts.maxFontSize;
         ele.innerHTML = text;
         ele.setAttribute('data-i', cellIdx);
@@ -1235,13 +1238,7 @@ export default class Heatmap {
 
         let scrollContainer = this.ele.querySelector('.scroll-container');
 
-        if (this.selectDown) {
-            scrollContainer.removeEventListener('mousedown', this.selectDown);
-            scrollContainer.removeEventListener('mouseup', this.selectUp);
-            scrollContainer.removeEventListener('mousemove', this.selectMove);
-        }
-
-        this.selectDown = (e) => {
+        scrollContainer.onmousedown = (e) => {
             this.hideHoverTooltip();
             let _xPos = e.offsetX - scrollContainer.scrollLeft,
                 _yPos = e.offsetY - scrollContainer.scrollTop;
@@ -1257,7 +1254,7 @@ export default class Heatmap {
             drag = true;
         };
 
-        this.selectMove = (e) => {
+        scrollContainer.onmousemove = (e) => {
             if (!drag) return;
 
             let _xPos = e.offsetX - scrollContainer.scrollLeft,
@@ -1284,7 +1281,7 @@ export default class Heatmap {
             selectDraw();
         };
 
-        this.selectUp = () => {
+        scrollContainer.onmouseup = () => {
             drag = false;
 
             // otherwise, compute selection
@@ -1347,10 +1344,6 @@ export default class Heatmap {
             });
             this.svg.appendChild(rect);
         };
-
-        scrollContainer.addEventListener('mousedown', this.selectDown, false);
-        scrollContainer.addEventListener('mouseup', this.selectUp, false);
-        scrollContainer.addEventListener('mousemove', this.selectMove, false);
     }
 
     static getMatrixStats(matrix) {
