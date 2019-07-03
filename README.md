@@ -9,13 +9,14 @@ A WebGL/Canvas Heatmap for Bioinformatics and Big Data, written in vanilla JS an
 
 ## Some Features
 
-- panning/scaling/zoom
-- resizing
+- panning, scaling, zoom, and resizing
+- SVG download
 - various color/binning options
 - search
 - cell/row/column selection
-- categorical/meta data display
-- flip axises
+- meta/categorical data display
+- update API
+- flip axis
 - customizable tooltips
 
 
@@ -92,8 +93,8 @@ requirejs(['heatmap'], function(Heatmap) {
 | matrix                | matrix of numbers                 | &check;   | -                             |
 | rowsLabel             | string                            | -         | 'Rows'                        |
 | colsLabel             | string                            | -         | 'Columns'                     |
-| rowCatLabels          | list of strings                   | -         | []                            |
-| colCatLabels          | list of strings                   | -         | []                            |
+| rowMetaLabels         | list of strings                   | -         | []                            |
+| colMetaLabels         | list of strings                   | -         | []                            |
 | color                 | string \|\| object                | -         | 'gradient'                    |
 | [defaults](#defaults) | Object                            | -         | computed based on window size |
 | [options](#options)   | Object                            | -         | -                             |
@@ -123,7 +124,7 @@ requirejs(['heatmap'], function(Heatmap) {
 [
     {
         name: 'some label',
-        meta: ['cat 1', 'cat 2']
+        meta: ['cat 1', 'some meta info']
     },
     ...
 ]
@@ -151,11 +152,11 @@ requirejs(['heatmap'], function(Heatmap) {
 ##### options
 ```javascript
 {
-    theme: 'dark' | 'light'
-    hideLegend: <bool>
-    optionsLabel: 'Options',
+    theme: 'dark' | 'light',
+    hideLegend: <bool>,
     legend: <some_html>,
-    showVersion: <bool>     // shows version number bottom right
+    optionsLabel: 'Options',
+    showVersion: <bool>,    // shows version number bottom right
     maxFontSize: <int>      // pixels
 }
 ```
