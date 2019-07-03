@@ -11,6 +11,7 @@
  */
 import * as PIXI from 'pixi.js';
 import 'regenerator-runtime/runtime';
+import FontFaceObserver from 'fontfaceobserver';
 
 import container from './container.html';
 
@@ -46,22 +47,27 @@ const cellMax  = 100;
 const zoomFactor = 0.1; // speed at which to zoom with mouse
 
 /*
- * general chart defaults
+ * margin defaults
  */
 let margin = {
-    top: 210,
+    top: null,
     bottom: 150,
-    left: 275,
+    left: null,
     right: 125
 };
 
+const minMarginLeft = 200;
+const minMarginTop = 200;
+
 // default font sizes
 const minTextW = 5;      // show text if cell is at least this big
-const maxFontSize = 16;  // largest possible font size
+const maxFontSize = 16;  // largest possible font size (pixels)
 const textPadding = 4;   // padding between text
+const yTextPad = 10;     // padding from y axis
+const xTextPad = 5       // padding from x axis
 
-let rowCatWidth = 40;
-let colCatWidth = 40;
+let yMetaWidth = 40;
+let xMetaHeight = 40;
 
 // axis label offsets from the grid
 const xAxisLabelOffset = 50;
@@ -99,14 +105,14 @@ export default class Heatmap {
             return;
         }
 
-        this.rowCategories = Heatmap.getCategories(params.rows);
-        this.colCategories = Heatmap.getCategories(params.cols);
-        if (!this.rowCategories) rowCatWidth = 0;
-        if (!this.colCategories) colCatWidth = 0;
+        this.rowMeta = Heatmap.getMeta(params.rows);
+        this.colMeta = Heatmap.getMeta(params.cols);
+        if (!this.rowMeta) yMetaWidth = 0;
+        if (!this.colMeta) xMetaHeight = 0;
 
         // category labels
-        this.rowCatLabels = params.rowCatLabels || [];
-        this.colCatLabels = params.colCatLabels || [];
+        this.rowMetaLabels = params.rowMetaLabels || [];
+        this.colMetaLabels = params.colMetaLabels || [];
 
         // axis labels
         this.yLabel = params.rowsLabel || 'Rows';
@@ -117,13 +123,12 @@ export default class Heatmap {
         this.onClick = params.onClick;
         this.onFSClick = params.onFullscreenClick;
 
-        this.rowCatColors = this.rowCategories
-            ? categoryColors(this.rowCategories) : [];
+        this.rowCatColors = this.rowMeta
+            ? categoryColors(this.rowMeta) : [];
 
-        Object.assign(margin, params.margin);
+        //Object.assign(margin, params.margin);
 
         this.opts = Object.assign({
-            maxFontSize,
             textPadding
         }, params.options);
 
@@ -131,44 +136,11 @@ export default class Heatmap {
          * END initialize Params
          **/
 
-        // handle basic options
         this.ele.innerHTML = container;
-        if (this.opts.theme == 'light')
-            this.ele.querySelector('.header').classList.add('light');
-        if (this.opts.showVersion)
-            this.ele.querySelector('.version').classList.remove('hidden');
-        if (this.opts.optionsLabel)
-            this.ele.querySelector('.opts-label').innerHTML = this.opts.optionsLabel;
-        if (this.opts.hideOptions)
-            this.ele.querySelector('.opts-btn').remove();
 
-        if (params.legend) {
-            this.opts.hideLegend = true;
-            this.ele.querySelector('.legend').innerHTML = params.legend;
-        } else if (this.opts.hideLegend)
-            this.ele.querySelector('.legend-container').remove();
-
-
-        // m and n (row and cols) dimensions
-        this.size = Heatmap.getMatrixStats(params.matrix);
-
-        // start coordinates in matrix for "viewbox"
-        this.xStart = 0;
-        this.yStart = 0;
-
-        // cell dimensions
-        this.cellW;
-        this.cellH;
-
-        // current query for search input
-        this.query;
-
-        // components to be instantiated
-        this.scaleCtrl;
-        this.scrollBox;
-        this.mouseTracker;
-
-        this.start();
+        this.initParams().then(() => {
+            this.start();
+        })
 
         return this;
     }
@@ -182,19 +154,19 @@ export default class Heatmap {
         else if (!rows) alert(`${NAME}: Must provide some sort of row labels.`);
         else if (!cols) alert(`${NAME}: Must provide some sort of column labels.`);
 
-        let rowCatLbls = params.rowCatLabels;
-        if (rowCatLbls !== null && !rowCatLbls && 'categories' in rows[0]) {
+        let rowMetaLabels = params.rowMetaLabels;
+        if (rowMetaLabels !== null && !rowMetaLabels && 'meta' in rows[0]) {
             console.warn(
                 `${NAME}: No labels were provided for row categories.
-                Use "rowCatLabels: null" to dismiss`
+                Use "rowMetaLabels: null" to dismiss`
             );
         }
 
-        let colCatLbls = params.colCatLabels;
-        if (colCatLbls !== null && !colCatLbls && 'categories' in rows[0]) {
+        let colMetaLabels = params.colMetaLabels;
+        if (colMetaLabels !== null && !colMetaLabels && 'meta' in rows[0]) {
             console.warn(
                 `${NAME}: No labels were provided for column categories.
-                Use "colCatLabels: null" to dismiss`
+                Use "colMetaLabels: null" to dismiss`
             );
         }
 
@@ -203,9 +175,59 @@ export default class Heatmap {
         if (!validMat) alert('Must provide matrix with same number of columns.');
     }
 
-    static getCategories(objs) {
-        objs = objs.filter(r => r.categories).map(r => r.categories)
+    initParams() {
+        // handle basic options
+        if (this.opts.theme == 'light')
+            this.ele.querySelector('.header').classList.add('light');
+        if (this.opts.showVersion)
+            this.ele.querySelector('.version').classList.remove('hidden');
+        if (this.opts.optionsLabel)
+            this.ele.querySelector('.opts-label').innerHTML = this.opts.optionsLabel;
+        if (this.opts.hideOptions)
+            this.ele.querySelector('.opts-btn').remove();
 
+        if (this.opts.legend) {
+            this.opts.hideLegend = true;
+            this.ele.querySelector('.legend').innerHTML = this.opts.legend;
+        } else if (this.opts.hideLegend)
+            this.ele.querySelector('.legend-container').remove();
+
+
+        // m and n (row and cols) dimensions
+        this.size = Heatmap.getMatrixStats(this.matrix);
+
+        // start coordinates in matrix for "viewbox"
+        this.xStart = 0;
+        this.yStart = 0;
+
+        // cell dimensions
+        this.cellW;
+        this.cellH;
+
+        // dimensions for meta
+        this.yMetaWidth = this.rowMeta ? this.rowMeta[0].length : 0,
+        this.xMetaHeight = this.colMeta ? this.colMeta[0].length : 0
+
+        // current query for search input
+        this.query;
+
+        // components to be instantiated
+        this.scaleCtrl;
+        this.scrollBox;
+        this.mouseTracker;
+
+        // compute margin sizes
+        let style = getComputedStyle(this.ele.querySelector('.heatmap'));
+        this.font = style.fontFamily.split(',')[0];
+
+        let fontProm = new FontFaceObserver(this.font);
+        return fontProm.load().then(() => {
+            margin = this.computeMargins(this.font);
+        })
+    }
+
+    static getMeta(objs) {
+        objs = objs.filter(r => r.meta).map(r => r.meta)
         return objs.length ? objs : null;
     }
 
@@ -250,10 +272,10 @@ export default class Heatmap {
                 ele: this.ele,
                 newick: this.newick,
                 margin,
-                width: margin.left - rowCatWidth - 30
+                width: margin.left - yMetaWidth - 30
             });
 
-            margin.left = 400 + rowCatWidth + 50;
+            margin.left = 400 + yMetaWidth + 50;
         }
 
         let renderer = Heatmap.getRenderer(width, height);
@@ -336,6 +358,62 @@ export default class Heatmap {
     }
 
     /**
+     * Computes margins based on fonts and text sizes
+     * We use canvas to avoid dom rendering
+     */
+    computeMargins(font) {
+        let fontSize = this.opts.maxFontSize
+        let fontStr = `${fontSize}px ${font}`;
+
+        var c = this.ele.appendChild(document.createElement('canvas'))
+        var ctx = c.getContext('2d');
+
+        let left = 0;
+        this.rows.forEach((r, i) => {
+            let text = r.name;
+            if (text.length > 28 ) text = text.slice(0, 28) + '...';
+
+            ctx.font = fontStr;
+            let width = ctx.measureText(text).width;
+            ctx.fillText(text, 10, i*20)
+            if (width > left) left = width;
+        })
+        c.remove();
+
+        var c = this.ele.appendChild(document.createElement('canvas'))
+        var ctx = c.getContext('2d');
+
+        let top = 0;
+        this.cols.forEach(c => {
+            let text = c.name;
+            if (text.length > 28 ) text = text.slice(0, 28) + '...';
+
+            ctx.font = fontStr;
+            let width = ctx.measureText(text).width;
+            if (width > top) top = width;
+        })
+
+        // x axis labels is at 45 degrees
+        top = (top + xTextPad) / Math.sqrt(2);
+
+        this.rowMetaLabels.forEach(text => {
+            ctx.font = fontStr;
+            let width = ctx.measureText(text).width;
+            if (width > top) top = width;
+        })
+        c.remove();
+
+        left = Math.ceil(left) + yMetaWidth + yTextPad + this.yMetaWidth;
+
+        return {
+            top: top < minMarginTop ? minMarginTop : top,
+            right: margin.right,
+            bottom: margin.bottom,
+            left: left < minMarginLeft ? minMarginLeft : left,
+        }
+    }
+
+    /**
      * main rendering function
      * @param {bool} renderX should render x axis
      * @param {bool} renderY should render y axis
@@ -373,10 +451,13 @@ export default class Heatmap {
             if (rowIdx >= this.size.y) break;
 
             if (renderY && cellH > minTextW && !this.tree) {
-                this.addYLabel(this.yAxis, this.rows[rowIdx].name, margin.left - rowCatWidth - 10, y + 3, i);
+                this.addYLabel(
+                    this.yAxis, this.rows[rowIdx].name,
+                    margin.left - yMetaWidth - yTextPad, y + 3, i
+                );
             }
-            if (renderY && this.rowCategories && rowIdx < this.size.y) {
-                this.addCategories('y', rowIdx, margin.left - rowCatWidth, y);
+            if (renderY && this.rowMeta && rowIdx < this.size.y) {
+                this.addCategories('y', rowIdx, margin.left - yMetaWidth, y);
             }
 
             // for each column
@@ -404,15 +485,15 @@ export default class Heatmap {
                 }
 
                 if (renderX && i == 0 && cellW > minTextW) {
-                    this.addXLabel(this.xAxis, this.cols[colIdx].name, x + 2, margin.top - 5, j);
+                    this.addXLabel(this.xAxis, this.cols[colIdx].name, x + 2, margin.top - xTextPad, j);
                 }
 
-                if (this.rowCategories && !this.catLabelsAdded && i == 0 &&
-                    renderX && colIdx < this.rowCatLabels.length) {
-                    let k = this.rowCatLabels.length - colIdx - 1;
+                if (this.rowMeta && !this.catLabelsAdded && i == 0 &&
+                    renderX && colIdx < this.rowMetaLabels.length) {
+                    let k = this.rowMetaLabels.length - colIdx - 1;
                     this.addCategoryLabel(
-                        'x', this.rowCatLabels[k],
-                        margin.left - colIdx * (colCatWidth / this.rowCatLabels.length),
+                        'x', this.rowMetaLabels[k],
+                        margin.left - colIdx * (xMetaHeight / this.rowMetaLabels.length),
                         margin.top - 5, k
                     );
                 }
@@ -552,9 +633,9 @@ export default class Heatmap {
         ele.onmouseover = () => {
             let tt = this.tooltip(y - ele.getBBox().height - 5, x + 10);
 
-            let cats = !this.rowCategories || this.rowCatLabels.length == 0 ? ''
-                : this.rowCategories[rowIdx].map((cat, i) =>
-                    `<div><b>${this.rowCatLabels[i]}:</b> ${cat}</div>`
+            let cats = !this.rowMeta || this.rowMetaLabels.length == 0 ? ''
+                : this.rowMeta[rowIdx].map((cat, i) =>
+                    `<div><b>${this.rowMetaLabels[i]}:</b> ${cat}</div>`
                 ).join('');
 
             tt.innerHTML =
@@ -600,9 +681,9 @@ export default class Heatmap {
         ele.onmouseover = () => {
             let tt = this.tooltip(y, x - 5);
 
-            let cats = !this.colCategories || this.colCatLabels.length === 0 ? ''
-                : this.colCategories[colIdx].map((cat, i) =>
-                    `<div><b>${this.colCatLabels[i]}:</b> ${cat}</div>`
+            let cats = !this.colMeta || this.colMetaLabels.length === 0 ? ''
+                : this.colMeta[colIdx].map((cat, i) =>
+                    `<div><b>${this.colMetaLabels[i]}:</b> ${cat}</div>`
                 ).join('');
 
             tt.innerHTML =
@@ -726,7 +807,7 @@ export default class Heatmap {
     showYAxisLabel(label) {
         let cls = 'y-axis-label';
         let ele = this.svg.querySelector(`.${cls}`);
-        let x = margin.left - yAxisLabelOffset - rowCatWidth;
+        let x = margin.left - yAxisLabelOffset - yMetaWidth;
 
         // if label exists, just reuse
         if (ele) {
@@ -783,8 +864,8 @@ export default class Heatmap {
                     colName: this.cols[j].name,
                     ...(rowID && {rowID}),
                     ...(colID && {colID}),
-                    ...(this.rowCategories && {rowCats: this.rowCategories[i]}),
-                    ...(this.colCategories && {colCats: this.colCategories[j]})
+                    ...(this.rowMeta && {rowMeta: this.rowMeta[i]}),
+                    ...(this.colMeta && {colMeta: this.colMeta[j]})
                 });
             }
         }
@@ -834,10 +915,10 @@ export default class Heatmap {
             return;
         }
 
-        let categories = this.rowCategories[index];
+        let categories = this.rowMeta[index];
 
         // compute width of each category from: total / number-of-cateogries
-        let width = parseInt(rowCatWidth / categories.length );
+        let width = parseInt(yMetaWidth / categories.length );
 
         for (let i = 0; i < categories.length; i++) {
             let sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
@@ -872,7 +953,7 @@ export default class Heatmap {
                 // clear sort in dom
                 svg.querySelectorAll('.cat-label').forEach(label => {
                     let idx = label.getAttribute('data-idx');
-                    label.innerHTML = this.rowCatLabels[idx];
+                    label.innerHTML = this.rowMetaLabels[idx];
                 });
 
                 let ele = svg.querySelector(`.cat-label[data-name="${key}"]`);
@@ -1160,13 +1241,13 @@ export default class Heatmap {
             left = x + cellW;
         let tooltip = this.tooltip(top, left);
 
-        let rowCats = this.rowCategories,
-            colCats = this.colCategories;
+        let rowMeta = this.rowMeta,
+            colMeta = this.colMeta;
 
         tooltip.innerHTML = this.onHover ? this.onHover({
             xLabel, yLabel, value,
-            ...(rowCats && {rowCategories: this.rowCategories[i]}),
-            ...(colCats && {colCategories: this.colCategories[j]})
+            ...(rowMeta && {rowMeta: this.rowMeta[i]}),
+            ...(colMeta && {colMeta: this.colMeta[j]})
         }) : content;
 
         // add hover box
@@ -1212,7 +1293,7 @@ export default class Heatmap {
     }
 
     rowCatSort(category, dsc) {
-        let catIdx = this.rowCatLabels.indexOf(category);
+        let catIdx = this.rowMetaLabels.indexOf(category);
 
         // attach matrix rows to rows for sorting;
         this.rows.forEach((row, i) => {
@@ -1222,8 +1303,8 @@ export default class Heatmap {
 
         // sort rows
         this.rows.sort((a, b) => {
-            if (dsc) return b.categories[catIdx].localeCompare(a.categories[catIdx]);
-            return a.categories[catIdx].localeCompare(b.categories[catIdx]);
+            if (dsc) return b.meta[catIdx].localeCompare(a.meta[catIdx]);
+            return a.meta[catIdx].localeCompare(b.meta[catIdx]);
         });
 
         // get matrix and colors back
@@ -1237,8 +1318,8 @@ export default class Heatmap {
 
     // updates associated data models (such as categorical data)
     updateData() {
-        this.rowCategories = Heatmap.getCategories(this.rows);
-        this.colCategories = Heatmap.getCategories(this.cols);
+        this.rowMeta = Heatmap.getMeta(this.rows);
+        this.colMeta = Heatmap.getMeta(this.cols);
 
         // update colors
         this.colorMatrix = colorMatrix(this.matrix, this.color);
@@ -1436,14 +1517,14 @@ export default class Heatmap {
 
 
             if (cellH > minTextW && !this.tree) {
-                this.addYLabel(yAxis, this.rows[rowIdx].name, margin.left - rowCatWidth - 10, y + 3, i);
+                this.addYLabel(yAxis, this.rows[rowIdx].name, margin.left - yMetaWidth - 10, y + 3, i);
             }
 
             // add row categories and category labels
-            if (this.rowCategories && rowIdx < this.size.y) {
-                let categories = this.rowCategories[rowIdx];
-                let width = parseInt(rowCatWidth / categories.length );
-                let x = margin.left - rowCatWidth;
+            if (this.rowMeta && rowIdx < this.size.y) {
+                let categories = this.rowMeta[rowIdx];
+                let width = parseInt(yMetaWidth / categories.length );
+                let x = margin.left - yMetaWidth;
                 for (let i = 0; i < categories.length; i++) {
                     let color = this.rowCatColors[rowIdx][i];
                     let rect = svgRect(x, y, width - 1, cellH, { fill: hexToHexColor(color) })
@@ -1474,7 +1555,7 @@ export default class Heatmap {
         if (cellH <= minTextW && yLabel) svg.appendChild(yLabel.cloneNode(true));
 
         // add category labels if needed
-        if (this.rowCategories) svg.appendChild(this.cAxis.cloneNode(true));
+        if (this.rowMeta) svg.appendChild(this.cAxis.cloneNode(true));
 
         div.remove();
         return svg;
@@ -1512,6 +1593,9 @@ export default class Heatmap {
         this.scrollBox.setMaxes(this.size.x, this.size.y);
         this.scrollBox.setPos(0, 0);
         [this.xStart, this.yStart] = [0, 0];
+
+        // need to recompute margins
+        margin = this.computeMargins(this.font)
 
         this.updateData();
         this.initChart({resize: true});

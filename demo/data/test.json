@@ -1,7 +1,7 @@
 {
     "rows": [
         {
-            "categories": [
+            "meta": [
                 "1",
                 "1",
                 "1"
@@ -9,7 +9,7 @@
             "name": "Brucella canis strain RM6/66"
         },
         {
-            "categories": [
+            "meta": [
                 "1",
                 "1",
                 "1"
@@ -17,7 +17,7 @@
             "name": "Brucella pinnipedialis B2/94"
         },
         {
-            "categories": [
+            "meta": [
                 "1",
                 "1",
                 "1"

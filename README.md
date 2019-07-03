@@ -123,7 +123,7 @@ requirejs(['heatmap'], function(Heatmap) {
 [
     {
         name: 'some label',
-        categories: ['cat 1', 'cat 2']
+        meta: ['cat 1', 'cat 2']
     },
     ...
 ]
@@ -134,7 +134,7 @@ requirejs(['heatmap'], function(Heatmap) {
 [
     {
         name: 'some label',
-        categories: ['cat foo', 'cat bar']
+        meta: ['cat foo', 'cat bar']
     },
     ...
 ]
