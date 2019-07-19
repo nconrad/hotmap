@@ -1,2 +1,2 @@
 
-module.exports = require('./src/heatmap');
+module.exports = require('./src/hotmap');

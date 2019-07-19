@@ -12,7 +12,7 @@ const devMode = process.env.NODE_ENV !== 'production';
 module.exports = {
     mode: 'development',
     entry: {
-        'heatmap': './src/heatmap.js',
+        'hotmap': './src/hotmap.js',
         'app': ['./demo/app.js']
         // tree module is bundled separately
     },
@@ -20,7 +20,7 @@ module.exports = {
         path: path.resolve(__dirname, 'dist'),
         publicPath: '/dist/',
         filename: '[name].js',
-        library: 'Heatmap',
+        library: 'Hotmap',
         libraryExport: 'default',
         libraryTarget: 'umd'
     },

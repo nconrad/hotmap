@@ -85,14 +85,14 @@ export default class ScaleCtrl {
 
             // toggle z-index to 0 for all other elements in body
             document.body.querySelectorAll('*').forEach(el => {
-                if (el.closest('.heatmap')) return;
+                if (el.closest('.hotmap')) return;
                 el.classList.toggle('hmap-force-z-index');
             });
 
             resize();
 
             fsBtn.innerHTML = this._isFullscreen ? exitFSIcon : fsIcon;
-            fsBtn.title = this._isFullscreen ? 'exit fullscreen' : 'make heatmap fullscreen';
+            fsBtn.title = this._isFullscreen ? 'exit fullscreen' : 'make hotmap fullscreen';
 
             if (this._isFullscreen) {
                 this._exitHandle = function(e) {

@@ -1,7 +1,7 @@
 /**
  * scroll-box.js
  *
- * A scrollbar implementation for heatmap.js, using fake content area.
+ * A scrollbar implementation for hotmap.js, using fake content area.
  *
  * Authors: nconrad
  *

@@ -1,5 +1,5 @@
 /**
- * heatmap.js
+ * hotmap.js
  *
  * Author: https://github.com/nconrad
  *
@@ -30,13 +30,13 @@ import { transpose } from './matrix';
 // import Picker from 'vanilla-picker';
 
 import { labelColor, labelHoverColor } from './consts';
-import './assets/styles/heatmap.less';
+import './assets/styles/hotmap.less';
 
 PIXI.utils.skipHello();
 
 const PARTICLE_CONTAINER = false; // experimental
 
-const NAME = `heatmap.js`;
+const NAME = `hotmap.js`;
 
 // view size (in terms of size of matrix)
 let yViewSize;
@@ -61,7 +61,7 @@ const minMarginTop = 200;
 
 // default font sizes
 const minTextW = 5;      // show text if cell is at least this big
-const maxFontSize = 16;  // largest possible font size (pixels)
+const maxFontSize = 18;  // largest possible font size (pixels)
 const textPadding = 4;   // padding between text
 const yTextPad = 10;     // padding from y axis
 const xTextPad = 5       // padding from x axis
@@ -73,9 +73,9 @@ let xMetaHeight = 40;
 const xAxisLabelOffset = 50;
 const yAxisLabelOffset = 30;
 
-export default class Heatmap {
+export default class Hotmap {
     constructor(params) {
-        Heatmap.validateParams(params);
+        Hotmap.validateParams(params);
 
         /**
          * BEGIN initialize params
@@ -105,8 +105,8 @@ export default class Heatmap {
             return;
         }
 
-        this.rowMeta = Heatmap.getMeta(params.rows);
-        this.colMeta = Heatmap.getMeta(params.cols);
+        this.rowMeta = Hotmap.getMeta(params.rows);
+        this.colMeta = Hotmap.getMeta(params.cols);
         if (!this.rowMeta) yMetaWidth = 0;
         if (!this.colMeta) xMetaHeight = 0;
 
@@ -194,7 +194,7 @@ export default class Heatmap {
 
 
         // m and n (row and cols) dimensions
-        this.size = Heatmap.getMatrixStats(this.matrix);
+        this.size = Hotmap.getMatrixStats(this.matrix);
 
         // start coordinates in matrix for "viewbox"
         this.xStart = 0;
@@ -217,11 +217,11 @@ export default class Heatmap {
         this.mouseTracker;
 
         // compute margin sizes
-        let style = getComputedStyle(this.ele.querySelector('.heatmap'));
+        let style = getComputedStyle(this.ele.querySelector('.hotmap'));
         this.font = style.fontFamily.split(',')[0];
 
         let fontProm = new FontFaceObserver(this.font);
-        return fontProm.load().then(() => {
+        return fontProm.load(null, 30000).then(() => {
             margin = this.computeMargins(this.font);
         })
     }
@@ -267,7 +267,7 @@ export default class Heatmap {
 
         // optional tree (experimental)
         if (this.newick) {
-            const Tree = await import(/* webpackChunkName: "heatmap-tree" */ './tree.js');
+            const Tree = await import(/* webpackChunkName: "hotmap-tree" */ './tree.js');
             this.tree = new Tree.default({
                 ele: this.ele,
                 newick: this.newick,
@@ -278,7 +278,7 @@ export default class Heatmap {
             margin.left = 400 + yMetaWidth + 50;
         }
 
-        let renderer = Heatmap.getRenderer(width, height);
+        let renderer = Hotmap.getRenderer(width, height);
         this.renderer = renderer;
 
         this.initChart();
@@ -1219,7 +1219,7 @@ export default class Heatmap {
             node.setAttribute('font-weight', 'normal');
         });
 
-        this.hideHoverInfo();
+        // this.hideHoverInfo();
         this.hideHoverTooltip();
     }
 
@@ -1235,7 +1235,7 @@ export default class Heatmap {
             `<b>y:</b> ${yLabel}<br>` +
             `<b>value:</b> ${value}`;
 
-        this.ele.querySelector('.header .info').innerHTML = content;
+        // this.ele.querySelector('.header .info').innerHTML = content;
 
         let top = y + cellH,
             left = x + cellW;
@@ -1318,8 +1318,8 @@ export default class Heatmap {
 
     // updates associated data models (such as categorical data)
     updateData() {
-        this.rowMeta = Heatmap.getMeta(this.rows);
-        this.colMeta = Heatmap.getMeta(this.cols);
+        this.rowMeta = Hotmap.getMeta(this.rows);
+        this.colMeta = Hotmap.getMeta(this.cols);
 
         // update colors
         this.colorMatrix = colorMatrix(this.matrix, this.color);
@@ -1587,7 +1587,7 @@ export default class Heatmap {
         this.xLabel = data.colsLabel || this.xLabel;
         this.yLabel = data.rowsLabel || this.yLabel;
 
-        this.size = Heatmap.getMatrixStats(this.matrix);
+        this.size = Hotmap.getMatrixStats(this.matrix);
 
         // need to update scrollBox
         this.scrollBox.setMaxes(this.size.x, this.size.y);
@@ -1627,7 +1627,7 @@ export default class Heatmap {
         });
     }
 
-    downloadSVG({fileName = 'heatmap.svg', full} = {}) {
+    downloadSVG({fileName = 'hotmap.svg', full} = {}) {
         let svg = this.snapshot(full);
         this.saveSVG(svg, fileName)
     }

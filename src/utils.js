@@ -2,7 +2,7 @@
 /**
  * utils.js
  *
- * Utility functions for heatmap.js
+ * Utility functions for hotmap.js
  *
  * Author: https://github.com/nconrad
  *

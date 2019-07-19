@@ -1,13 +1,13 @@
 var miniExcludes = {
-	'heatmap/README.md': 1,
-	'heatmap/webpack.config': 1,
-	'heatmap/package-lock.json': 1,
-	'heatmap/entry': 1,
-	'heatmap/git-hooks/': 1
+	'hotmap/README.md': 1,
+	'hotmap/webpack.config': 1,
+	'hotmap/package-lock.json': 1,
+	'hotmap/entry': 1,
+	'hotmap/git-hooks/': 1
 	};
 
 var copyOnlyRe = [
-	/heatmap\/dist\/*/
+	/hotmap\/dist\/*/
 ];
 
 var profile = {
@@ -15,10 +15,10 @@ var profile = {
 
 		miniExclude: function (filename, mid) {
 			var shouldExclude =
-				/heatmap\/demo\/*/.test(filename) ||
-				/heatmap\/node_modules\/*/.test(filename) ||
-				/heatmap\/src\/*/.test(filename) ||
-				/heatmap\/tests\/*/.test(filename) ||
+				/hotmap\/demo\/*/.test(filename) ||
+				/hotmap\/node_modules\/*/.test(filename) ||
+				/hotmap\/src\/*/.test(filename) ||
+				/hotmap\/tests\/*/.test(filename) ||
 				mid in miniExcludes
 
 	  	return shouldExclude;
