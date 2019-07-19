@@ -2,7 +2,7 @@
 
 <html>
   <head>
-    <link href="../../dist/heatmap.css" rel="stylesheet" type="text/css">
+    <link href="../../dist/hotmap.css" rel="stylesheet" type="text/css">
 
     <style>
       body {
@@ -23,7 +23,7 @@
       }
     </style>
 
-    <script src="../../dist/heatmap.js"></script>
+    <script src="../../dist/hotmap.js"></script>
 
     <script>
       (function() {
@@ -34,9 +34,9 @@
 
         function onRes () {
           var {rows, cols, matrix} = JSON.parse(this.responseText);
-          var ele = document.getElementById('heatmap');
+          var ele = document.getElementById('hotmap');
 
-          var chart = new Heatmap({
+          var chart = new Hotmap({
             ele,
             cols,
             rows,
@@ -62,7 +62,7 @@
       </ul>
     </div>
     <div class="container">
-      <div id="heatmap"></div>
+      <div id="hotmap"></div>
     </div>
   </body>
 

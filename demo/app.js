@@ -1,12 +1,12 @@
 /**
  * app.js
  *
- * Demo app using heatmap.
+ * Demo app using hotmap.
  *
  * Authors: nconrad
  *
  */
-import Heatmap from '../src/heatmap';
+import Hotmap from '../src/hotmap';
 
 const SHOW_TREE = false;
 
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let dataPath = ele.getAttribute('data-path');
 
     ele.innerHTML = `<br>loading...`;
-    let heatmap;
+    let hotmap;
 
     fetch(dataPath)
         .then(res => res.json())
@@ -23,14 +23,14 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('data file:', data);
 
             if (!SHOW_TREE) {
-                heatmap = pfExample({ele, data});
+                hotmap = pfExample({ele, data});
                 return;
             }
 
             fetch('data/test-tree.nwk')
                 .then(res => {
                     res.text().then((newick) => {
-                        heatmap = pfExample({ele, data, newick});
+                        hotmap = pfExample({ele, data, newick});
                     });
                 });
         }).catch((e) => {
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!updateBtn) return;
 
     document.querySelector('.update-btn').onclick = () => {
-        let data = heatmap.getState();
+        let data = hotmap.getState();
         // remove some rows (example)
         let rows = data.rows.slice(0, 5),
             matrix = data.matrix.slice(0, 5);
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // select 200 columns (example)
         let cols = data.cols.slice(0, 200);
         matrix = matrix.map(row => row.slice(0, 200));
-        heatmap.update({rows, cols, matrix});
+        hotmap.update({rows, cols, matrix});
     };
 });
 
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function pfExample({ele, data, newick}) {
     let {rows, cols, matrix} = data;
     let rowMetaLabels = ['Isolation Country', 'Host', 'Genome Group'];
-    let heatmap = new Heatmap({
+    let hotmap = new Hotmap({
         ele, rows, cols, matrix,
         rowsLabel: 'Genomes',
         colsLabel: 'Protein Families',
@@ -93,13 +93,13 @@ function pfExample({ele, data, newick}) {
         }
     });
 
-    return heatmap;
+    return hotmap;
 }
 
 function transcriptomicsExample({ele, data, newick}) {
     let {rows, cols, matrix} = data;
 
-    let heatmap = new Heatmap({
+    let hotmap = new Hotmap({
         ele, rows, cols, matrix,
         rowsLabel: 'Genomes',
         colsLabel: 'Protein Families',
@@ -126,14 +126,14 @@ function transcriptomicsExample({ele, data, newick}) {
         }
     });
 
-    return heatmap;
+    return hotmap;
 }
 
 
 function pathwayExample({ele, data, newick}) {
     let {rows, cols, matrix} = data;
 
-    let heatmap = new Heatmap({
+    let hotmap = new Hotmap({
         ele, rows, cols, matrix,
         rowsLabel: 'Protein Families',
         colsLabel: 'Genomes',
@@ -153,5 +153,5 @@ function pathwayExample({ele, data, newick}) {
         }
     });
 
-    return heatmap;
+    return hotmap;
 }

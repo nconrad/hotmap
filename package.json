@@ -1,7 +1,7 @@
 {
-    "name": "heatmap",
-    "version": "0.2.0",
-    "description": "WebGL Based Heatmap Viewer for Bioinformatics and Big Data",
+    "name": "hotmap",
+    "version": "0.2.1",
+    "description": "WebGL Based Hotmap Viewer for Bioinformatics and Big Data",
     "main": "index.js",
     "scripts": {
         "build": "NODE_ENV=production webpack -p",
@@ -47,13 +47,13 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/nconrad/heatmap.git"
+        "url": "git+https://github.com/nconrad/hotmap.git"
     },
     "author": "nconrad",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/nconrad/heatmap/issues"
+        "url": "https://github.com/nconrad/hotmap/issues"
     },
-    "homepage": "https://github.com/nconrad/heatmap#readme",
+    "homepage": "https://github.com/nconrad/hotmap#readme",
     "dojoBuild": "app.profile.js"
 }

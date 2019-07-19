@@ -1,29 +1,31 @@
-# Heatmap
+# Hotmap
+
+<img src="demo/logo.png" width="400">
+
 
 A WebGL/Canvas Heatmap for Bioinformatics and Big Data, written in vanilla JS and built with [pixi.js](http://www.pixijs.com/).
 
-[demo](https://nconrad.github.io/heatmap/demo/)
-
-![screenshot](demo/screenshot.png)
+[demo](https://nconrad.github.io/hotmap/demo/)
 
 
 ## Some Features
 
 - panning, scaling, zoom, and resizing
 - SVG download
-- various color/binning options
+- various color/binning options [to be extended]
 - search
 - cell/row/column selection
 - meta/categorical data display
 - update API
 - flip axis
 - customizable tooltips
+- fullscreen button
 
 
 
 ## Why?
 
-I wanted to create a heatmap viewer that easy to use and scales to millions of cells.
+I wanted to create a hotmap viewer that easy to use and scales to millions of cells.
 
 
 ## Prototype Usage
@@ -33,8 +35,8 @@ I wanted to create a heatmap viewer that easy to use and scales to millions of c
 Add the required CSS/JS:
 
 ```
-<link rel="stylesheet" type="text/css" href="dist/heatmap.css">
-<script src="dist/heatmap.js"></script>
+<link rel="stylesheet" type="text/css" href="dist/hotmap.css">
+<script src="dist/hotmap.js"></script>
 ```
 
 #### ES6
@@ -42,11 +44,11 @@ Add the required CSS/JS:
 Add required CSS, and import JS:
 
 ```
-<link href="dist/heatmap.css" rel="stylesheet" type="text/css">
+<link href="dist/hotmap.css" rel="stylesheet" type="text/css">
 ```
 
 ```
-import Heatmap from 'dist/heatmap';
+import Hotmap from 'dist/hotmap';
 ```
 
 #### AMD
@@ -54,7 +56,7 @@ import Heatmap from 'dist/heatmap';
 Add required required CSS, and require:
 
 ```
-<link href="dist/heatmap.css" rel="stylesheet" type="text/css">
+<link href="dist/hotmap.css" rel="stylesheet" type="text/css">
 ```
 
 ```javascript
@@ -62,7 +64,7 @@ requirejs.config({
     baseUrl: 'dist',
 });
 
-requirejs(['heatmap'], function(Heatmap) {
+requirejs(['hotmap'], function(Hotmap) {
     ...
 })
 ```
@@ -70,8 +72,8 @@ requirejs(['heatmap'], function(Heatmap) {
 ### Basic Example Config
 
 ```javascript
-    let heatmap = new Heatmap({
-        ele: document.getElementById('heatmap'),
+    let hotmap = new Hotmap({
+        ele: document.getElementById('hotmap'),
         rows: [{...}],
         cols: [{...}],
         matrix: [[1, 2, 3], [2, 5.3, 0], ...],
@@ -115,7 +117,7 @@ requirejs(['heatmap'], function(Heatmap) {
 | update      | update({rows, cols, matrix})                    | Given object with rows, columns, and matrix, updates chart |
 | getState    | getState()                                      | Returns current rows, columns and matrix                   |
 | flipAxis    | flipAxis()                                      | Swaps rows, cols, labels, and scaling                      |
-| downloadSVG | downloadSVG({{fileName = 'heatmap.svg', full}}) | Downloads chart as SVG.  "full" will include all data.     |
+| downloadSVG | downloadSVG({{fileName = 'hotmap.svg', full}}) | Downloads chart as SVG.  "full" will include all data.     |
 
 
 
@@ -192,14 +194,14 @@ npm run build
 
 ## Citation
 
-Paper pending.  Please cite this repo in the meantime:
+Please cite this repo in the meantime:
 
-N. Conrad, A WebGL Heatmap Viewer for Bioinformatics and Big Data, (2019), GitHub repository, https://github.com/nconrad/heatmap
+N. Conrad, A WebGL Heatmap Viewer for Bioinformatics and Big Data, (2019), GitHub repository, https://github.com/nconrad/hotmap
 
 
 ## License
 
-Released under [the MIT license](https://github.com/nconrad/heatmap/blob/master/LICENSE).
+Released under [the MIT license](https://github.com/nconrad/hotmap/blob/master/LICENSE).
 
 
 
