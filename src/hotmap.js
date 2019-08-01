@@ -64,7 +64,7 @@ const minTextW = 5;      // show text if cell is at least this big
 const maxFontSize = 18;  // largest possible font size (pixels)
 const textPadding = 4;   // padding between text
 const yTextPad = 10;     // padding from y axis
-const xTextPad = 5       // padding from x axis
+const xTextPad = 5;       // padding from x axis
 
 let yMetaWidth = 40;
 let xMetaHeight = 40;
@@ -126,7 +126,7 @@ export default class Hotmap {
         this.rowCatColors = this.rowMeta
             ? categoryColors(this.rowMeta) : [];
 
-        //Object.assign(margin, params.margin);
+        // Object.assign(margin, params.margin);
 
         this.opts = Object.assign({
             textPadding
@@ -140,7 +140,7 @@ export default class Hotmap {
 
         this.initParams().then(() => {
             this.start();
-        })
+        });
 
         return this;
     }
@@ -205,8 +205,8 @@ export default class Hotmap {
         this.cellH;
 
         // dimensions for meta
-        this.yMetaWidth = this.rowMeta ? this.rowMeta[0].length : 0,
-        this.xMetaHeight = this.colMeta ? this.colMeta[0].length : 0
+        this.yMetaWidth = this.rowMeta ? this.rowMeta[0].length : 0;
+        this.xMetaHeight = this.colMeta ? this.colMeta[0].length : 0;
 
         // current query for search input
         this.query;
@@ -217,17 +217,17 @@ export default class Hotmap {
         this.mouseTracker;
 
         // compute margin sizes
-        let style = getComputedStyle(this.ele.querySelector('.hotmap'));
+        let style = window.getComputedStyle(this.ele.querySelector('.hotmap'));
         this.font = style.fontFamily.split(',')[0];
 
         let fontProm = new FontFaceObserver(this.font);
         return fontProm.load(null, 30000).then(() => {
             margin = this.computeMargins(this.font);
-        })
+        });
     }
 
     static getMeta(objs) {
-        objs = objs.filter(r => r.meta).map(r => r.meta)
+        objs = objs.filter(r => r.meta).map(r => r.meta);
         return objs.length ? objs : null;
     }
 
@@ -263,7 +263,7 @@ export default class Hotmap {
 
         // initialize options
         if (!this.opts.hideOptions)
-             this.options = this.initOptions();
+            this.options = this.initOptions();
 
         // optional tree (experimental)
         if (this.newick) {
@@ -310,9 +310,8 @@ export default class Hotmap {
 
 
     initChart({resize} = false) {
-        if (this.ele.querySelector('.webgl-canvas canvas')) {
-            this.ele.querySelector('.webgl-canvas canvas').remove();
-        }
+        let canvas = this.ele.querySelector('.webgl-canvas canvas');
+        if (canvas) canvas.remove();
 
         this.ele.querySelector('.webgl-canvas')
             .appendChild(this.renderer.view);
@@ -362,11 +361,11 @@ export default class Hotmap {
      * We use canvas to avoid dom rendering
      */
     computeMargins(font) {
-        let fontSize = this.opts.maxFontSize
+        let fontSize = this.opts.maxFontSize;
         let fontStr = `${fontSize}px ${font}`;
 
-        var c = this.ele.appendChild(document.createElement('canvas'))
-        var ctx = c.getContext('2d');
+        let c = this.ele.appendChild(document.createElement('canvas'));
+        let ctx = c.getContext('2d');
 
         let left = 0;
         this.rows.forEach((r, i) => {
@@ -375,13 +374,13 @@ export default class Hotmap {
 
             ctx.font = fontStr;
             let width = ctx.measureText(text).width;
-            ctx.fillText(text, 10, i*20)
+            ctx.fillText(text, 10, i * 20);
             if (width > left) left = width;
-        })
+        });
         c.remove();
 
-        var c = this.ele.appendChild(document.createElement('canvas'))
-        var ctx = c.getContext('2d');
+        c = this.ele.appendChild(document.createElement('canvas'));
+        ctx = c.getContext('2d');
 
         let top = 0;
         this.cols.forEach(c => {
@@ -391,7 +390,7 @@ export default class Hotmap {
             ctx.font = fontStr;
             let width = ctx.measureText(text).width;
             if (width > top) top = width;
-        })
+        });
 
         // x axis labels is at 45 degrees
         top = (top + xTextPad) / Math.sqrt(2);
@@ -400,7 +399,7 @@ export default class Hotmap {
             ctx.font = fontStr;
             let width = ctx.measureText(text).width;
             if (width > top) top = width;
-        })
+        });
         c.remove();
 
         left = Math.ceil(left) + yMetaWidth + yTextPad + this.yMetaWidth;
@@ -410,7 +409,7 @@ export default class Hotmap {
             right: margin.right,
             bottom: margin.bottom,
             left: left < minMarginLeft ? minMarginLeft : left,
-        }
+        };
     }
 
     /**
@@ -420,7 +419,6 @@ export default class Hotmap {
      * @param {bool} scale should rescale (zoom / update cell dimensions)
      */
     draw(renderX, renderY, scale) {
-        // let t0 = performance.now();
         this.clearStage(renderX, renderY, scale);
 
         let cellW, cellH;
@@ -504,7 +502,7 @@ export default class Hotmap {
          * also adjust scrollBox if needed
          **/
         if (renderY || this.scaleCtrl.isLocked()) {
-            this.scrollBox.setContentHeight(cellH * this.size.y );
+            this.scrollBox.setContentHeight(cellH * this.size.y);
 
             let height = yViewSize * cellH;
             this.scrollBox.setContainerHeight(height);
@@ -563,7 +561,7 @@ export default class Hotmap {
 
 
         if (this.tree && (renderY || scale)) {
-            this.tree.setHeight(this.size.y * cellH)
+            this.tree.setHeight(this.size.y * cellH);
         }
 
         // let t1 = performance.now();
@@ -677,7 +675,7 @@ export default class Hotmap {
         ele.setAttribute('transform', `translate(-${width})`);
         ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
 
-        let colIdx = this.xStart + cellIdx
+        let colIdx = this.xStart + cellIdx;
         ele.onmouseover = () => {
             let tt = this.tooltip(y, x - 5);
 
@@ -1047,7 +1045,7 @@ export default class Hotmap {
 
         let [w, h] = this.getContainerSize();
         scaleCtrl.fullscreen(w, h, this.parent, () => {
-            this.scrollBox.setPos(0,0);
+            this.scrollBox.setPos(0, 0);
             [this.xStart, this.yStart] = [0, 0];
 
             if (this.onFSClick) this.onFSClick();
@@ -1120,13 +1118,13 @@ export default class Hotmap {
                 self.query = {
                     q: q,
                     count: self.cols.filter(c => c.name.toLowerCase().includes(q)).length
-                }
+                };
             }
 
             // display count
             if (self.query) {
                 let searchInfo = self.ele.querySelector('.search-info');
-                searchInfo.innerHTML = `${self.query.count} results`
+                searchInfo.innerHTML = `${self.query.count} results`;
                 reset.classList.remove('hidden');
             } else {
                 self.ele.querySelector('.search-info').innerHTML = '';
@@ -1142,7 +1140,7 @@ export default class Hotmap {
             self.ele.querySelector('.search').value = '';
             self.ele.querySelector('.search-info').innerHTML = '';
             self.draw();
-        }
+        };
     }
 
     initOptions() {
@@ -1402,7 +1400,7 @@ export default class Hotmap {
 
             let countEl = this.ele.querySelector('.select-count');
             let count = (box.w + 1) * (box.h + 1);
-            countEl.innerHTML = `${count} selected`
+            countEl.innerHTML = `${count} selected`;
 
             selectDraw();
         };
@@ -1419,8 +1417,8 @@ export default class Hotmap {
             else j = this.xStart + box.x;
 
             // if width is not set, then this is actually a 'click' event
-            if (!box.h && box.h != 0 && this.onClick
-                && ('x' in box && 'y' in box)) {
+            if (!box.h && box.h != 0 && this.onClick &&
+                ('x' in box && 'y' in box)) {
                 this.onClick(this.getSelection(i, j, i, j)[0]);
             }
 
@@ -1484,7 +1482,6 @@ export default class Hotmap {
     }
 
     snapshot(fullChart) {
-        let t0 = performance.now();
         // need to use hidden, rendered div for text widths
         let div = document.createElement('div');
         div.style.visibility = 'hidden';
@@ -1527,9 +1524,9 @@ export default class Hotmap {
                 let x = margin.left - yMetaWidth;
                 for (let i = 0; i < categories.length; i++) {
                     let color = this.rowCatColors[rowIdx][i];
-                    let rect = svgRect(x, y, width - 1, cellH, { fill: hexToHexColor(color) })
+                    let rect = svgRect(x, y, width - 1, cellH, { fill: hexToHexColor(color) });
                     svg.appendChild(rect);
-                    x += width
+                    x += width;
                 }
             }
 
@@ -1566,7 +1563,7 @@ export default class Hotmap {
         svgEl.setAttribute('xmlns', svgNS);
         let svgData = svgEl.outerHTML;
         let preface = '<?xml version="1.0" standalone="no"?>\r\n';
-        let svgBlob = new Blob([preface, svgData], {type:"image/svg+xml;charset=utf-8"});
+        let svgBlob = new Blob([preface, svgData], {type: 'image/svg+xml;charset=utf-8'});
         let svgUrl = URL.createObjectURL(svgBlob);
         let downloadLink = document.createElement('a');
         downloadLink.href = svgUrl;
@@ -1595,7 +1592,7 @@ export default class Hotmap {
         [this.xStart, this.yStart] = [0, 0];
 
         // need to recompute margins
-        margin = this.computeMargins(this.font)
+        margin = this.computeMargins(this.font);
 
         this.updateData();
         this.initChart({resize: true});
@@ -1629,7 +1626,7 @@ export default class Hotmap {
 
     downloadSVG({fileName = 'hotmap.svg', full} = {}) {
         let svg = this.snapshot(full);
-        this.saveSVG(svg, fileName)
+        this.saveSVG(svg, fileName);
     }
 
 }

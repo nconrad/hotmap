@@ -175,7 +175,7 @@ export function colorMatrix(matrix, settings) {
 
 export function parseColorBins(bins) {
     let opRegex = /(>|<|=|<=|>=)+/gm;
-    let valRegex = /(\-|\+)*\d+/gm;
+    let valRegex = /(-|\+)*\d+/gm;
     bins = bins.map(binStr => {
         return {
             op: binStr.match(opRegex)[0],

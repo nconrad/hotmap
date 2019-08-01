@@ -1,6 +1,12 @@
 module.exports = {
     "root": true,
     "extends": "standard",
+    "parser": "babel-eslint",
+    "parserOptions": {
+        "sourceType": "module",
+        "allowImportExportEverywhere": false,
+        "codeFrame": false
+    },
     "rules": {
         "semi": ["error", "always"],
         "space-before-function-paren": ["error", "never"],
@@ -20,13 +26,15 @@ module.exports = {
         "new-cap": 0, // ignore for Pixi.js
         "no-extend-native": 0,
         "no-throw-literal": 0,
-        "no-multi-spaces": 0
+        "no-multi-spaces": 0,
+        "no-restricted-modules": 0
     },
     "globals": {
-        "PIXI": 1,
-        "requestAnimationFrame": 1,
-        "fetch": 1,
-        "alert": 1,
-        "Picker": 1
+        "PIXI": "readonly",
+        "requestAnimationFrame": "readonly",
+        "fetch": "readonly",
+        "alert": "readonly",
+        "Picker": "readonly",
+        "Blob": "readonly"
     }
 };
