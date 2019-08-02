@@ -154,6 +154,7 @@ requirejs(['hotmap'], function(Hotmap) {
 ##### options
 ```javascript
 {
+    noMargins: <bool>,   // whether to include bottom and right side margins (defaults to false)
     theme: 'dark' | 'light',
     hideLegend: <bool>,
     legend: <some_html>,

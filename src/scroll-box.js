@@ -75,17 +75,18 @@ export default class ScrollBox {
             let xDirection = x > previousX ? 'right' : (x === previousX ? null : 'left'),
                 yDirection = y > previousY ? 'down' : (y === previousY ? null : 'up');
 
+            let xPos, yPos;
             if (xDirection) {
                 let percent = target.scrollLeft / target.scrollWidth;
-                let pos = Math.ceil(percent * this.xMax);
-                this._onMove('x', pos);
+                xPos = Math.ceil(percent * this.xMax);
             }
 
             if (yDirection) {
                 let percent = target.scrollTop / target.scrollHeight;
-                let pos = Math.ceil(percent * this.yMax);
-                this._onMove('y', pos);
+                yPos = Math.ceil(percent * this.yMax);
             }
+            console.log('xPos,yPos', xPos, yPos);
+            this._onMove(xPos, yPos);
 
             previousX = x;
             previousY = y;
