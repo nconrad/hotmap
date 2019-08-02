@@ -6,7 +6,7 @@
         n: 150
     })
 */
-function getMockData(m, n, opts) {
+export function getMockData(m, n, opts = {}) {
     let {random, numOfBins, gradient, gradientBottom} = opts;
     let size = m * n;
     let matrix = [];

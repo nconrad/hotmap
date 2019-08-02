@@ -7,16 +7,21 @@
  *
  */
 import Hotmap from '../src/hotmap';
+import { getMockData } from './utils';
 
 const SHOW_TREE = false;
 
 document.addEventListener('DOMContentLoaded', () => {
+    demo();
+});
+
+function demo() {
     let ele = document.querySelector('#chart');
     let dataPath = ele.getAttribute('data-path');
 
     ele.innerHTML = `<br>loading...`;
-    let hotmap;
 
+    let hotmap;
     fetch(dataPath)
         .then(res => res.json())
         .then(data => {
@@ -53,7 +58,16 @@ document.addEventListener('DOMContentLoaded', () => {
         matrix = matrix.map(row => row.slice(0, 200));
         hotmap.update({rows, cols, matrix});
     };
-});
+}
+
+function fakeDataDemo() {
+    let ele = document.querySelector('#chart');
+
+    let {rows, cols, matrix} = getMockData(500, 500);
+    let hotmap = new Hotmap({
+        ele, rows, cols, matrix
+    });
+}
 
 
 function pfExample({ele, data, newick}) {
@@ -66,6 +80,7 @@ function pfExample({ele, data, newick}) {
         rowMetaLabels: rowMetaLabels,
         colMetaLabels: ['Protein Family ID'],
         options: {
+            noMargins: false,
             showVersion: true,
             maxFontSize: 14
         },

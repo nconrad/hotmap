@@ -146,14 +146,15 @@ requirejs(['hotmap'], function(Hotmap) {
 ##### defaults
 ```javascript
 {
-    cellWidth: <initial height of cell (integer)>,
-    cellHeight: <initial height of cell (integer)>
+    cellWidth: <initial_width_of_cell_(integer)>,
+    cellHeight: <initial_height_of_cell_(integer)>
 }
 ```
 
 ##### options
 ```javascript
 {
+    noMargins: <bool>,   // whether to include bottom and right side margins (defaults to false)
     theme: 'dark' | 'light',
     hideLegend: <bool>,
     legend: <some_html>,
