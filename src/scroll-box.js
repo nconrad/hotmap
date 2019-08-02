@@ -86,7 +86,6 @@ export default class ScrollBox {
                 let percent = target.scrollTop / target.scrollHeight;
                 yPos = Math.ceil(percent * this.yMax);
             }
-
             this._onMove(xPos, yPos);
 
             previousX = x;

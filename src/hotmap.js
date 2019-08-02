@@ -238,9 +238,6 @@ export default class Hotmap {
      * Responsible for setup/instantiation of components
      */
     async start() {
-
-        console.log('rows 2 ', this.rows);
-
         // base all positioning off of parent
         let [width, height] = this.getContainerSize();
 
@@ -361,6 +358,7 @@ export default class Hotmap {
         return h < cellMax ? h : cellMax;
     }
 
+
     /**
      * Computes labels based on fonts, and stores in rows/cols
      * We use canvas to avoid dom rendering
@@ -371,12 +369,13 @@ export default class Hotmap {
 
         let canvas = this.ele.appendChild(document.createElement('canvas'));
         let ctx = canvas.getContext('2d');
+        ctx.font = fontStr;
 
         let width = margin.left - yTextPad - yMetaWidth - textMargin;
-        ctx.font = fontStr;
         this.rows.forEach((r, i) => {
             let text = r.name;
             let len = text.length;
+            ctx.font = fontStr;
             while (ctx.measureText(text.slice(0, len--)).width > width ) {
                 text = text.slice(0, len) + '...';
             }
@@ -401,6 +400,8 @@ export default class Hotmap {
 
             c.label = text;
         });
+
+        // x axis labels is at 45 degre
         canvas.remove();
     }
 

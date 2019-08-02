@@ -69,7 +69,6 @@ function fakeDataDemo() {
     });
 }
 
-
 function pfExample({ele, data, newick}) {
     let {rows, cols, matrix} = data;
     let rowMetaLabels = ['Isolation Country', 'Host', 'Genome Group'];
