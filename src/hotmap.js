@@ -29,33 +29,29 @@ import { transpose } from './matrix';
 // import Picker from 'vanilla-picker';
 import { labelColor, labelHoverColor } from './consts';
 import './assets/styles/hotmap.less';
-
 PIXI.utils.skipHello();
 
-const PARTICLE_CONTAINER = false; // experimental
-
 const NAME = `hotmap.js`;
+
+const PARTICLE_CONTAINER = false; // experimental
 
 // view size (in terms of size of matrix)
 let yViewSize;
 let xViewSize;
 
-const cellMin = 1;
-const cellMax  = 50;
+const cellMin = 1;      // min height/width for a cell
+const cellMax  = 50;    // max height/width for a cell
 const zoomFactor = 0.1; // speed at which to zoom with mouse
 
 /*
  * margin defaults
  */
-let margin = {
+const margin = {
     top: 200,
     bottom: 150,
     left: 220,
     right: 125
 };
-
-const minMarginLeft = 200;
-const minMarginTop = 200;
 
 // API defaults
 const maxFontSize = 18;  // largest possible font size (pixels)
@@ -68,8 +64,13 @@ const yTextPad = 10;    // padding from y axis
 const xTextPad = 5;     // padding from x axis
 const textMargin = 20;  // margin left and top of text
 
-let yMetaWidth = 40;
-let xMetaHeight = 40;
+let xTextSpace;
+let yTextSpace;
+
+const yMetaSize = 40;    // size of y axis meta column
+const xMetaSize = 40;   // size of x axis meta row
+const metaSpacing = 1;
+const metaFontSize = 14;
 
 // axis label offsets from the grid
 const xAxisLabelOffset = 50;
@@ -109,10 +110,8 @@ export default class Hotmap {
 
         this.yMeta = Hotmap.getMeta(params.rows);
         this.xMeta = Hotmap.getMeta(params.cols);
-        if (!this.yMeta) yMetaWidth = 0;
-        if (!this.xMeta) xMetaHeight = 0;
 
-        // category labels
+        // meta labels
         this.yMetaLabels = params.rowMetaLabels || [];
         this.xMetaLabels = params.colMetaLabels || [];
 
@@ -207,8 +206,19 @@ export default class Hotmap {
         this.cellH;
 
         // dimensions for meta
-        this.yMetaWidth = this.yMeta ? this.yMeta[0].length : 0;
-        this.xMetaHeight = this.xMeta ? this.xMeta[0].length : 0;
+        this.yMetaWidth = this.yMeta ? this.yMeta[0].length * yMetaSize : 0;
+        this.xMetaHeight = this.xMeta ? this.xMeta[0].length * xMetaSize : 0;
+
+        console.log('xmetaheight', this.xMetaHeight, this.xMeta);
+
+        if (this.opts.noMargins) {
+            xTextSpace = margin.top - this.xMetaHeight - xTextPad - textMargin;
+        } else {
+            // otherwise, x axis labels is at 45 degree
+            xTextSpace = (margin.top - textMargin) * Math.sqrt(2) - xTextPad -
+                this.xMetaHeight - textMargin;
+        }
+        yTextSpace = margin.left - yTextPad - this.yMetaWidth - textMargin;
 
         // current query for search input
         this.query;
@@ -223,9 +233,7 @@ export default class Hotmap {
         this.font = style.fontFamily.split(',')[0];
 
         let fontProm = new FontFaceObserver(this.font);
-        return fontProm.load(null, 30000).then(() => {
-            this.computeLabels(this.font);
-        });
+        return fontProm.load(null, 30000);
     }
 
     static getMeta(objs) {
@@ -247,6 +255,7 @@ export default class Hotmap {
         this.xAxis = obj.xAxis;
         this.yAxis = obj.yAxis;
         this.cAxis = obj.cAxis;
+        this.scratchCanvas = obj.scratchCanvas;
 
         // initialize scale x/y width controls
         this.scaleCtrl = this.initScaleCtr();
@@ -274,10 +283,10 @@ export default class Hotmap {
                 ele: this.ele,
                 newick: this.newick,
                 margin,
-                width: margin.left - yMetaWidth - 30
+                width: margin.left - this.yMetaWidth - 30
             });
 
-            margin.left = 400 + yMetaWidth + 50;
+            margin.left = 400 + this.yMetaWidth + 50;
         }
 
         let renderer = Hotmap.getRenderer(width, height);
@@ -366,47 +375,19 @@ export default class Hotmap {
 
     /**
      * Computes labels based on fonts, and stores in rows/cols
-     * We use canvas to avoid dom rendering slowness
+     * We use canvas to avoid slowness in dom rendering
      */
-    computeLabels(font) {
-        let fontSize = this.opts.maxFontSize;
-        let fontStr = `${fontSize}px ${font}`;
-
-        let canvas = this.ele.appendChild(document.createElement('canvas'));
-        let ctx = canvas.getContext('2d');
+    shortenLabel(fontSize, text, width) {
+        let ctx = this.scratchCanvas;
+        let fontStr = `${fontSize}px ${this.font}`;
         ctx.font = fontStr;
 
-        let width = margin.left - yTextPad - yMetaWidth - textMargin;
-        this.rows.forEach((r, i) => {
-            let text = r.name;
-            let len = text.length;
-            ctx.font = fontStr;
-            while (ctx.measureText(text.slice(0, len--)).width > width ) {
-                text = text.slice(0, len) + '...';
-            }
-
-            r.label = text;
-        });
-
-        // x axis labels is at 45 degrees
-        if (!this.opts.noMargins) {
-            width = (margin.top - textMargin) * Math.sqrt(2) - xTextPad -
-                this.xMetaHeight - textMargin;
-        } else {
-            width = margin.top - xTextPad - this.xMetaHeight - textMargin;
+        let len = text.length;
+        while (ctx.measureText(text.slice(0, len--)).width > width ) {
+            text = text.slice(0, len) + '...';
         }
 
-        this.cols.forEach(c => {
-            let text = c.name;
-            let len = text.length;
-            while (ctx.measureText(text.slice(0, len--)).width > width ) {
-                text = text.slice(0, len) + '...';
-            }
-
-            c.label = text;
-        });
-
-        canvas.remove();
+        return text;
     }
 
     /**
@@ -446,13 +427,13 @@ export default class Hotmap {
             if (rowIdx >= this.size.m) break;
 
             if (renderY && cellH > minTextW && !this.tree) {
-                this.addYLabel(
-                    this.yAxis, this.rows[rowIdx].label,
-                    margin.left - yMetaWidth - yTextPad, y + 3, i
+                this.drawYLabel(
+                    this.yAxis, this.rows[rowIdx].name,
+                    margin.left - this.yMetaWidth - yTextPad, y + 3, i
                 );
             }
             if (renderY && this.yMeta && rowIdx < this.size.m) {
-                this.addCategories('y', rowIdx, margin.left - yMetaWidth, y);
+                this.addCategories('y', rowIdx, margin.left - this.yMetaWidth, y);
             }
 
             // for each column
@@ -480,7 +461,7 @@ export default class Hotmap {
                 }
 
                 if (renderX && i == 0 && cellW > minTextW) {
-                    this.addXLabel(this.xAxis, this.cols[colIdx].label, x + 2, margin.top - xTextPad, j);
+                    this.drawXLabel(this.xAxis, this.cols[colIdx], x + 2, margin.top - xTextPad, j);
                 }
 
                 if (this.yMeta && !this.catLabelsAdded && i == 0 &&
@@ -488,7 +469,7 @@ export default class Hotmap {
                     let k = this.yMetaLabels.length - colIdx - 1;
                     this.addCategoryLabel(
                         'x', this.yMetaLabels[k],
-                        margin.left - colIdx * (xMetaHeight / this.yMetaLabels.length),
+                        margin.left - colIdx * (yMetaSize + metaSpacing) - yMetaSize / 2,
                         margin.top - 5, k
                     );
                 }
@@ -589,19 +570,23 @@ export default class Hotmap {
         svg.appendChild(cAxis);
         el.appendChild(svg);
 
-        return {svg, xAxis, yAxis, cAxis};
+        // create hidden scratch canvas for measuring text size
+        let canvas = this.ele.appendChild(document.createElement('canvas'));
+        let scratchCanvas = canvas.getContext('2d');
+
+        return {svg, xAxis, yAxis, cAxis, scratchCanvas};
     }
 
     /**
-     * addYLabel
+     * drawYLabel
      * @param {string} svgEl the svg element (<g> usually) to append to
-     * @param {number} text text to add to svgEL
+     * @param {string} text text to add to svgEL
      * @param {number} x the x position of the text element
      * @param {number} y the y position of the text element
      * @param {number} cellIdx the row or col index in the "viewbox" the user sees
      *                    this is currently used for classes
      */
-    addYLabel(svgEl, text, x, y, cellIdx) {
+    drawYLabel(svgEl, text, x, y, cellIdx) {
         let ele = document.createElementNS(svgNS, 'text');
 
         y += this.cellH / 2 + 1;
@@ -614,7 +599,7 @@ export default class Hotmap {
         ele.setAttribute('y', y);
         svgEl.appendChild(ele);
 
-        ele.innerHTML = text;
+        ele.innerHTML = this.shortenLabel(fontSize, text, yTextSpace);
 
         let width = ele.getBBox().width;
         ele.setAttribute('transform', `translate(-${width})`);
@@ -642,13 +627,13 @@ export default class Hotmap {
         ele.onmouseout = () => this.hideHoverTooltip();
     }
 
-    addXLabel(svgEl, text, x, y, cellIdx) {
+    drawXLabel(svgEl, obj, x, y, cellIdx) {
         let ele = document.createElementNS(svgNS, 'text');
 
-        x += this.cellW / 2 + 1;
+        x += parseInt(this.cellW / 2 + 2);
+
         let fontSize = this.cellW - this.opts.textPadding;
         fontSize = fontSize <= this.opts.maxFontSize ? fontSize : this.opts.maxFontSize;
-        ele.innerHTML = text;
         ele.setAttribute('data-i', cellIdx);
         ele.setAttribute('font-size', `${fontSize}px`);
         ele.setAttribute('fill', '#666');
@@ -658,6 +643,8 @@ export default class Hotmap {
 
         let width = ele.getBBox().width;
         ele.setAttribute('transform', `translate(-${width})`);
+
+        ele.innerHTML = this.shortenLabel(fontSize, obj.name, xTextSpace);
 
         if (this.opts.noMargins) {
             ele.setAttribute('transform', `rotate(-90, ${x}, ${y})`);
@@ -795,7 +782,7 @@ export default class Hotmap {
     showYAxisLabel(label) {
         let cls = 'y-axis-label';
         let ele = this.svg.querySelector(`.${cls}`);
-        let x = margin.left - yAxisLabelOffset - yMetaWidth;
+        let x = margin.left - this.yMetaWidth - yAxisLabelOffset - yMetaSize;
 
         // if label exists, just reuse
         if (ele) {
@@ -868,31 +855,27 @@ export default class Hotmap {
         }
 
         let ele = document.createElementNS(svgNS, 'text');
-
         let g = svgG();
-
-        x -= 4;
         ele.innerHTML = text;
 
+        x += metaFontSize / 2;
         setAttributes(ele, {
             'class': `cat-label`,
             'data-idx': idx,
             'data-name': text,
-            'font-size': '14px',
+            'font-size': `${metaFontSize}px`,
             'fill': '#666',
             'x': x,
             'y': y
         });
         g.appendChild(ele);
-
         this.cAxis.appendChild(g);
 
         let width = ele.getBBox().width;
-
         ele.setAttribute('transform', `translate(-${width})`);
         ele.setAttribute('transform', `rotate(-90, ${x}, ${y})`);
 
-        ele.onclick = (evt) => {
+        ele.onclick = () => {
             this.sortModel[text] = this.sortModel[text] == 'asc' ? 'dsc' : 'asc';
         };
     }
@@ -906,7 +889,7 @@ export default class Hotmap {
         let categories = this.yMeta[index];
 
         // compute width of each category from: total / number-of-cateogries
-        let width = parseInt(yMetaWidth / categories.length );
+        let width = yMetaSize;
 
         for (let i = 0; i < categories.length; i++) {
             let sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
@@ -914,7 +897,7 @@ export default class Hotmap {
             sprite.x = x;
             sprite.y = y;
             sprite.height = this.cellH;
-            sprite.width = width - 1; // -1 spacing
+            sprite.width = width - metaSpacing; // -1 spacing
 
             this.cats.addChild(sprite);
             x += width;
@@ -1100,6 +1083,7 @@ export default class Hotmap {
     initSearch() {
         let self = this;
         let searchInput = this.ele.querySelector('.search');
+        let searchCount = this.ele.querySelector('.search-count');
         let reset = this.ele.querySelector('.reset-btn');
 
         searchInput.onkeyup = function() {
@@ -1116,11 +1100,10 @@ export default class Hotmap {
 
             // display count
             if (self.query) {
-                let searchInfo = self.ele.querySelector('.search-info');
-                searchInfo.innerHTML = `${self.query.count} results`;
+                searchCount.innerHTML = `${self.query.count} results`;
                 reset.classList.remove('hidden');
             } else {
-                self.ele.querySelector('.search-info').innerHTML = '';
+                searchCount.innerHTML = '';
                 reset.classList.add('hidden');
             }
 
@@ -1130,8 +1113,8 @@ export default class Hotmap {
         reset.onclick = function() {
             self.query = null;
             reset.classList.add('hidden');
-            self.ele.querySelector('.search').value = '';
-            self.ele.querySelector('.search-info').innerHTML = '';
+            searchInput.value = '';
+            searchCount.innerHTML = '';
             self.draw();
         };
     }
@@ -1512,14 +1495,14 @@ export default class Hotmap {
 
 
             if (cellH > minTextW && !this.tree) {
-                this.addYLabel(yAxis, this.rows[rowIdx].label, margin.left - yMetaWidth - 10, y + 3, i);
+                this.drawYLabel(yAxis, this.rows[rowIdx].name, margin.left - yMetaSize - 10, y + 3, i);
             }
 
             // add row categories and category labels
             if (this.yMeta && rowIdx < this.size.m) {
                 let categories = this.yMeta[rowIdx];
-                let width = parseInt(yMetaWidth / categories.length );
-                let x = margin.left - yMetaWidth;
+                let width = yMetaSize;
+                let x = margin.left - this.yMetaWidth;
                 for (let i = 0; i < categories.length; i++) {
                     let color = this.rowCatColors[rowIdx][i];
                     let rect = svgRect(x, y, width - 1, cellH, { fill: hexToHexColor(color) });
@@ -1534,7 +1517,7 @@ export default class Hotmap {
                     colIdx = xStart + j;
 
                 if (i == 0 && cellW > minTextW) {
-                    this.addXLabel(xAxis, this.cols[colIdx].label, x + 2, margin.top - 5, j);
+                    this.drawXLabel(xAxis, this.cols[colIdx], x + 2, margin.top - 5, j);
                 }
 
                 let color = this.colorMatrix[rowIdx][colIdx];
@@ -1590,7 +1573,7 @@ export default class Hotmap {
         [this.xStart, this.yStart] = [0, 0];
 
         // need to recompute margins
-        this.computeLabels(this.font);
+        // this.computeLabels(this.font);
 
         this.updateData();
         this.initChart();
