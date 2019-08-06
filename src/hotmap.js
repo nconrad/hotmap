@@ -66,7 +66,7 @@ const noMargins = false;
 const minTextW = 5;     // show text if cell is at least this big
 const yTextPad = 10;    // padding from y axis
 const xTextPad = 5;     // padding from x axis
-const textMargin = 15;  // margin left and top of text
+const textMargin = 20;  // margin left and top of text
 
 let yMetaWidth = 40;
 let xMetaHeight = 40;
@@ -283,7 +283,7 @@ export default class Hotmap {
         let renderer = Hotmap.getRenderer(width, height);
         this.renderer = renderer;
 
-        this.initChart();
+        this.initChart(true);
 
         // adjust canvas on resize
         let resizeTO;
@@ -311,7 +311,7 @@ export default class Hotmap {
     }
 
 
-    initChart({resize} = false) {
+    initChart(firstInit) {
         let canvas = this.ele.querySelector('.webgl-canvas canvas');
         if (canvas) canvas.remove();
 
@@ -319,7 +319,7 @@ export default class Hotmap {
             .appendChild(this.renderer.view);
 
         if (PARTICLE_CONTAINER) {
-            this.cells = new PIXI.ParticleContainer(this.size.x * this.size.y, {
+            this.cells = new PIXI.ParticleContainer(this.size.n * this.size.m, {
                 position: true,
                 scale: true,
                 tint: true
@@ -340,28 +340,33 @@ export default class Hotmap {
         // initial staging of 1x1 cells
         this.initStage();
 
-        if (!resize) {
-            this.cellW = this.defaults.cellWidth || this.computeCellWidth() || 1;
-            this.cellH = this.defaults.cellHeight || this.computeCellHeight() || 1;
+        if (firstInit) {
+            // we only need to compute cell dimensions on first init
+            this.cellW = this.defaults.cellWidth || this.computeCellWidth();
+            this.cellH = this.defaults.cellHeight || this.computeCellHeight();
         }
         this.scaleCtrl.setPos(this.cellW, this.cellH);
         this.draw(true, true, true);
     }
 
     computeCellWidth() {
-        let w = parseInt((this.parent.clientWidth - margin.left - margin.right) / this.size.x);
-        return w < cellMax ? w : cellMax;
+        if (this.size.size > 250000) return 5;
+
+        let w = parseInt((this.parent.clientWidth - margin.left - margin.right) / this.size.n);
+        return w < cellMax ? (w || 1) : cellMax;
     }
 
     computeCellHeight() {
-        let h = parseInt((this.parent.clientHeight - margin.top - margin.bottom) / this.size.y);
-        return h < cellMax ? h : cellMax;
+        if (this.size.n * this.size.m > 250000) return 5;
+
+        let h = parseInt((this.parent.clientHeight - margin.top - margin.bottom) / this.size.m);
+        return h < cellMax ? (h || 1) : cellMax;
     }
 
 
     /**
      * Computes labels based on fonts, and stores in rows/cols
-     * We use canvas to avoid dom rendering
+     * We use canvas to avoid dom rendering slowness
      */
     computeLabels(font) {
         let fontSize = this.opts.maxFontSize;
@@ -401,7 +406,6 @@ export default class Hotmap {
             c.label = text;
         });
 
-        // x axis labels is at 45 degre
         canvas.remove();
     }
 
@@ -430,8 +434,8 @@ export default class Hotmap {
         // Todo: optimize, moving into resize event?
         xViewSize = parseInt((this.parent.clientWidth - margin.left - margin.right) / cellW);
         yViewSize = parseInt((this.parent.clientHeight - margin.top - margin.bottom) / cellH);
-        if (yViewSize > this.size.y) yViewSize = this.size.y;
-        if (xViewSize > this.size.x) xViewSize = this.size.x;
+        if (yViewSize > this.size.m) yViewSize = this.size.m;
+        if (xViewSize > this.size.n) xViewSize = this.size.n;
 
         // for each row
         for (let i = 0; i < yViewSize; i++) {
@@ -439,7 +443,7 @@ export default class Hotmap {
             let rowIdx = yStart + i;
 
             // enforce bounds when scrolled and scaling
-            if (rowIdx >= this.size.y) break;
+            if (rowIdx >= this.size.m) break;
 
             if (renderY && cellH > minTextW && !this.tree) {
                 this.addYLabel(
@@ -447,7 +451,7 @@ export default class Hotmap {
                     margin.left - yMetaWidth - yTextPad, y + 3, i
                 );
             }
-            if (renderY && this.yMeta && rowIdx < this.size.y) {
+            if (renderY && this.yMeta && rowIdx < this.size.m) {
                 this.addCategories('y', rowIdx, margin.left - yMetaWidth, y);
             }
 
@@ -457,7 +461,7 @@ export default class Hotmap {
                     colIdx = xStart + j;
 
                 // enforce bounds when scrolled and scaling
-                if (colIdx >= this.size.x) break;
+                if (colIdx >= this.size.n) break;
 
                 // if sprites rendered, just making transformations
                 if (this.isStaged) {
@@ -495,13 +499,13 @@ export default class Hotmap {
          * also adjust scrollBox if needed
          **/
         if (renderY || this.scaleCtrl.isLocked()) {
-            this.scrollBox.setContentHeight(cellH * this.size.y);
+            this.scrollBox.setContentHeight(cellH * this.size.m);
 
             let height = yViewSize * cellH;
             this.scrollBox.setContainerHeight(height);
 
             // if y-axis is out-of-range, hide
-            if (yViewSize >= this.size.y) {
+            if (yViewSize >= this.size.m) {
                 this.scrollBox.hideY();
             } else {
                 this.scrollBox.showY();
@@ -509,13 +513,13 @@ export default class Hotmap {
         }
 
         if (renderX || this.scaleCtrl.isLocked()) {
-            this.scrollBox.setContentWidth(cellW * this.size.x);
+            this.scrollBox.setContentWidth(cellW * this.size.n);
 
             let width = xViewSize * cellW;
             this.scrollBox.setContainerWidth(width);
 
             // if x-axis is out-of-range
-            if (xViewSize >= this.size.x) {
+            if (xViewSize >= this.size.n) {
                 this.scrollBox.hideX();
             } else {
                 this.scrollBox.showX();
@@ -554,7 +558,7 @@ export default class Hotmap {
 
 
         if (this.tree && (renderY || scale)) {
-            this.tree.setHeight(this.size.y * cellH);
+            this.tree.setHeight(this.size.m * cellH);
         }
 
         // let t1 = performance.now();
@@ -1052,10 +1056,10 @@ export default class Hotmap {
             y: margin.top,
             width: xViewSize,
             height: yViewSize,
-            contentWidth: this.cellW * this.size.x,
-            contentHeight: this.cellH * this.size.y,
-            xMax: this.size.x,
-            yMax: this.size.y,
+            contentWidth: this.cellW * this.size.n,
+            contentHeight: this.cellH * this.size.m,
+            xMax: this.size.n,
+            yMax: this.size.m,
             onMove: (xPos, yPos) => {
                 this.onScroll(xPos, yPos);
                 this.hideHoverTooltip();
@@ -1086,8 +1090,8 @@ export default class Hotmap {
             height: yViewSize * this.cellH,
             cellXSize: this.cellW,
             cellYSize: this.cellH,
-            m: this.size.y,
-            n: this.size.x,
+            m: this.size.m,
+            n: this.size.n,
             onCellMouseOver: (pos) => this.onCellMouseOver(pos),
             onCellMouseOut: () => this.onCellMouseOut()
         });
@@ -1219,8 +1223,8 @@ export default class Hotmap {
         y = margin.top + y * cellH;
 
         let content =
-            `<b>x:</b> ${xLabel}<br>` +
-            `<b>y:</b> ${yLabel}<br>` +
+            `<b>row:</b> ${yLabel}<br>` +
+            `<b>column:</b> ${xLabel}<br>` +
             `<b>value:</b> ${value}`;
 
         // this.ele.querySelector('.header .info').innerHTML = content;
@@ -1277,7 +1281,7 @@ export default class Hotmap {
         this.svg.setAttribute('width', canvasWidth);
         this.svg.setAttribute('height', canvasHeight);
 
-        this.initChart({resize: true});
+        this.initChart();
     }
 
     rowCatSort(category, dsc) {
@@ -1462,10 +1466,14 @@ export default class Hotmap {
     }
 
     static getMatrixStats(matrix) {
-        let minMax = matMinMax(matrix);
+        let minMax = matMinMax(matrix),
+            m = matrix.length,
+            n = matrix[0].length;
+
         return {
-            x: matrix[0].length,
-            y: matrix.length,
+            m,
+            n,
+            size: m * n,
             min: minMax.min,
             max: minMax.max
         };
@@ -1479,8 +1487,8 @@ export default class Hotmap {
 
         let width, height;
         if (fullChart) {
-            width = margin.left + this.size.x * this.cellW + margin.right;
-            height = margin.top + this.size.y * this.cellH + margin.bottom;
+            width = margin.left + this.size.n * this.cellW + margin.right;
+            height = margin.top + this.size.m * this.cellH + margin.bottom;
         } else {
             [width, height] = this.getContainerSize();
         }
@@ -1494,8 +1502,8 @@ export default class Hotmap {
         let xStart = fullChart ? 0 : this.xStart,
             yStart = fullChart ? 0 : this.yStart;
 
-        let xSize = fullChart ? this.size.x : xViewSize,
-            ySize = fullChart ? this.size.y : yViewSize;
+        let xSize = fullChart ? this.size.n : xViewSize,
+            ySize = fullChart ? this.size.m : yViewSize;
 
         // for each row
         for (let i = 0; i < ySize; i++) {
@@ -1508,7 +1516,7 @@ export default class Hotmap {
             }
 
             // add row categories and category labels
-            if (this.yMeta && rowIdx < this.size.y) {
+            if (this.yMeta && rowIdx < this.size.m) {
                 let categories = this.yMeta[rowIdx];
                 let width = parseInt(yMetaWidth / categories.length );
                 let x = margin.left - yMetaWidth;
@@ -1577,7 +1585,7 @@ export default class Hotmap {
         this.size = Hotmap.getMatrixStats(this.matrix);
 
         // need to update scrollBox
-        this.scrollBox.setMaxes(this.size.x, this.size.y);
+        this.scrollBox.setMaxes(this.size.n, this.size.m);
         this.scrollBox.setPos(0, 0);
         [this.xStart, this.yStart] = [0, 0];
 
@@ -1585,7 +1593,7 @@ export default class Hotmap {
         this.computeLabels(this.font);
 
         this.updateData();
-        this.initChart({resize: true});
+        this.initChart();
     }
 
     getState() {

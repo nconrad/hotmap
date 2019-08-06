@@ -49,7 +49,7 @@
 
 .y-slider {
   height: 5px;
-  transform-origin: 10px 45px;
+  left: -25px;
   transform: rotate(90deg);
 }
 
@@ -57,7 +57,7 @@
   width: 130px;
   position: absolute;
   top: 10px;
-  left: 75px;
+  left: 50px;
 }
 
 .y-slider-label,
@@ -65,7 +65,6 @@
   position: absolute;
   color: #666;
   font-weight: bold;
-
 }
 
 .y-slider-label {
@@ -79,31 +78,29 @@
 }
 
 
-.lock-btn,
-.fullscreen-btn {
+.lock-btn {
   position: absolute;
   top: 0;
-  left: 40px;
+  left: 15px;
   width: 28px;
   height: 28px;
   background: none;
   border: none;
 }
 
-.fullscreen-btn:empty {
-  display: none;
-}
-
 .lock-btn svg {
   margin-left: -5px;
 }
 
-.fullscreen-btn {
-  left: 8px;
+.fullscreen-btn:empty {
+  display: none;
 }
 
-.fullscreen-btn svg,
-.back-btn svg {
+.fullscreen-btn svg {
+  width: 18px;
+}
+
+.exit-fs-btn svg {
   width: 18px;
   margin-left: -2px;
 }

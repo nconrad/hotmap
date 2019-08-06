@@ -10,7 +10,7 @@
 import lock from './assets/icons/lock.svg';
 import lockOpen from './assets/icons/lock-open.svg';
 import fsIcon from './assets/icons/fullscreen.svg';
-import exitFSIcon from './assets/icons/exit-fullscreen.svg';
+// import exitFSIcon from './assets/icons/exit-fullscreen.svg';
 
 
 export default class ScaleCtrl {
@@ -77,7 +77,7 @@ export default class ScaleCtrl {
         if (width >= window.innerWidth - 100 && height >= window.innerHeight - 100)
             return;
 
-        let fsBtn = this.scaleCtrls.querySelector('.fullscreen-btn');
+        let fsBtn = this.ele.querySelector('.fullscreen-btn');
         fsBtn.innerHTML = fsIcon;
         fsBtn.onclick = () => {
             parent.classList.toggle('hmap-fullscreen');
@@ -91,7 +91,8 @@ export default class ScaleCtrl {
 
             resize();
 
-            fsBtn.innerHTML = this._isFullscreen ? exitFSIcon : fsIcon;
+            fsBtn.innerHTML = this._isFullscreen
+                ? `Exit fullscreen` : fsIcon;
             fsBtn.title = this._isFullscreen ? 'exit fullscreen' : 'make hotmap fullscreen';
 
             if (this._isFullscreen) {
@@ -102,11 +103,6 @@ export default class ScaleCtrl {
             } else {
                 document.removeEventListener('keydown', this._exitHandle);
             }
-
-            // also enable exit fullscreen btn
-            let backBtn = this.ele.querySelector('.back-btn');
-            backBtn.classList.toggle('hidden');
-            backBtn.onclick = () => fsBtn.click();
         };
 
     }
