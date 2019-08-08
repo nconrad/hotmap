@@ -40,7 +40,7 @@ let yViewSize;
 let xViewSize;
 
 const cellMin = 1;      // min height/width for a cell
-const cellMax  = 50;    // max height/width for a cell
+const cellMax = 50;    // max height/width for a cell
 const zoomFactor = 0.1; // speed at which to zoom with mouse
 
 /*
@@ -49,14 +49,14 @@ const zoomFactor = 0.1; // speed at which to zoom with mouse
 const margin = {
     top: 200,
     bottom: 150,
-    left: 220,
+    left: 190,
     right: 125
 };
 
 // API defaults
 const maxFontSize = 18;  // largest possible font size (pixels)
 const textPadding = 4;   // padding between y axis text
-const noMargins = false;
+const useMargins = false;
 
 // other defaults
 const minTextW = 5;     // show text if cell is at least this big
@@ -67,8 +67,8 @@ const textMargin = 20;  // margin left and top of text
 let xTextSpace;
 let yTextSpace;
 
-const yMetaSize = 40;    // size of y axis meta column
-const xMetaSize = 40;   // size of x axis meta row
+const yMetaSize = 15;    // size of y axis meta column
+const xMetaSize = 15;   // size of x axis meta row
 const metaSpacing = 1;
 const metaFontSize = 14;
 
@@ -115,10 +115,15 @@ export default class Hotmap {
         this.yMetaLabels = params.rowMetaLabels || [];
         this.xMetaLabels = params.colMetaLabels || [];
 
+        // hidden meta
+        this.hideYMeta = params.hideRowMeta;
+        this.hideXMeta = params.hideColMeta;
+
         // axis labels
         this.yLabel = params.rowsLabel || 'Rows';
         this.xLabel = params.colsLabel || 'Columns';
 
+        // events
         this.onHover = params.onHover;
         this.onSelection = params.onSelection;
         this.onClick = params.onClick;
@@ -127,10 +132,9 @@ export default class Hotmap {
         this.rowCatColors = this.yMeta
             ? categoryColors(this.yMeta) : [];
 
-        // Object.assign(margin, params.margin);
-
+        // other options
         this.opts = Object.assign({
-            textPadding, maxFontSize, noMargins
+            textPadding, maxFontSize, useMargins
         }, params.options);
 
         /**
@@ -182,6 +186,8 @@ export default class Hotmap {
             this.ele.querySelector('.header').classList.add('light');
         if (this.opts.showVersion)
             this.ele.querySelector('.version').classList.remove('hidden');
+        if (this.opts.showVersion)
+            this.ele.querySelector('.version').classList.remove('hidden');
         if (this.opts.optionsLabel)
             this.ele.querySelector('.opts-label').innerHTML = this.opts.optionsLabel;
         if (this.opts.hideOptions)
@@ -205,18 +211,27 @@ export default class Hotmap {
         this.cellW;
         this.cellH;
 
+        // minimize margins
+        if (!this.opts.useMargins) {
+            margin.bottom = cellMax + 35;
+            margin.right = cellMax;
+        }
+
         // dimensions for meta
-        this.yMetaWidth = this.yMeta ? this.yMeta[0].length * yMetaSize : 0;
-        this.xMetaHeight = this.xMeta ? this.xMeta[0].length * xMetaSize : 0;
+        this.yMetaWidth = this.yMeta && !this.hideYMeta
+            ? this.yMeta[0].length * yMetaSize : 0;
+        this.xMetaHeight = this.xMeta && !this.hideXMeta
+            ? this.xMeta[0].length * xMetaSize : 0;
 
-        console.log('xmetaheight', this.xMetaHeight, this.xMeta);
+        // include meta size in margins
+        margin.left = margin.left + this.yMetaWidth;
 
-        if (this.opts.noMargins) {
-            xTextSpace = margin.top - this.xMetaHeight - xTextPad - textMargin;
-        } else {
+        if (this.opts.useMargins) {
             // otherwise, x axis labels is at 45 degree
             xTextSpace = (margin.top - textMargin) * Math.sqrt(2) - xTextPad -
                 this.xMetaHeight - textMargin;
+        } else {
+            xTextSpace = margin.top - this.xMetaHeight - xTextPad - textMargin;
         }
         yTextSpace = margin.left - yTextPad - this.yMetaWidth - textMargin;
 
@@ -382,10 +397,16 @@ export default class Hotmap {
         let fontStr = `${fontSize}px ${this.font}`;
         ctx.font = fontStr;
 
+        let origLen = text.length;
         let len = text.length;
-        while (ctx.measureText(text.slice(0, len--)).width > width ) {
-            text = text.slice(0, len) + '...';
+        while (true) {
+            if (ctx.measureText(text.slice(0, len)).width < width) break;
+            len -= 5;
+            if (len < 1) break;
         }
+
+        if (origLen != len)
+            text = text.slice(0, len) + '...';
 
         return text;
     }
@@ -519,7 +540,8 @@ export default class Hotmap {
         // render!
         requestAnimationFrame(this.render);
         this.catLabelsAdded = true;
-        this.selectable();
+
+        if (this.onSelection) this.selectable();
 
         /**
          * exit now if first render
@@ -646,10 +668,10 @@ export default class Hotmap {
 
         ele.innerHTML = this.shortenLabel(fontSize, obj.name, xTextSpace);
 
-        if (this.opts.noMargins) {
-            ele.setAttribute('transform', `rotate(-90, ${x}, ${y})`);
-        } else {
+        if (this.opts.useMargins) {
             ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
+        } else {
+            ele.setAttribute('transform', `rotate(-90, ${x}, ${y})`);
         }
 
         let colIdx = this.xStart + cellIdx;
@@ -858,7 +880,7 @@ export default class Hotmap {
         let g = svgG();
         ele.innerHTML = text;
 
-        x += metaFontSize / 2;
+        x += metaFontSize / 3;
         setAttributes(ele, {
             'class': `cat-label`,
             'data-idx': idx,
@@ -1571,9 +1593,6 @@ export default class Hotmap {
         this.scrollBox.setMaxes(this.size.n, this.size.m);
         this.scrollBox.setPos(0, 0);
         [this.xStart, this.yStart] = [0, 0];
-
-        // need to recompute margins
-        // this.computeLabels(this.font);
 
         this.updateData();
         this.initChart();

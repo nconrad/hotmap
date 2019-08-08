@@ -154,13 +154,13 @@ requirejs(['hotmap'], function(Hotmap) {
 ##### options
 ```javascript
 {
-    noMargins: <bool>,   // whether to include bottom and right side margins (defaults to false)
+    useMargins: false,     // when true, column labels are at 45 degrees and margins are added
     theme: 'dark' | 'light',
-    hideLegend: <bool>,
+    hideLegend: false,
     legend: <some_html>,
-    optionsLabel: 'Options',
-    showVersion: <bool>,    // shows version number bottom right
-    maxFontSize: <int>      // pixels
+    hideOptions: false,
+    showVersion: false,    // shows version number bottom right
+    maxFontSize: <int>     // in pixels
 }
 ```
 

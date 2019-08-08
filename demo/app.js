@@ -63,7 +63,7 @@ function demo() {
 function fakeDataDemo() {
     let ele = document.querySelector('#chart');
 
-    let {rows, cols, matrix} = getMockData(500, 500);
+    let {rows, cols, matrix} = getMockData(5000, 500);
     let hotmap = new Hotmap({
         ele, rows, cols, matrix
     });
@@ -78,8 +78,8 @@ function pfExample({ele, data, newick}) {
         colsLabel: 'Protein Families',
         rowMetaLabels: rowMetaLabels,
         colMetaLabels: ['Protein Family ID'],
+        hideColMeta: true,
         options: {
-            noMargins: false,
             showVersion: true,
             maxFontSize: 14
         },

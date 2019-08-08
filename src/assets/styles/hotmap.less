@@ -1,8 +1,9 @@
-
+@highlight-color: #1187f1;
 
 .hotmap {
   font-family: 'Rubik', sans-serif;
   height: 100%;
+  position: relative;
 
   .chart {
     position: relative;
@@ -18,19 +19,23 @@
     position: absolute;
   }
 
-  .version, .logo {
+  .logo {
     position: absolute;
     text-decoration: none;
-    padding: 5px 10px;
+    padding: 10px;
     right: 20px;
     bottom: 5px;
   }
 
   .version {
-    background: #333;
-    color: #d8d8d8;
+    padding: 10px;
+    text-decoration: none;
+    background: @highlight-color;
+    color: #fff;
     font-size: .8em;
-    bottom: 0;
+    height: 15px;
+    right: 50px;
+    top: @nav-bar-height;
   }
 
 
