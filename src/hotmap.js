@@ -228,9 +228,9 @@ export default class Hotmap {
         this.scrollBox;
         this.mouseTracker;
 
-        // compute margin sizes
+        // get font
         let style = window.getComputedStyle(this.ele.querySelector('.hotmap'));
-        this.font = style.fontFamily.split(',')[0];
+        this.font = style.fontFamily.split(',')[0].replace(/"/g, '');
 
         let fontProm = new FontFaceObserver(this.font);
         return fontProm.load(null, 30000);
