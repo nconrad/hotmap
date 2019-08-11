@@ -142,8 +142,9 @@ export default class Hotmap {
          **/
 
         this.ele.innerHTML = container;
+        this.headerSize = this.ele.querySelector('.header').clientHeight;
 
-        this.initParams().then(() => {
+        this.init().then(() => {
             this.start();
         });
 
@@ -180,7 +181,7 @@ export default class Hotmap {
         if (!validMat) alert('Must provide matrix with same number of columns.');
     }
 
-    initParams() {
+    init() {
         // handle basic options
         if (this.opts.theme == 'light')
             this.ele.querySelector('.header').classList.add('light');
@@ -213,8 +214,8 @@ export default class Hotmap {
 
         // minimize margins
         if (!this.opts.useMargins) {
-            margin.bottom = cellMax + 35;
-            margin.right = cellMax;
+            margin.bottom = 16;
+            margin.right = 16;
         }
 
         // dimensions for meta
@@ -376,14 +377,16 @@ export default class Hotmap {
     computeCellWidth() {
         if (this.size.size > 250000) return 5;
 
-        let w = parseInt((this.parent.clientWidth - margin.left - margin.right) / this.size.n);
+        let [width, _] = this.getContainerSize();
+        let w = parseInt((width - margin.left - margin.right) / this.size.n);
         return w < cellMax ? (w || 1) : cellMax;
     }
 
     computeCellHeight() {
         if (this.size.n * this.size.m > 250000) return 5;
 
-        let h = parseInt((this.parent.clientHeight - margin.top - margin.bottom) / this.size.m);
+        let [_, height] = this.getContainerSize();
+        let h = parseInt((height - margin.top - margin.bottom) / this.size.m);
         return h < cellMax ? (h || 1) : cellMax;
     }
 
@@ -405,8 +408,9 @@ export default class Hotmap {
             if (len < 1) break;
         }
 
-        if (origLen != len)
+        if (origLen !== len) {
             text = text.slice(0, len) + '...';
+        }
 
         return text;
     }
@@ -419,6 +423,9 @@ export default class Hotmap {
      */
     draw(renderX, renderY, scale) {
         this.clearStage(renderX, renderY, scale);
+
+        // we'll compute the "viewsize" based on current container size;
+        let [width, height] = this.getContainerSize();
 
         let cellW, cellH;
         if (this.isStaged) {
@@ -434,8 +441,8 @@ export default class Hotmap {
 
         // use cell size to compute "view box" of sorts
         // Todo: optimize, moving into resize event?
-        xViewSize = parseInt((this.parent.clientWidth - margin.left - margin.right) / cellW);
-        yViewSize = parseInt((this.parent.clientHeight - margin.top - margin.bottom) / cellH);
+        xViewSize = parseInt((width - margin.left - margin.right) / cellW);
+        yViewSize = parseInt((height - margin.top - margin.bottom) / cellH);
         if (yViewSize > this.size.m) yViewSize = this.size.m;
         if (xViewSize > this.size.n) xViewSize = this.size.n;
 
@@ -503,8 +510,8 @@ export default class Hotmap {
         if (renderY || this.scaleCtrl.isLocked()) {
             this.scrollBox.setContentHeight(cellH * this.size.m);
 
-            let height = yViewSize * cellH;
-            this.scrollBox.setContainerHeight(height);
+            let h = yViewSize * cellH;
+            this.scrollBox.setContainerHeight(h);
 
             // if y-axis is out-of-range, hide
             if (yViewSize >= this.size.m) {
@@ -517,8 +524,8 @@ export default class Hotmap {
         if (renderX || this.scaleCtrl.isLocked()) {
             this.scrollBox.setContentWidth(cellW * this.size.n);
 
-            let width = xViewSize * cellW;
-            this.scrollBox.setContainerWidth(width);
+            let w = xViewSize * cellW;
+            this.scrollBox.setContainerWidth(w);
 
             // if x-axis is out-of-range
             if (xViewSize >= this.size.n) {
@@ -563,9 +570,6 @@ export default class Hotmap {
         if (this.tree && (renderY || scale)) {
             this.tree.setHeight(this.size.m * cellH);
         }
-
-        // let t1 = performance.now();
-        // console.log('render time', t1 - t0);
     }
 
     initSVGContainers(el, width, height) {
@@ -594,6 +598,7 @@ export default class Hotmap {
 
         // create hidden scratch canvas for measuring text size
         let canvas = this.ele.appendChild(document.createElement('canvas'));
+        canvas.style.display = 'none';
         let scratchCanvas = canvas.getContext('2d');
 
         return {svg, xAxis, yAxis, cAxis, scratchCanvas};
@@ -1227,25 +1232,27 @@ export default class Hotmap {
         x = margin.left + x * cellW;
         y = margin.top + y * cellH;
 
+        // default content
         let content =
             `<b>row:</b> ${yLabel}<br>` +
             `<b>column:</b> ${xLabel}<br>` +
             `<b>value:</b> ${value}`;
 
-        // this.ele.querySelector('.header .info').innerHTML = content;
-
-        let top = y + cellH,
-            left = x + cellW;
-        let tooltip = this.tooltip(top, left);
-
         let yMeta = this.yMeta,
             xMeta = this.xMeta;
 
-        tooltip.innerHTML = this.onHover ? this.onHover({
+        content = this.onHover ? this.onHover({
             xLabel, yLabel, value,
             ...(yMeta && {rowMeta: this.yMeta[i]}),
             ...(xMeta && {colMeta: this.xMeta[j]})
         }) : content;
+
+
+        // place at bottom-right (if possible)
+        let top = y,
+            left = x;
+
+        this.tooltip(top, left, content, {w: cellW, h: cellH});
 
         // add hover box
         if (x && y) {
@@ -1257,16 +1264,23 @@ export default class Hotmap {
         }
     }
 
-    tooltip(top, left) {
+    tooltip(top, left, content, offset = {w: 0, h: 0}) {
+        let {w, h} = offset;
+        let [width, height] = this.getContainerSize();
+        let wDiff = width - left;
+
         let tooltip = this.ele.querySelector('.hmap-tt');
         tooltip.style.display = 'block';
-        tooltip.style.top = `${top}px`;
-        tooltip.style.left = `${left}px`;
-        return tooltip;
-    }
+        tooltip.innerHTML = content;
 
-    hideHoverInfo() {
-        this.ele.querySelector('.header .info').innerHTML = '';
+        left = wDiff > 200 ? left + w : left - tooltip.clientWidth;
+        top = top + h + tooltip.offsetHeight < height
+            ? top + h : top - tooltip.clientHeight;
+
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+
+        return tooltip;
     }
 
     hideHoverTooltip() {
@@ -1276,7 +1290,10 @@ export default class Hotmap {
     }
 
     getContainerSize() {
-        return [this.parent.clientWidth, this.parent.clientHeight];
+        return [
+            this.parent.clientWidth,
+            this.parent.clientHeight - this.headerSize
+        ];
     }
 
     resize() {
