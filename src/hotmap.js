@@ -146,7 +146,7 @@ export default class Hotmap {
 
         this.init().then(() => {
             this.start();
-        });
+        }, () => this.start());
 
         return this;
     }
@@ -248,8 +248,13 @@ export default class Hotmap {
         let style = window.getComputedStyle(this.ele.querySelector('.hotmap'));
         this.font = style.fontFamily.split(',')[0].replace(/"/g, '');
 
-        let fontProm = new FontFaceObserver(this.font);
-        return fontProm.load(null, 30000);
+        // wait for font if needed
+        if (this.opts.waitForFont) {
+            let fontProm = new FontFaceObserver(this.font);
+            return fontProm.load();
+        } else {
+            return Promise.resolve();
+        }
     }
 
     static getMeta(objs) {
