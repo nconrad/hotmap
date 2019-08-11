@@ -1532,9 +1532,8 @@ export default class Hotmap {
             let y = margin.top + cellH * i;
             let rowIdx = yStart + i;
 
-
             if (cellH > minTextW && !this.tree) {
-                this.drawYLabel(yAxis, this.rows[rowIdx].name, margin.left - yMetaSize - 10, y + 3, i);
+                this.drawYLabel(yAxis, this.rows[rowIdx].name, margin.left - this.yMetaWidth - 10, y + 3, i);
             }
 
             // add row categories and category labels
