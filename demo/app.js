@@ -7,6 +7,7 @@
  *
  */
 import Hotmap from '../src/hotmap';
+import axios from 'axios';
 import { getMockData } from './utils';
 
 const SHOW_TREE = false;
@@ -22,10 +23,10 @@ function demo() {
     ele.innerHTML = `<br>loading...`;
 
     let hotmap;
-    fetch(dataPath)
-        .then(res => res.json())
-        .then(data => {
-            console.log('data file:', data);
+    axios.get(dataPath)
+        .then(res => {
+            let data = res.data;
+            console.log('data provided to heatmap:', data);
 
             if (!SHOW_TREE) {
                 hotmap = pfExample({ele, data});

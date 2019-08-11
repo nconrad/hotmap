@@ -3,13 +3,9 @@
  *
  * Author: https://github.com/nconrad
  *
- * Todo:
- *      IE polyfill assign
- *      IE polyfill remove()/append()
- *      IE polyfill proxy
- *
  */
 import * as PIXI from 'pixi.js';
+import 'proxy-polyfill/proxy.min';
 import 'regenerator-runtime/runtime';
 import FontFaceObserver from 'fontfaceobserver';
 
@@ -244,7 +240,6 @@ export default class Hotmap {
         this.scrollBox;
         this.mouseTracker;
 
-        // get font
         let style = window.getComputedStyle(this.ele.querySelector('.hotmap'));
         this.font = style.fontFamily.split(',')[0].replace(/"/g, '');
 
@@ -740,7 +735,6 @@ export default class Hotmap {
     }
 
     highlightLabel(text, ele, i) {
-        let matchText = this.cols[i].name;
         let label = ele.innerHTML;
         let idx = label.toLowerCase().indexOf(text);
 
@@ -1649,7 +1643,6 @@ export default class Hotmap {
         let svg = this.snapshot(full);
         this.saveSVG(svg, fileName);
     }
-
 }
 
 
