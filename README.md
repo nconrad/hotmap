@@ -17,7 +17,7 @@ A WebGL/Canvas Heatmap for Bioinformatics and Big Data, written in vanilla JS an
 - cell/row/column selection
 - meta/categorical data display
 - update API
-- flip axis
+- flip axes
 - customizable tooltips
 - fullscreen button
 
@@ -25,7 +25,7 @@ A WebGL/Canvas Heatmap for Bioinformatics and Big Data, written in vanilla JS an
 
 ## Why?
 
-I wanted to create a hotmap viewer that easy to use and scales to millions of cells.
+I wanted to create a heatmap viewer that is easy to use and scales to millions of cells.
 
 
 ## Prototype Usage
@@ -156,11 +156,13 @@ requirejs(['hotmap'], function(Hotmap) {
 {
     useMargins: false,     // when true, column labels are at 45 degrees and margins are added
     theme: 'dark' | 'light',
+    maxFontSize: <int>     // in pixels
     hideLegend: false,
     legend: <some_html>,
     hideOptions: false,
-    showVersion: false,    // shows version number bottom right
-    maxFontSize: <int>     // in pixels
+    showVersion: false,    // shows version top-right
+    maxFontSize: <int>,    // in pixels
+    waitForFont: false     // useful if custom fonts are used  (labels are measured and shorted with ellipses)
 }
 ```
 
