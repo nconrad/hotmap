@@ -21,6 +21,7 @@ import { svgNS, svgG, createSVG, svgRect, svgText, svgLine } from './svg';
 import { setAttributes } from './dom';
 import { sanitizeColors, colorMatrix, categoryColors, rgbToHex, hexToHexColor } from './color';
 import { transpose } from './matrix';
+import dragIcon from './assets/icons/drag-indicator.svg';
 
 // import Picker from 'vanilla-picker';
 import { labelColor, labelHoverColor } from './consts';
