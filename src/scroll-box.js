@@ -98,7 +98,7 @@ export default class ScrollBox {
                 e.preventDefault();
                 this._onMouseWheel({deltaY: e.deltaY});
             }
-        });
+        }, {passive: true});
     }
 
     setContentWidth(width) {

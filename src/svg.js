@@ -46,3 +46,17 @@ export function svgRect(x, y, w, h, opts = {}) {
     return ele;
 }
 
+export function svgLine(x1, y1, x2, y2, opts = {}) {
+    let ele = document.createElementNS(svgNS, 'line');
+    ele.setAttribute('x1', x1);
+    ele.setAttribute('y1', y1);
+    ele.setAttribute('x2', x2);
+    ele.setAttribute('y2', y2);
+    ele.setAttribute('stroke', opts.stroke || '#000');
+    ele.setAttribute('stroke-width', opts.strokeWidth || 1);
+    if (opts.class) ele.setAttribute('class', opts.class);
+
+    return ele;
+}
+
+
