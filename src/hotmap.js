@@ -43,9 +43,9 @@ const zoomFactor = 0.1; // speed at which to zoom with mouse
  * margin defaults
  */
 const margin = {
-    top: 200,
+    top: 185,
     bottom: 150,
-    left: 190,
+    left: 185,
     right: 125
 };
 
