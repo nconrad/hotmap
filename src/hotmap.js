@@ -21,7 +21,6 @@ import { svgNS, svgG, createSVG, svgRect, svgText, svgLine } from './svg';
 import { setAttributes } from './dom';
 import { sanitizeColors, colorMatrix, categoryColors, rgbToHex, hexToHexColor } from './color';
 import { transpose } from './matrix';
-import dragIcon from './assets/icons/drag-indicator.svg';
 
 // import Picker from 'vanilla-picker';
 import { labelColor, labelHoverColor } from './consts';
@@ -1254,10 +1253,6 @@ export default class Hotmap {
         // hide any hover/drag boxes on axes
         this.ele.querySelector('.x-drag-box').style.display = 'none';
         this.ele.querySelector('.y-drag-box').style.display = 'none';
-
-        // hide
-        // this.yAxis.querySelectorAll('text').forEach(el => el.classList.remove('hover'));
-        // this.xAxis.querySelectorAll('text').forEach(el => el.classList.remove('hover'));
     }
 
     getContainerSize() {
@@ -1373,8 +1368,8 @@ export default class Hotmap {
         }
 
         axisBox.onmousemove = evt => {
-            // only show do hover things at reasonable size
-            if (this.cellH <= minTextW) return;
+            // only activate hover when text is reasonable size
+            if (this.cellH < minTextW) return;
 
             // we'll need y position based on cell heights
             let rowIdx = this.getYAxisRowIdx(evt);
@@ -1427,9 +1422,8 @@ export default class Hotmap {
             let diff = this.getYAxisRowIdx(evt);
             let currentY = startY + diff;
 
-            let lineWidth = margin.left + this.yMetaWidth + xViewSize * this.cellW;
-
             // draw bottom line
+            let lineWidth = margin.left + this.yMetaWidth + xViewSize * this.cellW;
             let y2Pos = this.rowIdx2YAxisPos(currentY) + this.cellH;
             let bottomLine = svgLine(0, y2Pos, lineWidth, y2Pos, {
                 'class': 'drag-line',
@@ -1459,9 +1453,15 @@ export default class Hotmap {
         };
 
         dragBox.onmouseout = (evt) => {
+            let relTarget = evt.relatedTarget;
+            if (!relTarget) {
+                this.hideHoverEffects();
+                return;
+            }
+
             // ignore moving to another dragbox or related
             let cNames = ['y-drag-box', 'y-drag-text', 'y-drag-icon', 'y-drag-icon-container'];
-            let relClassList = evt.relatedTarget.classList;
+            let relClassList = relTarget.classList;
             if (cNames.some(cName => relClassList.contains(cName))) {
                 return;
             }
@@ -1473,6 +1473,7 @@ export default class Hotmap {
 
     xAxisHover() {
         // state of columns to swap
+        this.dragging = false;
         let startColIdx,
             endColIdx;
 
@@ -1499,6 +1500,9 @@ export default class Hotmap {
         }
 
         axisBox.onmousemove = evt => {
+            // only activate hover when text is reasonable size
+            if (this.cellW < minTextW) return;
+
             let colIdx = this.getXAxisColIdx(evt);
 
             // need y position based on cell heights
@@ -1506,8 +1510,8 @@ export default class Hotmap {
 
             // update drag box position
             dragBox.style.display = 'block';
-            dragBox.style.left = xPos + this.yMetaWidth;
-            let fontSize = this.cellH - this.opts.textPadding;
+            dragBox.style.left = xPos;
+            let fontSize = this.cellW - this.opts.textPadding;
             fontSize = fontSize <= this.opts.maxFontSize ? fontSize : this.opts.maxFontSize;
 
             // show icon as well
@@ -1519,8 +1523,8 @@ export default class Hotmap {
             svg.setAttribute('width', iconWidth);
 
             dragBox.innerHTML =
-                `<div class="x-drag-icon-container" style="margin-left: ${left};">` + icon.innerHTML + `</div>` +
-                `<div class="x-drag-text" style="transform: rotate(90deg); font-size: ${fontSize}; margin-left: ${left}; padding-bottom: ${textPadding};">` +
+                `<div class="x-drag-icon-container" style="transform: rotate(90deg);">` + icon.innerHTML + `</div>` +
+                `<div class="x-drag-text" style="left: ${left}; transform-origin: 0 0; transform: rotate(-90deg); font-size: ${fontSize}; bottom: ${textPadding};">` +
                     this.xAxis.querySelector(`[data-i="${colIdx}"]`).innerHTML +
                 `</div>`;
 
@@ -1548,13 +1552,12 @@ export default class Hotmap {
             // compute start col and current col
             let startX = evt.target.getBoundingClientRect().x;
             startX = parseInt((startX - margin.left) / this.cellW);
-            let diff = this.getYAxisRowIdx(evt);
+            let diff = this.getXAxisColIdx(evt);
             let currentX = startX + diff;
 
-            let lineHeight = margin.top + this.xMetaWidth + yViewSize * this.cellH;
-
             // draw bottom line
-            let xPos = this.rowIdx2YAxisPos(currentX) + this.cellW;
+            let lineHeight = margin.top + this.xMetaHeight + yViewSize * this.cellH;
+            let xPos = this.colIdx2XAxisPos(currentX);
             let bottomLine = svgLine(xPos, 0, xPos, lineHeight, {
                 'class': 'drag-line',
                 stroke: '#333'
@@ -1569,6 +1572,7 @@ export default class Hotmap {
 
         dragBox.ondragend = () => {
             this.dragging = false;
+            this.svg.querySelectorAll('.drag-line').forEach(el => el.remove());
             dragBox.style.display = 'none';
             dragBox.classList.remove('dragging');
             this.moveCol(startColIdx, endColIdx);
@@ -1583,9 +1587,15 @@ export default class Hotmap {
         };
 
         dragBox.onmouseout = (evt) => {
+            let relTarget = evt.relatedTarget;
+            if (!relTarget) {
+                this.hideHoverEffects();
+                return;
+            }
+
             // ignore moving to another dragbox or related
+            let relClassList = relTarget.classList;
             let cNames = ['x-drag-box', 'x-drag-text', 'x-drag-icon', 'x-drag-icon-container'];
-            let relClassList = evt.relatedTarget.classList;
             if (cNames.some(cName => relClassList.contains(cName))) {
                 return;
             }
@@ -1597,13 +1607,13 @@ export default class Hotmap {
     // takes evt from axis and returns row index
     getYAxisRowIdx(evt) {
         let {y} = evt.target.getBoundingClientRect();
-        y = parseInt(evt.y - y);
+        y = evt.y - y;
         return parseInt(y / this.cellH);
     }
 
     getXAxisColIdx(evt) {
         let {x} = evt.target.getBoundingClientRect();
-        x = parseInt(evt.x - x);
+        x = evt.x - x;
         return parseInt(x / this.cellW);
     }
 
@@ -1612,7 +1622,7 @@ export default class Hotmap {
     }
 
     colIdx2XAxisPos(colIdx) {
-        return margin.top + colIdx * this.cellW;
+        return margin.left + colIdx * this.cellW;
     }
 
     selectable() {

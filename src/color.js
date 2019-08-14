@@ -53,6 +53,16 @@ const schemeCategory20Hex = [
 ];
 
 const schemeCategory20 = [
+    0x8c564b,
+    0xc49c94,
+    0xe377c2,
+    0xf7b6d2,
+    0x7f7f7f,
+    0xc7c7c7,
+    0xbcbd22,
+    0xdbdb8d,
+    0x17becf,
+    0x9edae5,
     0x1f77b4,
     0xaec7e8,
     0xff7f0e,
@@ -63,16 +73,6 @@ const schemeCategory20 = [
     0xff9896,
     0x9467bd,
     0xc5b0d5,
-    0x8c564b,
-    0xc49c94,
-    0xe377c2,
-    0xf7b6d2,
-    0x7f7f7f,
-    0xc7c7c7,
-    0xbcbd22,
-    0xdbdb8d,
-    0x17becf,
-    0x9edae5
 ];
 
 export function sanitizeColors(colors) {
@@ -107,7 +107,9 @@ export function categoryColors(categories) {
     categories.forEach((set, i) => {
         let row = [];
         set.forEach((cat, j) => {
-            row.push(str2Color(cat));
+            let color = cat == 'undefined' || cat == null
+                ? 0x6666666 : str2Color(cat);
+            row.push(color);
         });
         colorMatrix.push(row);
     });
@@ -115,7 +117,7 @@ export function categoryColors(categories) {
     return colorMatrix;
 }
 
-function categoryColorsLegacy(categories) {
+function categoryColorsDep(categories) {
     // assume length of all categories is same
     let indexes = categories[0].map(cat => 0);
     let mappings = categories[0].map(cat => { return {}; });

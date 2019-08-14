@@ -95,10 +95,12 @@ export default class ScrollBox {
         // zoom event
         this.scrollContainer.addEventListener('mousewheel', (e) => {
             if (e.ctrlKey) {
+                // prevent scrolling, and don't use passive here,
+                // despite what chrome recommends
                 e.preventDefault();
                 this._onMouseWheel({deltaY: e.deltaY});
             }
-        }, {passive: true});
+        });
     }
 
     setContentWidth(width) {

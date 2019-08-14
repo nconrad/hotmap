@@ -5,7 +5,6 @@
 .x-axis-hover-box,
 .y-axis-hover-box {
     position: absolute;
-    z-index: 0;
     opacity: 0;
     // other attributes updated on render
 }
@@ -28,15 +27,11 @@
 
 .y-drag-box {
     left: 0;
-    height: 1%;
-    margin: auto;
     // other attributes updated on render
 }
 
 .x-drag-box {
     top: 0;
-    height: 1%;
-    margin: auto;
     // other attributes updated on render
 }
 
@@ -64,6 +59,11 @@
     float: left;
 }
 
+.x-drag-icon-container {
+    position: absolute;
+    top: 5px;
+}
+
 .x-drag-icon,
 .y-drag-icon {
     background: #fff;
@@ -71,4 +71,9 @@
 
 .y-drag-text {
     float: right;
+}
+
+.x-drag-text {
+    position: absolute;
+    white-space: nowrap;
 }
