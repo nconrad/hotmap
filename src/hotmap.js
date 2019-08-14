@@ -26,11 +26,10 @@ import dragIcon from './assets/icons/drag-indicator.svg';
 // import Picker from 'vanilla-picker';
 import { labelColor, labelHoverColor } from './consts';
 import './assets/styles/hotmap.less';
-import { request } from 'https';
+
 PIXI.utils.skipHello();
 
 const NAME = `hotmap.js`;
-
 const PARTICLE_CONTAINER = false; // experimental
 
 // view size (in terms of size of matrix)
@@ -38,7 +37,7 @@ let yViewSize;
 let xViewSize;
 
 const cellMin = 1;      // min height/width for a cell
-const cellMax = 50;    // max height/width for a cell
+const cellMax = 50;     // max height/width for a cell
 const zoomFactor = 0.1; // speed at which to zoom with mouse
 
 /*
@@ -57,16 +56,16 @@ const textPadding = 4;   // padding between y axis text
 const useMargins = false;
 
 // other defaults
-const minTextW = 5;     // show text if cell is at least this big
-const yTextPad = 10;    // padding from y axis
-const xTextPad = 5;     // padding from x axis
-const textMargin = 20;  // margin left and top of text
+const minTextW = 5;      // show text if cell is at least this big
+const yTextPad = 10;     // padding from y axis
+const xTextPad = 5;      // padding from x axis
+const textMargin = 20;   // margin left and top of text
 
 let xTextSpace;
 let yTextSpace;
 
 const yMetaSize = 15;    // size of y axis meta column
-const xMetaSize = 15;   // size of x axis meta row
+const xMetaSize = 15;    // size of x axis meta row
 const metaSpacing = 1;
 const metaFontSize = 14;
 
@@ -456,7 +455,7 @@ export default class Hotmap {
             // enforce bounds when scrolled and scaling
             if (rowIdx >= this.size.m) break;
 
-            if (renderY && cellH > minTextW && !this.tree) {
+            if (renderY && cellH >= minTextW && !this.tree) {
                 this.drawYLabel(
                     this.yAxis, this.rows[rowIdx].name,
                     margin.left - this.yMetaWidth - yTextPad, y + 3, i
@@ -490,7 +489,7 @@ export default class Hotmap {
                     this.cells.addChild(sprite);
                 }
 
-                if (renderX && i == 0 && cellW > minTextW) {
+                if (renderX && i == 0 && cellW >= minTextW) {
                     this.drawXLabel(this.xAxis, this.cols[colIdx], x + 2, margin.top - xTextPad, j);
                 }
 
@@ -558,7 +557,8 @@ export default class Hotmap {
         if (!this.isStaged) return;
 
         // enable row/column drag and drop
-        this.yAxisHover();
+        if (renderY || scale) this.yAxisHover();
+        if (renderX || scale) this.xAxisHover();
 
         // add axis labels if zoomed out
         if (cellW <= minTextW) this.showXAxisLabel(this.xLabel);
@@ -661,31 +661,7 @@ export default class Hotmap {
         } else {
             ele.setAttribute('transform', `rotate(-90, ${x}, ${y})`);
         }
-
-        let colIdx = this.xStart + cellIdx;
-        ele.onmouseover = () => {
-            let tt = this.tooltip(y, x - 5);
-
-            let cats = !this.xMeta || this.xMetaLabels.length === 0 ? ''
-                : this.xMeta[colIdx].map((cat, i) =>
-                    `<div><b>${this.xMetaLabels[i]}:</b> ${cat}</div>`
-                ).join('');
-
-            tt.innerHTML =
-                `<div>${this.cols[colIdx].name}</div>
-                ${cats.length ? '<br>' + cats : cats}`;
-        };
-
-
-        ele.onclick = () => {
-            if (!this.onSelection) return;
-            let r = this.getCol(colIdx);
-            this.onSelection(r);
-        };
-
-        ele.onmouseout = () => this.hideHoverEffects();
     }
-
 
     highlightQuery() {
         let {cols, rows} = this.getViewboxLabels();
@@ -1268,11 +1244,20 @@ export default class Hotmap {
     }
 
     hideHoverEffects() {
+        // hide tooltip
         let tooltip = this.ele.querySelector('.hmap-tt');
         tooltip.style.display = 'none';
+
+        // remove cursor hover square
         this.ele.querySelectorAll('.hover-box').forEach(el => el.remove());
-        this.yAxis.querySelectorAll('text').forEach(el => el.classList.remove('hover'));
-        this.xAxis.querySelectorAll('text').forEach(el => el.classList.remove('hover'));
+
+        // hide any hover/drag boxes on axes
+        this.ele.querySelector('.x-drag-box').style.display = 'none';
+        this.ele.querySelector('.y-drag-box').style.display = 'none';
+
+        // hide
+        // this.yAxis.querySelectorAll('text').forEach(el => el.classList.remove('hover'));
+        // this.xAxis.querySelectorAll('text').forEach(el => el.classList.remove('hover'));
     }
 
     getContainerSize() {
@@ -1316,10 +1301,14 @@ export default class Hotmap {
         this.draw(true, true, true);
     }
 
-    // updates associated data models (such as categorical data)
+    // updates associated data models (such as meta data)
     updateData() {
         this.yMeta = Hotmap.getMeta(this.rows);
         this.xMeta = Hotmap.getMeta(this.cols);
+
+        // Todo: optimize?
+        this.rowCatColors = this.yMeta
+            ? categoryColors(this.yMeta) : [];
 
         // update colors
         this.colorMatrix = colorMatrix(this.matrix, this.color);
@@ -1356,49 +1345,62 @@ export default class Hotmap {
 
 
     yAxisHover() {
+        // state of dragging and row to swap
+        this.dragging = false;
+        let startRowIdx,
+            endRowIdx;
+
         let captureWidth = margin.left - this.yMetaWidth;
 
         // use/update existing capture boxes if they exist
-        let axisBox, dragBox;
-        if (this.ele.querySelector('.x-axis-hover-box')) {
-            axisBox = this.ele.querySelector('.x-axis-hover-box');
+        let dragBox = this.ele.querySelector('.y-drag-box'); // already in dom
+        let axisBox = this.ele.querySelector('.y-axis-hover-box');
+        if (axisBox) {
             axisBox.style.height = yViewSize * this.cellH;
-
-            dragBox = this.ele.querySelector('.drag-box');
             dragBox.style.height = this.cellH;
         } else {
-            // setup drag box
-            dragBox = this.ele.querySelector('.drag-box');
-            dragBox.style.position = 'absolute';
-            dragBox.style.zIndex = 1; // must be in front of axisBox
-            dragBox.style.left = 0;
-            dragBox.style.background = '#fff';
-            dragBox.style.width = captureWidth;
-            dragBox.style.height = this.cellH;
-
             // otherwise create a capture box
             axisBox = document.createElement('div');
-            axisBox.className = 'x-axis-hover-box';
-            axisBox.style.position = 'absolute';
-            axisBox.style.zIndex = 0;
-            axisBox.style.opacity = 0;
-            axisBox.style.left = 0;
+            axisBox.className = 'y-axis-hover-box';
             axisBox.style.top = margin.top;
             axisBox.style.width = captureWidth;
-            axisBox.style.height = yViewSize * this.cellH - 2;
+            axisBox.style.height = yViewSize * this.cellH; // updated on render
             this.ele.querySelector('.chart').appendChild(axisBox);
+
+            // and prepare dragbox
+            dragBox.style.width = captureWidth;
+            dragBox.style.height = this.cellH;
         }
 
         axisBox.onmousemove = evt => {
+            // only show do hover things at reasonable size
+            if (this.cellH <= minTextW) return;
+
+            // we'll need y position based on cell heights
             let rowIdx = this.getYAxisRowIdx(evt);
-
-            let label = this.yAxis.querySelector(`.row-${rowIdx}`);
-            label.classList.add('hover');
-
-            // need y position based on cell heights
             let yPos = this.rowIdx2YAxisPos(rowIdx);
 
-            // show tooltip
+            // update drag box position
+            dragBox.style.display = 'block';
+            dragBox.style.top = yPos;
+            let fontSize = this.cellH - this.opts.textPadding;
+            fontSize = fontSize <= this.opts.maxFontSize ? fontSize : this.opts.maxFontSize;
+
+            // show icon as well
+            let top = this.cellH / 2 - fontSize / 2;
+            let iconHeight = this.cellH > maxFontSize ? maxFontSize : this.cellH;
+            let icon = this.ele.querySelector('.y-drag-icon'); // already in dom
+            icon.className = 'y-drag-icon';
+            let svg = icon.querySelector('svg');
+            svg.setAttribute('height', iconHeight);
+
+            dragBox.innerHTML =
+                `<div class="y-drag-icon-container" style="margin-top: ${top};">` + icon.innerHTML + `</div>` +
+                `<div class="y-drag-text" style="font-size: ${fontSize}; margin-top: ${top}; padding-right: ${textPadding};">` +
+                    this.yAxis.querySelector(`.row-${rowIdx}`).innerHTML +
+                `</div>`;
+
+            // build tooltip
             let cats = !this.yMeta || this.yMetaLabels.length == 0 ? ''
                 : this.yMeta[rowIdx].map((cat, i) =>
                     `<div><b>${this.yMetaLabels[i]}:</b> ${cat}</div>`
@@ -1407,36 +1409,11 @@ export default class Hotmap {
             let text = `<div>${this.rows[rowIdx].name}</div>
                 ${cats.length ? '<br>' + cats : cats}`;
 
-            // update drag box position
-            dragBox.style.display = 'block';
-            dragBox.style.top = yPos;
-            let fontSize = this.cellH - this.opts.textPadding;
-            fontSize = fontSize <= this.opts.maxFontSize ? fontSize : this.opts.maxFontSize;
-
-            // show icon too
-            let iconHeight = this.cellH > maxFontSize ? maxFontSize : this.cellH;
-            let icon = this.ele.querySelector('.drag-icon');
-            icon.style.background = '#fff';
-            let svg = icon.querySelector('svg');
-            svg.setAttribute('height', iconHeight);
-
-            dragBox.innerHTML =
-                `<div style="position: relative; float: left">` + icon.innerHTML + `</div>` +
-                `<div class="drag-text" style="font-size: ${fontSize}px; margin-top: ${fontSize / 3}; float: right; padding-right: ${textPadding};">` +
-                    this.yAxis.querySelector(`.row-${rowIdx}`).innerHTML +
-                `</div>`;
-
             this.tooltip(text, yPos, captureWidth);
         };
 
-
-        // state of dragging and row to swap
-        this.dragging = false;
-        let startRowIdx,
-            endRowIdx;
-
         dragBox.ondragstart = () => {
-            dragBox.classList.add('hover');
+            dragBox.classList.add('dragging');
             this.dragging = true;
         };
 
@@ -1469,7 +1446,7 @@ export default class Hotmap {
         dragBox.ondragend = () => {
             this.dragging = false;
             dragBox.style.display = 'none';
-            dragBox.classList.remove('hover');
+            dragBox.classList.remove('dragging');
             this.moveRow(startRowIdx, endRowIdx);
         };
 
@@ -1481,16 +1458,139 @@ export default class Hotmap {
             this.onSelection(r);
         };
 
-        axisBox.onmouseout = (evt) => {
-            this.hideHoverEffects();
-
-            let relTarget = evt.relatedTarget;
-            if (relTarget.classList.contains('drag-box') ||
-                relTarget.classList.contains('drag-text')) {
+        dragBox.onmouseout = (evt) => {
+            // ignore moving to another dragbox or related
+            let cNames = ['y-drag-box', 'y-drag-text', 'y-drag-icon', 'y-drag-icon-container'];
+            let relClassList = evt.relatedTarget.classList;
+            if (cNames.some(cName => relClassList.contains(cName))) {
                 return;
             }
 
+            this.hideHoverEffects();
+        };
+    }
+
+
+    xAxisHover() {
+        // state of columns to swap
+        let startColIdx,
+            endColIdx;
+
+        let captureHeight = margin.top - this.xMetaHeight;
+
+        // use/update existing capture boxes if they exist
+        let dragBox = this.ele.querySelector('.x-drag-box'); // already in dom
+        let axisBox = this.ele.querySelector('.x-axis-hover-box');
+        if (axisBox) {
+            axisBox.style.width = xViewSize * this.cellW;
+            dragBox.style.width = this.cellW;
+        } else {
+            // otherwise create a capture box
+            axisBox = document.createElement('div');
+            axisBox.className = 'x-axis-hover-box';
+            axisBox.style.left = margin.left;
+            axisBox.style.height = captureHeight;
+            axisBox.style.width = xViewSize * this.cellW; // updated on render
+            this.ele.querySelector('.chart').appendChild(axisBox);
+
+            // and prepare dragbox
+            dragBox.style.height = captureHeight;
+            dragBox.style.width = this.cellW;
+        }
+
+        axisBox.onmousemove = evt => {
+            let colIdx = this.getXAxisColIdx(evt);
+
+            // need y position based on cell heights
+            let xPos = this.colIdx2XAxisPos(colIdx);
+
+            // update drag box position
+            dragBox.style.display = 'block';
+            dragBox.style.left = xPos + this.yMetaWidth;
+            let fontSize = this.cellH - this.opts.textPadding;
+            fontSize = fontSize <= this.opts.maxFontSize ? fontSize : this.opts.maxFontSize;
+
+            // show icon as well
+            let left = this.cellH / 2 - fontSize / 2;
+            let iconWidth = this.cellW > maxFontSize ? maxFontSize : this.cellW;
+            let icon = this.ele.querySelector('.x-drag-icon'); // already in dom
+            icon.className = 'x-drag-icon';
+            let svg = icon.querySelector('svg');
+            svg.setAttribute('width', iconWidth);
+
+            dragBox.innerHTML =
+                `<div class="x-drag-icon-container" style="margin-left: ${left};">` + icon.innerHTML + `</div>` +
+                `<div class="x-drag-text" style="transform: rotate(90deg); font-size: ${fontSize}; margin-left: ${left}; padding-bottom: ${textPadding};">` +
+                    this.xAxis.querySelector(`[data-i="${colIdx}"]`).innerHTML +
+                `</div>`;
+
+            // build tooltip
+            let cats = !this.xMeta || this.xMetaLabels.length == 0 ? ''
+                : this.xMeta[colIdx].map((cat, i) =>
+                    `<div><b>${this.xMetaLabels[i]}:</b> ${cat}</div>`
+                ).join('');
+
+            let text = `<div>${this.cols[colIdx].name}</div>
+                ${cats.length ? '<br>' + cats : cats}`;
+
+            this.tooltip(text, captureHeight, xPos);
+        };
+
+        dragBox.ondragstart = () => {
+            dragBox.classList.add('dragging');
+            this.dragging = true;
+        };
+
+        dragBox.ondrag = (evt) => {
+            if (!this.dragging) return;
+            this.svg.querySelectorAll('.drag-line').forEach(el => el.remove());
+
+            // compute start col and current col
+            let startX = evt.target.getBoundingClientRect().x;
+            startX = parseInt((startX - margin.left) / this.cellW);
+            let diff = this.getYAxisRowIdx(evt);
+            let currentX = startX + diff;
+
+            let lineHeight = margin.top + this.xMetaWidth + yViewSize * this.cellH;
+
+            // draw bottom line
+            let xPos = this.rowIdx2YAxisPos(currentX) + this.cellW;
+            let bottomLine = svgLine(xPos, 0, xPos, lineHeight, {
+                'class': 'drag-line',
+                stroke: '#333'
+            });
+
+            this.svg.appendChild(bottomLine);
+
+            // update state
+            startColIdx = startX;
+            endColIdx = currentX < 0 ? endColIdx : currentX;
+        };
+
+        dragBox.ondragend = () => {
+            this.dragging = false;
             dragBox.style.display = 'none';
+            dragBox.classList.remove('dragging');
+            this.moveCol(startColIdx, endColIdx);
+        };
+
+        dragBox.onclick = (evt) => {
+            if (!this.onSelection) return;
+
+            let colIdx = this.getXAxisColIdx(evt);
+            let col = this.getCol(colIdx);
+            this.onSelection(col);
+        };
+
+        dragBox.onmouseout = (evt) => {
+            // ignore moving to another dragbox or related
+            let cNames = ['x-drag-box', 'x-drag-text', 'x-drag-icon', 'x-drag-icon-container'];
+            let relClassList = evt.relatedTarget.classList;
+            if (cNames.some(cName => relClassList.contains(cName))) {
+                return;
+            }
+
+            this.hideHoverEffects();
         };
     }
 
@@ -1501,8 +1601,18 @@ export default class Hotmap {
         return parseInt(y / this.cellH);
     }
 
+    getXAxisColIdx(evt) {
+        let {x} = evt.target.getBoundingClientRect();
+        x = parseInt(evt.x - x);
+        return parseInt(x / this.cellW);
+    }
+
     rowIdx2YAxisPos(rowIdx) {
         return margin.top + rowIdx * this.cellH;
+    }
+
+    colIdx2XAxisPos(colIdx) {
+        return margin.top + colIdx * this.cellW;
     }
 
     selectable() {
@@ -1630,8 +1740,7 @@ export default class Hotmap {
             n = matrix[0].length;
 
         return {
-            m,
-            n,
+            m, n,
             size: m * n,
             min: minMax.min,
             max: minMax.max
@@ -1669,8 +1778,8 @@ export default class Hotmap {
             let y = margin.top + cellH * i;
             let rowIdx = yStart + i;
 
-            if (cellH > minTextW && !this.tree) {
-                this.drawYLabel(yAxis, this.rows[rowIdx].name, margin.left - this.yMetaWidth - 10, y + 3, i);
+            if (cellH >= minTextW && !this.tree) {
+                this.drawYLabel(yAxis, this.rows[rowIdx].name, margin.left - this.yMetaWidth - 10, y, i);
             }
 
             // add row categories and category labels
@@ -1691,7 +1800,7 @@ export default class Hotmap {
                 let x = margin.left + cellW * j,
                     colIdx = xStart + j;
 
-                if (i == 0 && cellW > minTextW) {
+                if (i == 0 && cellW >= minTextW) {
                     this.drawXLabel(xAxis, this.cols[colIdx], x + 2, margin.top - 5, j);
                 }
 
@@ -1704,8 +1813,8 @@ export default class Hotmap {
         // add axis labels if needed
         let xLabel = this.ele.querySelector(`.x-axis-label`);
         let yLabel = this.ele.querySelector(`.y-axis-label`);
-        if (cellW <= minTextW && xLabel) svg.appendChild(xLabel.cloneNode(true));
-        if (cellH <= minTextW && yLabel) svg.appendChild(yLabel.cloneNode(true));
+        if (cellW < minTextW && xLabel) svg.appendChild(xLabel.cloneNode(true));
+        if (cellH < minTextW && yLabel) svg.appendChild(yLabel.cloneNode(true));
 
         // add category labels if needed
         if (this.yMeta) svg.appendChild(this.cAxis.cloneNode(true));
@@ -1782,16 +1891,39 @@ export default class Hotmap {
         this.saveSVG(svg, fileName);
     }
 
-    moveRow(startRowIdx, endRowIdx) {
+    // moves row1 to row2 (by index)
+    moveRow(row1, row2) {
+        let rowToMove = this.rows[row1];
+        let matrixRowToMove = this.matrix[row1];
+
         // update rows
-        let rowToMove = this.rows[startRowIdx];
-        let matrixRowToMove = this.matrix[startRowIdx];
-        this.rows.splice(startRowIdx, 1);
-        this.rows.splice(endRowIdx, 0, rowToMove);
+        this.rows.splice(row1, 1);
+        this.rows.splice(row2, 0, rowToMove);
 
         // update matrix
-        this.matrix.splice(startRowIdx, 1);
-        this.matrix.splice(endRowIdx, 0, matrixRowToMove);
+        this.matrix.splice(row1, 1);
+        this.matrix.splice(row2, 0, matrixRowToMove);
+
+        this.updateData();
+        this.initChart();
+    }
+
+
+    // moves column1 to column2 (by index)
+    moveCol(col1, col2) {
+        let colToMove = this.cols[col1];
+
+        // update rows
+        this.cols.splice(col1, 1);
+        this.cols.splice(col2, 0, colToMove);
+
+        // update matrix
+        this.rows.forEach((_, i) => {
+            let matrixValToMove = this.matrix[i][col1];
+            this.matrix[i].splice(col1, 1);
+            this.matrix[i].splice(col2, 0, matrixValToMove);
+        });
+
 
         this.updateData();
         this.initChart();

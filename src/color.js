@@ -86,7 +86,36 @@ export function sanitizeColors(colors) {
     return sanitized;
 }
 
+// reference:
+// https://gist.github.com/0x263b/2bdd90886c2036a1ad5bcf06d6e6fb37
+function str2Color(str) {
+    let colors = schemeCategory20;
+
+    let hash = 0;
+    if (str.length === 0) return hash;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        hash = hash & hash;
+    }
+    hash = ((hash % colors.length) + colors.length) % colors.length;
+    return colors[hash];
+}
+
 export function categoryColors(categories) {
+    let colorMatrix = [];
+
+    categories.forEach((set, i) => {
+        let row = [];
+        set.forEach((cat, j) => {
+            row.push(str2Color(cat));
+        });
+        colorMatrix.push(row);
+    });
+
+    return colorMatrix;
+}
+
+function categoryColorsLegacy(categories) {
     // assume length of all categories is same
     let indexes = categories[0].map(cat => 0);
     let mappings = categories[0].map(cat => { return {}; });

@@ -1,0 +1,74 @@
+/*
+ * These classes are all related to the fancy row/column drag and drop
+ */
+
+.x-axis-hover-box,
+.y-axis-hover-box {
+    position: absolute;
+    z-index: 0;
+    opacity: 0;
+    // other attributes updated on render
+}
+
+.y-axis-hover-box {
+    left: 0;
+}
+
+.x-axis-hover-box {
+    top: 0;
+}
+
+
+.x-drag-box,
+.y-drag-box {
+    position: absolute;
+    z-index: 1; // must be in front of axisBox
+    background: #fff;
+}
+
+.y-drag-box {
+    left: 0;
+    height: 1%;
+    margin: auto;
+    // other attributes updated on render
+}
+
+.x-drag-box {
+    top: 0;
+    height: 1%;
+    margin: auto;
+    // other attributes updated on render
+}
+
+.x-drag-box:hover,
+.y-drag-box:hover  {
+    cursor: pointer;
+}
+
+.x-drag-box.dragging
+.y-drag-box.dragging {
+    cursor: grabbing;
+}
+.y-drag-box.dragging {
+    border-top: 1px solid #222;
+    border-bottom: 1px solid #222;
+}
+
+.x-drag-box.dragging {
+    border-left: 1px solid #222;
+    border-right: 1px solid #222;
+}
+
+.y-drag-icon-container {
+    position: relative;
+    float: left;
+}
+
+.x-drag-icon,
+.y-drag-icon {
+    background: #fff;
+}
+
+.y-drag-text {
+    float: right;
+}

@@ -54,8 +54,11 @@
         <div class="search-count"></div>
         <div class="select-count"></div>
 
-        <div class="drag-box" draggable="true" ondragstart="event.dataTransfer.setData('text/plain',null)"></div>
-        <i class="drag-icon" style="display: none;">${require('./assets/icons/drag-indicator.svg')}</i>
+
+        <div class="y-drag-box" draggable="true" ondragstart="event.dataTransfer.setData('text/plain',null)"></div>
+        <div class="x-drag-box" draggable="true" ondragstart="event.dataTransfer.setData('text/plain',null)"></div>
+        <i class="y-drag-icon" style="display: none;">${require('./assets/icons/drag-indicator.svg')}</i>
+        <i class="x-drag-icon" style="display: none;">${require('./assets/icons/drag-indicator.svg')}</i>
 
         <div class="tree"></div>
         <div class="webgl-canvas"></div>
