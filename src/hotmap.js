@@ -1340,10 +1340,10 @@ export default class Hotmap {
 
 
     yAxisHover() {
-        // state of dragging and row to swap
+        // row movement state
         this.dragging = false;
-        let startRowIdx,
-            endRowIdx;
+        let row1Idx,
+            row2Idx;
 
         let captureWidth = margin.left - this.yMetaWidth;
 
@@ -1433,15 +1433,16 @@ export default class Hotmap {
             this.svg.appendChild(bottomLine);
 
             // update state
-            startRowIdx = startY;
-            endRowIdx = currentY < 0 ? endRowIdx : currentY;
+            row1Idx = startY;
+            row2Idx = currentY < 0 ? row2Idx : currentY;
         };
 
         dragBox.ondragend = () => {
             this.dragging = false;
             dragBox.style.display = 'none';
             dragBox.classList.remove('dragging');
-            this.moveRow(startRowIdx, endRowIdx);
+
+            this.moveRow(row1Idx + this.yStart, row2Idx + this.yStart);
         };
 
         dragBox.onclick = (evt) => {
@@ -1472,10 +1473,10 @@ export default class Hotmap {
 
 
     xAxisHover() {
-        // state of columns to swap
+        // state of column to move
         this.dragging = false;
-        let startColIdx,
-            endColIdx;
+        let col1Idx,
+            col2Idx;
 
         let captureHeight = margin.top - this.xMetaHeight;
 
@@ -1566,8 +1567,8 @@ export default class Hotmap {
             this.svg.appendChild(bottomLine);
 
             // update state
-            startColIdx = startX;
-            endColIdx = currentX < 0 ? endColIdx : currentX;
+            col1Idx = startX;
+            col2Idx = currentX < 0 ? col2Idx : currentX;
         };
 
         dragBox.ondragend = () => {
@@ -1575,7 +1576,7 @@ export default class Hotmap {
             this.svg.querySelectorAll('.drag-line').forEach(el => el.remove());
             dragBox.style.display = 'none';
             dragBox.classList.remove('dragging');
-            this.moveCol(startColIdx, endColIdx);
+            this.moveCol(col1Idx + this.xStart, col2Idx + this.xStart);
         };
 
         dragBox.onclick = (evt) => {
@@ -1933,7 +1934,6 @@ export default class Hotmap {
             this.matrix[i].splice(col1, 1);
             this.matrix[i].splice(col2, 0, matrixValToMove);
         });
-
 
         this.updateData();
         this.initChart();
