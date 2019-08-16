@@ -11,6 +11,7 @@ A WebGL/Canvas Heatmap for Bioinformatics and Big Data, written in vanilla JS an
 ## Some Features
 
 - panning, scaling, zoom, and resizing
+- drag and drop rows/columns
 - SVG download
 - various color/binning options [to be extended]
 - search
@@ -154,12 +155,11 @@ requirejs(['hotmap'], function(Hotmap) {
 ##### options
 ```javascript
 {
-    useMargins: false,     // when true, column labels are at 45 degrees and margins are added
-    theme: 'dark' | 'light',
     maxFontSize: <int>     // in pixels
     hideLegend: false,
     legend: <some_html>,
     hideOptions: false,
+    theme: 'dark' | 'light',
     showVersion: false,    // shows version top-right
     maxFontSize: <int>,    // in pixels
     waitForFont: false     // useful if custom fonts are used  (labels are measured and shorted with ellipses)

@@ -61,7 +61,8 @@
 
 .x-drag-icon-container {
     position: absolute;
-    top: 5px;
+    top: 0;
+    transform: rotate(90deg);
 }
 
 .x-drag-icon,
@@ -76,4 +77,6 @@
 .x-drag-text {
     position: absolute;
     white-space: nowrap;
+    transform-origin: left bottom;
+    transform: rotate(-90deg);
 }

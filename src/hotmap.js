@@ -51,7 +51,7 @@ const margin = {
 
 // API defaults
 const maxFontSize = 18;  // largest possible font size (pixels)
-const textPadding = 4;   // padding between y axis text
+const textPadding = 4;   // padding between text
 const useMargins = false;
 
 // other defaults
@@ -1438,10 +1438,10 @@ export default class Hotmap {
         };
 
         dragBox.ondragend = () => {
+            this.svg.querySelectorAll('.drag-line').forEach(el => el.remove());
             this.dragging = false;
             dragBox.style.display = 'none';
             dragBox.classList.remove('dragging');
-
             this.moveRow(row1Idx + this.yStart, row2Idx + this.yStart);
         };
 
@@ -1453,22 +1453,7 @@ export default class Hotmap {
             this.onSelection(r);
         };
 
-        dragBox.onmouseout = (evt) => {
-            let relTarget = evt.relatedTarget;
-            if (!relTarget) {
-                this.hideHoverEffects();
-                return;
-            }
-
-            // ignore moving to another dragbox or related
-            let cNames = ['y-drag-box', 'y-drag-text', 'y-drag-icon', 'y-drag-icon-container'];
-            let relClassList = relTarget.classList;
-            if (cNames.some(cName => relClassList.contains(cName))) {
-                return;
-            }
-
-            this.hideHoverEffects();
-        };
+        dragBox.onmouseleave = () => this.hideHoverEffects();
     }
 
 
@@ -1516,7 +1501,7 @@ export default class Hotmap {
             fontSize = fontSize <= this.opts.maxFontSize ? fontSize : this.opts.maxFontSize;
 
             // show icon as well
-            let left = this.cellH / 2 - fontSize / 2;
+            let left = this.cellW / 2 + fontSize / 2;
             let iconWidth = this.cellW > maxFontSize ? maxFontSize : this.cellW;
             let icon = this.ele.querySelector('.x-drag-icon'); // already in dom
             icon.className = 'x-drag-icon';
@@ -1524,8 +1509,8 @@ export default class Hotmap {
             svg.setAttribute('width', iconWidth);
 
             dragBox.innerHTML =
-                `<div class="x-drag-icon-container" style="transform: rotate(90deg);">` + icon.innerHTML + `</div>` +
-                `<div class="x-drag-text" style="left: ${left}; transform-origin: 0 0; transform: rotate(-90deg); font-size: ${fontSize}; bottom: ${textPadding};">` +
+                `<div class="x-drag-icon-container" style="left: ${this.cellW / 2 - iconWidth / 2}px">` + icon.innerHTML + `</div>` +
+                `<div class="x-drag-text" style="bottom: ${xTextPad}px; left: ${left}; font-size: ${fontSize};">` +
                     this.xAxis.querySelector(`[data-i="${colIdx}"]`).innerHTML +
                 `</div>`;
 
@@ -1572,8 +1557,8 @@ export default class Hotmap {
         };
 
         dragBox.ondragend = () => {
-            this.dragging = false;
             this.svg.querySelectorAll('.drag-line').forEach(el => el.remove());
+            this.dragging = false;
             dragBox.style.display = 'none';
             dragBox.classList.remove('dragging');
             this.moveCol(col1Idx + this.xStart, col2Idx + this.xStart);
@@ -1587,22 +1572,7 @@ export default class Hotmap {
             this.onSelection(col);
         };
 
-        dragBox.onmouseout = (evt) => {
-            let relTarget = evt.relatedTarget;
-            if (!relTarget) {
-                this.hideHoverEffects();
-                return;
-            }
-
-            // ignore moving to another dragbox or related
-            let relClassList = relTarget.classList;
-            let cNames = ['x-drag-box', 'x-drag-text', 'x-drag-icon', 'x-drag-icon-container'];
-            if (cNames.some(cName => relClassList.contains(cName))) {
-                return;
-            }
-
-            this.hideHoverEffects();
-        };
+        dragBox.onmouseleave = this.hideHoverEffects();
     }
 
     // takes evt from axis and returns row index
