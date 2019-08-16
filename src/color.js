@@ -108,7 +108,7 @@ export function categoryColors(categories) {
         let row = [];
         set.forEach((cat, j) => {
             let color = cat == 'undefined' || cat == null
-                ? 0x6666666 : str2Color(cat);
+                ? 0x666666 : str2Color(cat);
             row.push(color);
         });
         colorMatrix.push(row);
