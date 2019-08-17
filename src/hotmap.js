@@ -952,7 +952,7 @@ export default class Hotmap {
         }
     }
 
-    onScroll(xStart, yStart) {
+    scrollTo(xStart, yStart) {
         if (xStart !== null && yStart !== null) {
             this.xStart = xStart;
             this.yStart = yStart;
@@ -1030,7 +1030,7 @@ export default class Hotmap {
             xMax: this.size.n,
             yMax: this.size.m,
             onMove: (xPos, yPos) => {
-                this.onScroll(xPos, yPos);
+                this.scrollTo(xPos, yPos);
                 this.hideHoverEffects();
             },
             onMouseWheel: change => {
@@ -1372,8 +1372,8 @@ export default class Hotmap {
             if (this.cellH < minTextW) return;
 
             // we'll need y position based on cell heights
-            let rowIdx = this.getYAxisRowIdx(evt);
-            let yPos = this.rowIdx2YAxisPos(rowIdx);
+            let rowIdx = this.mouseEvtToCellPosY(evt);
+            let yPos = this.cellPosYToMousePosY(rowIdx);
 
             // update drag box position
             dragBox.style.display = 'block';
@@ -1419,12 +1419,12 @@ export default class Hotmap {
             // compute start row and current row
             let startY = evt.target.getBoundingClientRect().y;
             startY = parseInt((startY - margin.top - this.headerSize) / this.cellH);
-            let diff = this.getYAxisRowIdx(evt);
+            let diff = this.mouseEvtToCellPosY(evt);
             let currentY = startY + diff;
 
             // draw bottom line
             let lineWidth = margin.left + this.yMetaWidth + xViewSize * this.cellW;
-            let y2Pos = this.rowIdx2YAxisPos(currentY) + this.cellH;
+            let y2Pos = this.cellPosYToMousePosY(currentY) + this.cellH;
             let bottomLine = svgLine(0, y2Pos, lineWidth, y2Pos, {
                 'class': 'drag-line',
                 stroke: '#333'
@@ -1448,7 +1448,7 @@ export default class Hotmap {
         dragBox.onclick = (evt) => {
             if (!this.onSelection) return;
 
-            let rowIdx = this.getYAxisRowIdx(evt);
+            let rowIdx = this.mouseEvtToCellPosY(evt);
             let r = this.getRow(rowIdx);
             this.onSelection(r);
         };
@@ -1489,10 +1489,10 @@ export default class Hotmap {
             // only activate hover when text is reasonable size
             if (this.cellW < minTextW) return;
 
-            let colIdx = this.getXAxisColIdx(evt);
+            let colIdx = this.mouseEvtToCellPosX(evt);
 
             // need y position based on cell heights
-            let xPos = this.colIdx2XAxisPos(colIdx);
+            let xPos = this.cellPosXToMousePosX(colIdx);
 
             // update drag box position
             dragBox.style.display = 'block';
@@ -1538,12 +1538,12 @@ export default class Hotmap {
             // compute start col and current col
             let startX = evt.target.getBoundingClientRect().x;
             startX = parseInt((startX - margin.left) / this.cellW);
-            let diff = this.getXAxisColIdx(evt);
+            let diff = this.mouseEvtToCellPosX(evt);
             let currentX = startX + diff;
 
             // draw bottom line
             let lineHeight = margin.top + this.xMetaHeight + yViewSize * this.cellH;
-            let xPos = this.colIdx2XAxisPos(currentX);
+            let xPos = this.cellPosXToMousePosX(currentX);
             let bottomLine = svgLine(xPos, 0, xPos, lineHeight, {
                 'class': 'drag-line',
                 stroke: '#333'
@@ -1567,7 +1567,7 @@ export default class Hotmap {
         dragBox.onclick = (evt) => {
             if (!this.onSelection) return;
 
-            let colIdx = this.getXAxisColIdx(evt);
+            let colIdx = this.mouseEvtToCellPosX(evt);
             let col = this.getCol(colIdx);
             this.onSelection(col);
         };
@@ -1576,24 +1576,31 @@ export default class Hotmap {
     }
 
     // takes evt from axis and returns row index
-    getYAxisRowIdx(evt) {
+    mouseEvtToCellPosY(evt) {
         let {y} = evt.target.getBoundingClientRect();
         y = evt.y - y;
         return parseInt(y / this.cellH);
     }
 
-    getXAxisColIdx(evt) {
+    mouseEvtToCellPosX(evt) {
         let {x} = evt.target.getBoundingClientRect();
         x = evt.x - x;
         return parseInt(x / this.cellW);
     }
 
-    rowIdx2YAxisPos(rowIdx) {
+    cellPosYToMousePosY(rowIdx) {
         return margin.top + rowIdx * this.cellH;
     }
 
-    colIdx2XAxisPos(colIdx) {
+    cellPosXToMousePosX(colIdx) {
         return margin.left + colIdx * this.cellW;
+    }
+
+    mousePosToCellPos(x, y) {
+        return {
+            x: parseInt(x / this.cellW),
+            y: parseInt(y / this.cellH)
+        };
     }
 
     selectable() {
@@ -1604,12 +1611,11 @@ export default class Hotmap {
 
         scrollContainer.onmousedown = (e) => {
             this.hideHoverEffects();
-            let _xPos = e.offsetX - scrollContainer.scrollLeft,
-                _yPos = e.offsetY - scrollContainer.scrollTop;
+            const _x = e.offsetX - scrollContainer.scrollLeft,
+                _y = e.offsetY - scrollContainer.scrollTop;
 
-            // relative position on visible cells
-            let x = parseInt(_xPos / this.cellW),
-                y = parseInt(_yPos / this.cellH);
+            // need cell position
+            const {x, y} = this.mousePosToCellPos(_x, _y);
 
             // save start of box
             box.x = x;
@@ -1621,26 +1627,24 @@ export default class Hotmap {
         scrollContainer.onmousemove = (e) => {
             if (!drag) return;
 
-            let _xPos = e.offsetX - scrollContainer.scrollLeft,
-                _yPos = e.offsetY - scrollContainer.scrollTop;
+            let _x = e.offsetX - scrollContainer.scrollLeft,
+                _y = e.offsetY - scrollContainer.scrollTop;
 
             // todo: this is a hack to deal with hovering
             // where the scrollBox normally would be
-            if (_xPos < 0 || _yPos < 0) return;
+            if (_x < 0 || _y < 0) return;
 
-            // relative position on visible cells
-            let x2 = parseInt(_xPos / this.cellW),
-                y2 = parseInt(_yPos / this.cellH);
+            // need cell position
+            let {x, y} = this.mousePosToCellPos(_x, _y);
 
-            if (y2 >= yViewSize) y2 = yViewSize;
-            if (x2 >= xViewSize) x2 = xViewSize;
+            if (y > yViewSize - 1) y = yViewSize - 1;
+            if (x > xViewSize - 1) x = xViewSize - 1;
 
             // save end of box (allowing any direction)
-            box.x2 = x2;
-            box.y2 = y2;
-
-            box.w = Math.abs(x2 - box.x);
-            box.h = Math.abs(y2 - box.y);
+            box.x2 = x;
+            box.y2 = y;
+            box.w = Math.abs(x - box.x);
+            box.h = Math.abs(y - box.y);
 
             let countEl = this.ele.querySelector('.select-count');
             let count = (box.w + 1) * (box.h + 1);
