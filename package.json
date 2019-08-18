@@ -1,6 +1,6 @@
 {
     "name": "hotmap",
-    "version": "0.2.12",
+    "version": "0.2.15",
     "description": "WebGL Based Hotmap Viewer for Bioinformatics and Big Data",
     "main": "index.js",
     "scripts": {

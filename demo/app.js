@@ -70,9 +70,6 @@ function fakeDataDemo() {
     });
 
     document.querySelector('.update-btn').onclick = () => {
-        hotmap.flipAxis();
-        console.log('flip axis')
-        return
         let data = hotmap.getState();
         // remove some rows (example)
         let rows = data.rows.slice(0, 5),
@@ -98,7 +95,7 @@ function pfExample({ele, data, newick}) {
         hideColMeta: true,
         options: {
             showVersion: true,
-            maxFontSize: 14
+            maxFontSize: 14,
         },
         color: {
             bins: ['=0', '=1', '=2', '<20', '>=20'],

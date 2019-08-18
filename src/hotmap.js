@@ -52,7 +52,7 @@ const margin = {
 // API defaults
 const maxFontSize = 18;  // largest possible font size (pixels)
 const textPadding = 4;   // padding between text
-const useMargins = false;
+const useBoundingClient = false;
 
 // other defaults
 const minTextW = 5;      // show text if cell is at least this big
@@ -125,12 +125,14 @@ export default class Hotmap {
         this.onClick = params.onClick;
         this.onFSClick = params.onFullscreenClick;
 
-        this.rowCatColors = this.yMeta
-            ? categoryColors(this.yMeta) : [];
+        if (!this.hideYMeta) {
+            this.rowCatColors = this.yMeta
+                ? categoryColors(this.yMeta) : [];
+        }
 
         // other options
         this.opts = Object.assign({
-            textPadding, maxFontSize, useMargins
+            textPadding, maxFontSize, useBoundingClient
         }, params.options);
 
         /**
@@ -222,14 +224,7 @@ export default class Hotmap {
 
         // include meta size in margins
         margin.left = margin.left + this.yMetaWidth;
-
-        if (this.opts.useMargins) {
-            // otherwise, x axis labels is at 45 degree
-            xTextSpace = (margin.top - textMargin) * Math.sqrt(2) - xTextPad -
-                this.xMetaHeight - textMargin;
-        } else {
-            xTextSpace = margin.top - this.xMetaHeight - xTextPad - textMargin;
-        }
+        xTextSpace = margin.top - this.xMetaHeight - xTextPad - textMargin;
         yTextSpace = margin.left - yTextPad - this.yMetaWidth - textMargin;
 
         // current query for search input
@@ -460,7 +455,7 @@ export default class Hotmap {
                     margin.left - this.yMetaWidth - yTextPad, y + 3, i
                 );
             }
-            if (renderY && this.yMeta && rowIdx < this.size.m) {
+            if (renderY && this.yMeta && rowIdx < this.size.m && !this.hideYMeta) {
                 this.addCategories('y', rowIdx, margin.left - this.yMetaWidth, y);
             }
 
@@ -493,7 +488,7 @@ export default class Hotmap {
                 }
 
                 if (this.yMeta && !this.catLabelsAdded && i == 0 &&
-                    renderX && colIdx < this.yMetaLabels.length) {
+                    renderX && colIdx < this.yMetaLabels.length && !this.hideYMeta) {
                     let k = this.yMetaLabels.length - colIdx - 1;
                     this.addCategoryLabel(
                         'x', this.yMetaLabels[k],
@@ -1301,9 +1296,10 @@ export default class Hotmap {
         this.yMeta = Hotmap.getMeta(this.rows);
         this.xMeta = Hotmap.getMeta(this.cols);
 
-        // Todo: optimize?
-        this.rowCatColors = this.yMeta
-            ? categoryColors(this.yMeta) : [];
+        if (!this.hideYMeta) {
+            this.rowCatColors = this.yMeta
+                ? categoryColors(this.yMeta) : [];
+        }
 
         // update colors
         this.colorMatrix = colorMatrix(this.matrix, this.color);
@@ -1571,33 +1567,16 @@ export default class Hotmap {
 
     // new
     yMousePosToRowIdx(evt) {
-        let startY = evt.pageY - this.ele.offsetTop;
-        startY = parseInt((startY - margin.top - this.headerSize ) / this.cellH);
-        return startY;
+        let y = evt.pageY - (this.opts.useBoundingClient
+            ? this.ele.getBoundingClientRect().y : this.ele.offsetTop);
+        return parseInt((y - margin.top - this.headerSize ) / this.cellH);;
     }
 
     xMousePosToColIdx(evt) {
-        let startX = evt.pageX - this.ele.offsetLeft;
-        startX = parseInt((startX - margin.left) / this.cellW);
-        return startX;
+        let x = evt.pageX - (this.opts.useBoundingClient
+            ? this.ele.getBoundingClientRect().x : this.ele.offsetLeft);
+        return parseInt((x - margin.left) / this.cellW);;
     }
-
-
-
-    // takes evt from axis and returns row index
-    /*
-    mouseEvtToCellPosY(evt) {
-        let {y} = evt.target.getBoundingClientRect();
-        y = evt.y - y;
-        return parseInt(y / this.cellH);
-    }
-
-    mouseEvtToCellPosX(evt) {
-        let {x} = evt.target.getBoundingClientRect();
-        x = evt.x - x;
-        return parseInt(x / this.cellW);
-    }
-    */
 
     cellPosYToMousePosY(rowIdx) {
         return margin.top + rowIdx * this.cellH;
@@ -1613,7 +1592,6 @@ export default class Hotmap {
             y: parseInt(y / this.cellH)
         };
     }
-
 
     selectable() {
         let box = {};
