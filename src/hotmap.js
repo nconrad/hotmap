@@ -586,14 +586,14 @@ export default class Hotmap {
 
         let xAxis = document.createElementNS(svgNS, 'g');
         xAxis.setAttribute('class', 'x-axis');
-        xAxis.style.height = margin.top - 50;
+        xAxis.style.height = `${margin.top - 50}px`;
 
         let yAxis = document.createElementNS(svgNS, 'g');
         yAxis.setAttribute('class', 'y-axis');
 
         let cAxis = document.createElementNS(svgNS, 'g');
         cAxis.setAttribute('class', 'cat-axis');
-        cAxis.style.height = margin.top - 50;
+        cAxis.style.height = `${margin.top - 50}px`;
 
         svg.appendChild(xAxis);
         svg.appendChild(yAxis);
@@ -1340,31 +1340,27 @@ export default class Hotmap {
 
 
     yAxisHover() {
-        // row movement state
         this.dragging = false;
-        let row1Idx,
-            row2Idx;
-
         let captureWidth = margin.left - this.yMetaWidth;
 
         // use/update existing capture boxes if they exist
         let dragBox = this.ele.querySelector('.y-drag-box'); // already in dom
         let axisBox = this.ele.querySelector('.y-axis-hover-box');
         if (axisBox) {
-            axisBox.style.height = yViewSize * this.cellH;
-            dragBox.style.height = this.cellH;
+            axisBox.style.height = `${yViewSize * this.cellH}px`;
+            dragBox.style.height = `${this.cellH}px`;
         } else {
             // otherwise create a capture box
             axisBox = document.createElement('div');
             axisBox.className = 'y-axis-hover-box';
-            axisBox.style.top = margin.top;
-            axisBox.style.width = captureWidth;
-            axisBox.style.height = yViewSize * this.cellH; // updated on render
+            axisBox.style.top = `${margin.top}px`;
+            axisBox.style.width = `${captureWidth}px`;
+            axisBox.style.height = `${yViewSize * this.cellH}px`; // updated on render
             this.ele.querySelector('.chart').appendChild(axisBox);
 
             // and prepare dragbox
-            dragBox.style.width = captureWidth;
-            dragBox.style.height = this.cellH;
+            dragBox.style.width = `${captureWidth}px`;
+            dragBox.style.height = `${this.cellH}px`;
         }
 
         axisBox.onmousemove = evt => {
@@ -1372,12 +1368,12 @@ export default class Hotmap {
             if (this.cellH < minTextW) return;
 
             // we'll need y position based on cell heights
-            let rowIdx = this.mouseEvtToCellPosY(evt);
+            let rowIdx = this.yMousePosToRowIdx(evt);
             let yPos = this.cellPosYToMousePosY(rowIdx);
 
             // update drag box position
             dragBox.style.display = 'block';
-            dragBox.style.top = yPos;
+            dragBox.style.top = `${yPos}px`;
             let fontSize = this.cellH - this.opts.textPadding;
             fontSize = fontSize <= this.opts.maxFontSize ? fontSize : this.opts.maxFontSize;
 
@@ -1390,8 +1386,8 @@ export default class Hotmap {
             svg.setAttribute('height', iconHeight);
 
             dragBox.innerHTML =
-                `<div class="y-drag-icon-container" style="margin-top: ${top};">` + icon.innerHTML + `</div>` +
-                `<div class="y-drag-text" style="font-size: ${fontSize}; margin-top: ${top}; padding-right: ${textPadding};">` +
+                `<div class="y-drag-icon-container" style="margin-top: ${top}px;">` + icon.innerHTML + `</div>` +
+                `<div class="y-drag-text" style="font-size: ${fontSize}px; margin-top: ${top}px; padding-right: ${textPadding}px;">` +
                     this.yAxis.querySelector(`.row-${rowIdx}`).innerHTML +
                 `</div>`;
 
@@ -1407,24 +1403,24 @@ export default class Hotmap {
             this.tooltip(text, yPos, captureWidth);
         };
 
-        dragBox.ondragstart = () => {
+        let row1;
+        let row2;
+        dragBox.ondragstart = (evt) => {
             dragBox.classList.add('dragging');
             this.dragging = true;
+            row1 = this.yMousePosToRowIdx(evt);
         };
 
         dragBox.ondrag = (evt) => {
             if (!this.dragging) return;
             this.svg.querySelectorAll('.drag-line').forEach(el => el.remove());
 
-            // compute start row and current row
-            let startY = evt.target.getBoundingClientRect().y;
-            startY = parseInt((startY - margin.top - this.headerSize) / this.cellH);
-            let diff = this.mouseEvtToCellPosY(evt);
-            let currentY = startY + diff;
+            // compute the position of the current row
+            let currentRow = this.yMousePosToRowIdx(evt);
 
             // draw bottom line
             let lineWidth = margin.left + this.yMetaWidth + xViewSize * this.cellW;
-            let y2Pos = this.cellPosYToMousePosY(currentY) + this.cellH;
+            let y2Pos = this.cellPosYToMousePosY(currentRow) + this.cellH;
             let bottomLine = svgLine(0, y2Pos, lineWidth, y2Pos, {
                 'class': 'drag-line',
                 stroke: '#333'
@@ -1433,8 +1429,8 @@ export default class Hotmap {
             this.svg.appendChild(bottomLine);
 
             // update state
-            row1Idx = startY;
-            row2Idx = currentY < 0 ? row2Idx : currentY;
+            if (currentRow < 0) return;
+            row2 = currentRow;
         };
 
         dragBox.ondragend = () => {
@@ -1442,14 +1438,14 @@ export default class Hotmap {
             this.dragging = false;
             dragBox.style.display = 'none';
             dragBox.classList.remove('dragging');
-            this.moveRow(row1Idx + this.yStart, row2Idx + this.yStart);
+            this.moveRow(row1 + this.yStart, row2 + this.yStart);
         };
 
         dragBox.onclick = (evt) => {
             if (!this.onSelection) return;
 
-            let rowIdx = this.mouseEvtToCellPosY(evt);
-            let r = this.getRow(rowIdx);
+            let rowIdx = this.yMousePosToRowIdx(evt);
+            let r = this.getRow(this.yStart + rowIdx);
             this.onSelection(r);
         };
 
@@ -1458,45 +1454,41 @@ export default class Hotmap {
 
 
     xAxisHover() {
-        // state of column to move
         this.dragging = false;
-        let col1Idx,
-            col2Idx;
-
         let captureHeight = margin.top - this.xMetaHeight;
 
         // use/update existing capture boxes if they exist
         let dragBox = this.ele.querySelector('.x-drag-box'); // already in dom
         let axisBox = this.ele.querySelector('.x-axis-hover-box');
         if (axisBox) {
-            axisBox.style.width = xViewSize * this.cellW;
-            dragBox.style.width = this.cellW;
+            axisBox.style.width = `${xViewSize * this.cellW}px`;
+            dragBox.style.width = `${this.cellW}px`;
         } else {
             // otherwise create a capture box
             axisBox = document.createElement('div');
             axisBox.className = 'x-axis-hover-box';
-            axisBox.style.left = margin.left;
-            axisBox.style.height = captureHeight;
-            axisBox.style.width = xViewSize * this.cellW; // updated on render
+            axisBox.style.left = `${margin.left}px`;
+            axisBox.style.height = `${captureHeight}px`;
+            axisBox.style.width = `${xViewSize * this.cellW}px`; // updated on render
             this.ele.querySelector('.chart').appendChild(axisBox);
 
             // and prepare dragbox
-            dragBox.style.height = captureHeight;
-            dragBox.style.width = this.cellW;
+            dragBox.style.height = `${captureHeight}px`;
+            dragBox.style.width = `${this.cellW}px`;
         }
 
         axisBox.onmousemove = evt => {
             // only activate hover when text is reasonable size
             if (this.cellW < minTextW) return;
 
-            let colIdx = this.mouseEvtToCellPosX(evt);
+            let colIdx = this.xMousePosToColIdx(evt);
 
             // need y position based on cell heights
             let xPos = this.cellPosXToMousePosX(colIdx);
 
             // update drag box position
             dragBox.style.display = 'block';
-            dragBox.style.left = xPos;
+            dragBox.style.left = `${xPos}px`;
             let fontSize = this.cellW - this.opts.textPadding;
             fontSize = fontSize <= this.opts.maxFontSize ? fontSize : this.opts.maxFontSize;
 
@@ -1510,7 +1502,7 @@ export default class Hotmap {
 
             dragBox.innerHTML =
                 `<div class="x-drag-icon-container" style="left: ${this.cellW / 2 - iconWidth / 2}px">` + icon.innerHTML + `</div>` +
-                `<div class="x-drag-text" style="bottom: ${xTextPad}px; left: ${left}; font-size: ${fontSize};">` +
+                `<div class="x-drag-text" style="bottom: ${xTextPad}px; left: ${left}px; font-size: ${fontSize}px;">` +
                     this.xAxis.querySelector(`[data-i="${colIdx}"]`).innerHTML +
                 `</div>`;
 
@@ -1526,24 +1518,26 @@ export default class Hotmap {
             this.tooltip(text, captureHeight, xPos);
         };
 
-        dragBox.ondragstart = () => {
+
+        let col1,
+            col2;
+        dragBox.ondragstart = (evt) => {
             dragBox.classList.add('dragging');
             this.dragging = true;
+
+            col1 = this.xMousePosToColIdx(evt);
         };
 
         dragBox.ondrag = (evt) => {
             if (!this.dragging) return;
             this.svg.querySelectorAll('.drag-line').forEach(el => el.remove());
 
-            // compute start col and current col
-            let startX = evt.target.getBoundingClientRect().x;
-            startX = parseInt((startX - margin.left) / this.cellW);
-            let diff = this.mouseEvtToCellPosX(evt);
-            let currentX = startX + diff;
+            // we'll need current col position
+            let currentCol = this.xMousePosToColIdx(evt);
 
             // draw bottom line
             let lineHeight = margin.top + this.xMetaHeight + yViewSize * this.cellH;
-            let xPos = this.cellPosXToMousePosX(currentX);
+            let xPos = this.cellPosXToMousePosX(currentCol);
             let bottomLine = svgLine(xPos, 0, xPos, lineHeight, {
                 'class': 'drag-line',
                 stroke: '#333'
@@ -1552,8 +1546,8 @@ export default class Hotmap {
             this.svg.appendChild(bottomLine);
 
             // update state
-            col1Idx = startX;
-            col2Idx = currentX < 0 ? col2Idx : currentX;
+            if (currentCol < 0) return
+            col2 = currentCol;
         };
 
         dragBox.ondragend = () => {
@@ -1561,21 +1555,37 @@ export default class Hotmap {
             this.dragging = false;
             dragBox.style.display = 'none';
             dragBox.classList.remove('dragging');
-            this.moveCol(col1Idx + this.xStart, col2Idx + this.xStart);
+            this.moveCol(col1 + this.xStart, col2 + this.xStart);
         };
 
         dragBox.onclick = (evt) => {
             if (!this.onSelection) return;
 
-            let colIdx = this.mouseEvtToCellPosX(evt);
-            let col = this.getCol(colIdx);
+            let colIdx = this.xMousePosToColIdx(evt);
+            let col = this.getCol(this.xStart + colIdx);
             this.onSelection(col);
         };
 
-        dragBox.onmouseleave = this.hideHoverEffects();
+        dragBox.onmouseleave = () => this.hideHoverEffects();
     }
 
+    // new
+    yMousePosToRowIdx(evt) {
+        let startY = evt.pageY - this.ele.offsetTop;
+        startY = parseInt((startY - margin.top - this.headerSize ) / this.cellH);
+        return startY;
+    }
+
+    xMousePosToColIdx(evt) {
+        let startX = evt.pageX - this.ele.offsetLeft;
+        startX = parseInt((startX - margin.left) / this.cellW);
+        return startX;
+    }
+
+
+
     // takes evt from axis and returns row index
+    /*
     mouseEvtToCellPosY(evt) {
         let {y} = evt.target.getBoundingClientRect();
         y = evt.y - y;
@@ -1587,6 +1597,7 @@ export default class Hotmap {
         x = evt.x - x;
         return parseInt(x / this.cellW);
     }
+    */
 
     cellPosYToMousePosY(rowIdx) {
         return margin.top + rowIdx * this.cellH;
@@ -1602,6 +1613,7 @@ export default class Hotmap {
             y: parseInt(y / this.cellH)
         };
     }
+
 
     selectable() {
         let box = {};

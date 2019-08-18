@@ -64,10 +64,26 @@ function demo() {
 function fakeDataDemo() {
     let ele = document.querySelector('#chart');
 
-    let {rows, cols, matrix} = getMockData(5000, 500);
+    let {rows, cols, matrix} = getMockData(300, 500);
     let hotmap = new Hotmap({
         ele, rows, cols, matrix
     });
+
+    document.querySelector('.update-btn').onclick = () => {
+        hotmap.flipAxis();
+        console.log('flip axis')
+        return
+        let data = hotmap.getState();
+        // remove some rows (example)
+        let rows = data.rows.slice(0, 5),
+            matrix = data.matrix.slice(0, 5);
+
+        // select 200 columns (example)
+        let cols = data.cols.slice(0, 200);
+        matrix = matrix.map(row => row.slice(0, 200));
+        hotmap.update({rows, cols, matrix});
+    };
+
 }
 
 function pfExample({ele, data, newick}) {
