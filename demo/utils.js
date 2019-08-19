@@ -37,8 +37,8 @@ export function getMockData(m, n, opts = {}) {
 
 export function getMockLabels(m, n) {
     let labels = {
-        rows: [...Array(m).keys()].map((_, i) => ({name: `This is row ${i}`})),
-        cols: [...Array(n).keys()].map((_, i) => ({name: `This is column ${i}`})),
+        rows: [...Array(m).keys()].map((_, i) => ({name: `This is row ${i} with a long label`})),
+        cols: [...Array(n).keys()].map((_, i) => ({name: `This is column ${i} with a long label`})),
     };
     return labels;
 }

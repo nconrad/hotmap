@@ -155,14 +155,16 @@ requirejs(['hotmap'], function(Hotmap) {
 ##### options
 ```javascript
 {
-    maxFontSize: <int>     // in pixels
+    maxFontSize: <int>          // in pixels
     hideLegend: false,
     legend: <some_html>,
     hideOptions: false,
     theme: 'dark' | 'light',
-    showVersion: false,    // shows version top-right
-    maxFontSize: <int>,    // in pixels
-    waitForFont: false     // useful if custom fonts are used  (labels are measured and shorted with ellipses)
+    showVersion: false,         // shows version top-right
+    maxFontSize: <int>,         // in pixels
+    waitForFont: false,         // useful if custom fonts are used
+    rowLabelEllipsisPos: <int>, // position to places ellipsis (0-indexed)
+    colLabelEllipsisPos: <int>
 }
 ```
 

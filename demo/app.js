@@ -13,7 +13,7 @@ import { getMockData } from './utils';
 const SHOW_TREE = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-    demo();
+    fakeDataDemo();
 });
 
 function demo() {
@@ -66,7 +66,10 @@ function fakeDataDemo() {
 
     let {rows, cols, matrix} = getMockData(300, 500);
     let hotmap = new Hotmap({
-        ele, rows, cols, matrix
+        ele, rows, cols, matrix,
+        options: {
+            rowLabelEllipsisPos: 1
+        }
     });
 
     document.querySelector('.update-btn').onclick = () => {
@@ -96,6 +99,7 @@ function pfExample({ele, data, newick}) {
         options: {
             showVersion: true,
             maxFontSize: 14,
+            rowLabelEllipsisPos: 1
         },
         color: {
             bins: ['=0', '=1', '=2', '<20', '>=20'],

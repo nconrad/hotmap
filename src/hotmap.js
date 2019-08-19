@@ -50,7 +50,7 @@ const margin = {
 };
 
 // API defaults
-const maxFontSize = 18;  // largest possible font size (pixels)
+const maxFontSize = 14;  // largest possible font size (pixels)
 const textPadding = 4;   // padding between text
 const useBoundingClient = false;
 
@@ -136,8 +136,8 @@ export default class Hotmap {
         }, params.options);
 
         // need to flip when flipping axis
-        this.yLabelEllipsisPos = params.options.rowLabelEllipsisPos;
-        this.xLabelEllipsisPos = params.options.colLabelEllipsisPos;
+        this.yLabelEllipsisPos = (params.options || {}).rowLabelEllipsisPos;
+        this.xLabelEllipsisPos = (params.options || {}).colLabelEllipsisPos;
 
 
         /**
