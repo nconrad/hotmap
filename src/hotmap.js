@@ -135,6 +135,11 @@ export default class Hotmap {
             textPadding, maxFontSize, useBoundingClient
         }, params.options);
 
+        // need to flip when flipping axis
+        this.yLabelEllipsisPos = params.options.rowLabelEllipsisPos;
+        this.xLabelEllipsisPos = params.options.colLabelEllipsisPos;
+
+
         /**
          * END initialize Params
          **/
@@ -387,10 +392,10 @@ export default class Hotmap {
 
 
     /**
-     * Computes labels based on fonts, and stores in rows/cols
+     * Computes label length based on fonts and adds ellipsis
      * We use canvas to avoid slowness in dom rendering
      */
-    shortenLabel(fontSize, text, width) {
+    shortenLabel(fontSize, text, width, ellipsisPos) {
         let ctx = this.scratchCanvas;
         let fontStr = `${fontSize}px ${this.font}`;
         ctx.font = fontStr;
@@ -403,7 +408,13 @@ export default class Hotmap {
             if (len < 1) break;
         }
 
-        if (origLen !== len) {
+        // if ellipsis position is specified
+        if (origLen !== len && ellipsisPos) {
+            text = text.slice(0, ellipsisPos) +
+                '...' + text.slice(ellipsisPos * 2  - len + 2);
+
+        // otherwise, shorten as needed, adding ellipsis to the tail
+        } else if (origLen !== len) {
             text = text.slice(0, len) + '...';
         }
 
@@ -484,7 +495,7 @@ export default class Hotmap {
                 }
 
                 if (renderX && i == 0 && cellW >= minTextW) {
-                    this.drawXLabel(this.xAxis, this.cols[colIdx], x + 2, margin.top - xTextPad, j);
+                    this.drawXLabel(this.xAxis, this.cols[colIdx].name, x + 2, margin.top - xTextPad, j);
                 }
 
                 if (this.yMeta && !this.catLabelsAdded && i == 0 &&
@@ -625,13 +636,13 @@ export default class Hotmap {
         ele.setAttribute('y', y);
         svgEl.appendChild(ele);
 
-        ele.innerHTML = this.shortenLabel(fontSize, text, yTextSpace);
+        ele.innerHTML = this.shortenLabel(fontSize, text, yTextSpace, this.yLabelEllipsisPos);
 
         let width = ele.getBBox().width;
         ele.setAttribute('transform', `translate(-${width})`);
     }
 
-    drawXLabel(svgEl, obj, x, y, cellIdx) {
+    drawXLabel(svgEl, text, x, y, cellIdx) {
         let ele = document.createElementNS(svgNS, 'text');
 
         x += parseInt(this.cellW / 2 + 2);
@@ -648,7 +659,7 @@ export default class Hotmap {
         let width = ele.getBBox().width;
         ele.setAttribute('transform', `translate(-${width})`);
 
-        ele.innerHTML = this.shortenLabel(fontSize, obj.name, xTextSpace);
+        ele.innerHTML = this.shortenLabel(fontSize, text, xTextSpace, this.xLabelEllipsisPos);
 
         if (this.opts.useMargins) {
             ele.setAttribute('transform', `rotate(-45, ${x}, ${y})`);
@@ -787,46 +798,6 @@ export default class Hotmap {
     hideAxisLabel(axis) {
         if (!this.svg.querySelector(`.${axis}-axis-label`)) return;
         this.svg.querySelector(`.${axis}-axis-label`).remove();
-    }
-
-    getRow(i) {
-        return this.matrix[i].map((val, j) => {
-            let rowID = this.rows[i].id,
-                colID = this.cols[j].id;
-            return Object.assign({ name: this.cols[j].name, val }, { rowID, colID });
-        });
-    }
-
-    getCol(j) {
-        return this.matrix.map((val, i) => {
-            let rowID = this.rows[i].id,
-                colID = this.cols[j].id;
-            return Object.assign({ name: this.rows[i].name, val: val[j] }, { colID, rowID });
-        });
-    }
-
-    getSelection(i1, j1, i2, j2) {
-        let selected = [];
-
-        for (let i = i1; i <= i2; i++) {
-            for (let j = j1; j <= j2; j++) {
-                let val = this.matrix[i][j];
-                let rowID = this.rows[i].id,
-                    colID = this.cols[j].id;
-
-                selected.push({
-                    val: val,
-                    rowName: this.rows[i].name,
-                    colName: this.cols[j].name,
-                    ...(rowID && {rowID}),
-                    ...(colID && {colID}),
-                    ...(this.yMeta && {yMeta: this.yMeta[i]}),
-                    ...(this.xMeta && {xMeta: this.xMeta[j]})
-                });
-            }
-        }
-
-        return selected;
     }
 
     addCategoryLabel(axis, text, x, y, idx) {
@@ -1363,9 +1334,8 @@ export default class Hotmap {
             // only activate hover when text is reasonable size
             if (this.cellH < minTextW) return;
 
-            // we'll need y position based on cell heights
-            let rowIdx = this.yMousePosToRowIdx(evt);
-            let yPos = this.cellPosYToMousePosY(rowIdx);
+            let i = this.yMousePosToRowIdx(evt);
+            let yPos = this.cellPosYToMousePosY(i);
 
             // update drag box position
             dragBox.style.display = 'block';
@@ -1384,13 +1354,14 @@ export default class Hotmap {
             dragBox.innerHTML =
                 `<div class="y-drag-icon-container" style="margin-top: ${top}px;">` + icon.innerHTML + `</div>` +
                 `<div class="y-drag-text" style="font-size: ${fontSize}px; margin-top: ${top}px; padding-right: ${textPadding}px;">` +
-                    this.yAxis.querySelector(`.row-${rowIdx}`).innerHTML +
+                    this.yAxis.querySelector(`.row-${i}`).innerHTML +
                 `</div>`;
 
             // build tooltip
+            let rowIdx = this.yStart + i;
             let cats = !this.yMeta || this.yMetaLabels.length == 0 ? ''
-                : this.yMeta[rowIdx].map((cat, i) =>
-                    `<div><b>${this.yMetaLabels[i]}:</b> ${cat}</div>`
+                : this.yMeta[i].map((cat, i) =>
+                    `<div><b>${this.yMetaLabels[rowIdx]}:</b> ${cat}</div>`
                 ).join('');
 
             let text = `<div>${this.rows[rowIdx].name}</div>
@@ -1440,9 +1411,9 @@ export default class Hotmap {
         dragBox.onclick = (evt) => {
             if (!this.onSelection) return;
 
-            let rowIdx = this.yMousePosToRowIdx(evt);
-            let r = this.getRow(this.yStart + rowIdx);
-            this.onSelection(r);
+            let i = this.yMousePosToRowIdx(evt);
+            let row = this.getRow(this.yStart + i);
+            this.onSelection(row);
         };
 
         dragBox.onmouseleave = () => this.hideHoverEffects();
@@ -1477,10 +1448,8 @@ export default class Hotmap {
             // only activate hover when text is reasonable size
             if (this.cellW < minTextW) return;
 
-            let colIdx = this.xMousePosToColIdx(evt);
-
-            // need y position based on cell heights
-            let xPos = this.cellPosXToMousePosX(colIdx);
+            let j = this.xMousePosToColIdx(evt);
+            let xPos = this.cellPosXToMousePosX(j);
 
             // update drag box position
             dragBox.style.display = 'block';
@@ -1499,10 +1468,11 @@ export default class Hotmap {
             dragBox.innerHTML =
                 `<div class="x-drag-icon-container" style="left: ${this.cellW / 2 - iconWidth / 2}px">` + icon.innerHTML + `</div>` +
                 `<div class="x-drag-text" style="bottom: ${xTextPad}px; left: ${left}px; font-size: ${fontSize}px;">` +
-                    this.xAxis.querySelector(`[data-i="${colIdx}"]`).innerHTML +
+                    this.xAxis.querySelector(`[data-i="${j}"]`).innerHTML +
                 `</div>`;
 
             // build tooltip
+            let colIdx = this.xStart + j;
             let cats = !this.xMeta || this.xMetaLabels.length == 0 ? ''
                 : this.xMeta[colIdx].map((cat, i) =>
                     `<div><b>${this.xMetaLabels[i]}:</b> ${cat}</div>`
@@ -1557,25 +1527,24 @@ export default class Hotmap {
         dragBox.onclick = (evt) => {
             if (!this.onSelection) return;
 
-            let colIdx = this.xMousePosToColIdx(evt);
-            let col = this.getCol(this.xStart + colIdx);
+            let j = this.xMousePosToColIdx(evt);
+            let col = this.getCol(this.xStart + j);
             this.onSelection(col);
         };
 
         dragBox.onmouseleave = () => this.hideHoverEffects();
     }
 
-    // new
     yMousePosToRowIdx(evt) {
         let y = evt.pageY - (this.opts.useBoundingClient
             ? this.ele.getBoundingClientRect().y : this.ele.offsetTop);
-        return parseInt((y - margin.top - this.headerSize ) / this.cellH);;
+        return parseInt((y - margin.top - this.headerSize ) / this.cellH);
     }
 
     xMousePosToColIdx(evt) {
         let x = evt.pageX - (this.opts.useBoundingClient
             ? this.ele.getBoundingClientRect().x : this.ele.offsetLeft);
-        return parseInt((x - margin.left) / this.cellW);;
+        return parseInt((x - margin.left) / this.cellW);
     }
 
     cellPosYToMousePosY(rowIdx) {
@@ -1591,6 +1560,46 @@ export default class Hotmap {
             x: parseInt(x / this.cellW),
             y: parseInt(y / this.cellH)
         };
+    }
+
+    getRow(i) {
+        return this.matrix[i].map((val, j) => {
+            let rowID = this.rows[i].id,
+                colID = this.cols[j].id;
+            return Object.assign({ name: this.cols[j].name, val }, { rowID, colID });
+        });
+    }
+
+    getCol(j) {
+        return this.matrix.map((val, i) => {
+            let rowID = this.rows[i].id,
+                colID = this.cols[j].id;
+            return Object.assign({ name: this.rows[i].name, val: val[j] }, { colID, rowID });
+        });
+    }
+
+    getSelection(i1, j1, i2, j2) {
+        let selected = [];
+
+        for (let i = i1; i <= i2; i++) {
+            for (let j = j1; j <= j2; j++) {
+                let val = this.matrix[i][j];
+                let rowID = this.rows[i].id,
+                    colID = this.cols[j].id;
+
+                selected.push({
+                    val: val,
+                    rowName: this.rows[i].name,
+                    colName: this.cols[j].name,
+                    ...(rowID && {rowID}),
+                    ...(colID && {colID}),
+                    ...(this.yMeta && {yMeta: this.yMeta[i]}),
+                    ...(this.xMeta && {xMeta: this.xMeta[j]})
+                });
+            }
+        }
+
+        return selected;
     }
 
     selectable() {
@@ -1776,7 +1785,7 @@ export default class Hotmap {
                     colIdx = xStart + j;
 
                 if (i == 0 && cellW >= minTextW) {
-                    this.drawXLabel(xAxis, this.cols[colIdx], x + 2, margin.top - 5, j);
+                    this.drawXLabel(xAxis, this.cols[colIdx].name, x + 2, margin.top - 5, j);
                 }
 
                 let color = this.colorMatrix[rowIdx][colIdx];
@@ -1850,6 +1859,10 @@ export default class Hotmap {
         let ctrl = this.scaleCtrl;
         ctrl.setPos(ctrl.y, ctrl.x);
         [this.cellW, this.cellH] = [this.cellH, this.cellW];
+
+        // flip label ellipsis positions
+        [this.xLabelEllipsisPos, this.yLabelEllipsisPos] =
+            [this.yLabelEllipsisPos, this.xLabelEllipsisPos];
 
         // transpose all the things
         this.update({
