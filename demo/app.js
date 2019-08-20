@@ -13,7 +13,7 @@ import { getMockData } from './utils';
 const SHOW_TREE = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-    fakeDataDemo();
+    demo();
 });
 
 function demo() {

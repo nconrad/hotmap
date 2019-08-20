@@ -1417,6 +1417,8 @@ export default class Hotmap {
         };
 
         dragBox.onmouseleave = () => this.hideHoverEffects();
+        this.svg.onmouseenter = () => this.hideHoverEffects();
+        this.ele.onmouseleave = () => this.hideHoverEffects();
     }
 
 
@@ -1533,6 +1535,10 @@ export default class Hotmap {
         };
 
         dragBox.onmouseleave = () => this.hideHoverEffects();
+        this.svg.onmouseenter = () => this.hideHoverEffects();
+        this.ele.onmouseleave = () => this.hideHoverEffects();
+        window.onmouseleave = () => this.hideHoverEffects();
+        this.ele.querySelector('.header').onmouseenter = () => this.hideHoverEffects();
     }
 
     yMousePosToRowIdx(evt) {
