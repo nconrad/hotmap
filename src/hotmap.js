@@ -1361,7 +1361,7 @@ export default class Hotmap {
             let rowIdx = this.yStart + i;
             let cats = !this.yMeta || this.yMetaLabels.length == 0 ? ''
                 : this.yMeta[i].map((cat, i) =>
-                    `<div><b>${this.yMetaLabels[rowIdx]}:</b> ${cat}</div>`
+                    `<div><b>${this.yMetaLabels[i]}:</b> ${cat}</div>`
                 ).join('');
 
             let text = `<div>${this.rows[rowIdx].name}</div>
