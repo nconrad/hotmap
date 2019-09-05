@@ -159,7 +159,7 @@ export default class Hotmap {
 
         // validate params
         if (!ele) alert(`${NAME}: Must provide an element to attach chart to.`);
-        else if (!matrix) alert(`${NAME}: Must provide an matrix of values.`);
+        else if (!matrix || matrix.length == 0) alert(`${NAME}: Must provide an matrix of values.`);
         else if (!rows) alert(`${NAME}: Must provide some sort of row labels.`);
         else if (!cols) alert(`${NAME}: Must provide some sort of column labels.`);
 
@@ -1514,7 +1514,7 @@ export default class Hotmap {
             this.svg.appendChild(bottomLine);
 
             // update state
-            if (currentCol < 0) return
+            if (currentCol < 0) return;
             col2 = currentCol;
         };
 
