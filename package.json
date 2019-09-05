@@ -1,7 +1,7 @@
 {
     "name": "hotmap",
     "version": "0.2.20",
-    "description": "WebGL Based Hotmap Viewer for Bioinformatics and Big Data",
+    "description": "WebGL Based Hotmap Viewer for Big Data and Bioinformatics",
     "main": "index.js",
     "scripts": {
         "build": "NODE_ENV=production webpack -p",
