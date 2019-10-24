@@ -1,4 +1,4 @@
-@nav-bar-height: 64px;
+
 
 > .header {
   display: flex;
@@ -6,7 +6,7 @@
   align-items: center;
   background: #333;
   color: hsl(0, 0%, 85%);
-  height: @nav-bar-height;
+  height: $nav-bar-height;
 }
 
 > .header.light {

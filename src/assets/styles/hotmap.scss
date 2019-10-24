@@ -1,4 +1,5 @@
-@highlight-color: #1187f1;
+$highlight-color: #1187f1;
+$nav-bar-height: 64px;
 
 .hotmap {
   font-family: sans-serif;
@@ -31,24 +32,24 @@
     position: absolute;
     padding: 10px;
     text-decoration: none;
-    background: @highlight-color;
+    background: $highlight-color;
     color: #fff;
     font-size: .8em;
     height: 15px;
     right: 50px;
-    top: @nav-bar-height;
+    top: $nav-bar-height;
   }
 
 
-  @import "./styles.less";
-  @import "./header.less";
-  @import "./forms.less";
-  @import "./legend.less";
-  @import "./scale-ctrl.less";
-  @import "./options.less";
-  @import "./scrollbar.less";
-  @import "./svg.less";
-  @import "./axis-events.less";
+  @import "./styles.scss";
+  @import "./header.scss";
+  @import "./forms.scss";
+  @import "./legend.scss";
+  @import "./scale-ctrl.scss";
+  @import "./options.scss";
+  @import "./scrollbar.scss";
+  @import "./svg.scss";
+  @import "./axis-events.scss";
 }
 
 

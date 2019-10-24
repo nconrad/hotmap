@@ -1,18 +1,18 @@
 
-@form-font-size: .8em;
+$form-font-size: .8em;
 
-@input-radius: .2rem;
-@input-border: 1px solid #ddd;
-@input-bg: #fff;
-@input-height: 28px;
-@color: #333;
+$input-radius: .2rem;
+$input-border: 1px solid #ddd;
+$input-bg: #fff;
+$input-height: 28px;
+$color: #333;
 
 button, input[type="text"] {
-  font-size: @form-font-size;
-  background-color: @input-bg;
-  border: @input-border;
-  border-radius: @input-radius;
-  height: @input-height;
+  font-size: $form-font-size;
+  background-color: $input-bg;
+  border: $input-border;
+  border-radius: $input-radius;
+  height: $input-height;
 }
 
 .light .btn,
@@ -38,7 +38,7 @@ input[type="text"]:focus {
 
 .search-container > i > svg {
   position: absolute;
-  color: @color;
+  color: $color;
   top: 4px;
   left: 10px;
   width: 18px;
@@ -81,15 +81,15 @@ input[type="text"]:focus {
 
 .btn {
   cursor: pointer;
-  color: @color;
+  color: $color;
 }
 
 .btn:hover {
-  color: @color;
+  color: $color;
 }
 
 .btn svg {
-  fill: @color;
+  fill: $color;
 }
 
 button:focus {

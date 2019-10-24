@@ -24,7 +24,7 @@ import { transpose } from './matrix';
 
 // import Picker from 'vanilla-picker';
 import { labelColor, labelHoverColor } from './consts';
-import './assets/styles/hotmap.less';
+import './assets/styles/hotmap.scss';
 
 PIXI.utils.skipHello();
 

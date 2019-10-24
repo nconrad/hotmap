@@ -1,7 +1,7 @@
 {
     "name": "hotmap",
-    "version": "0.2.20",
-    "description": "WebGL Based Hotmap Viewer for Big Data and Bioinformatics",
+    "version": "0.2.22",
+    "description": "WebGL Based Heatmap Viewer for Big Data and Bioinformatics",
     "main": "index.js",
     "scripts": {
         "build": "NODE_ENV=production webpack -p",
@@ -35,11 +35,11 @@
         "eslint-plugin-standard": "^4.0.0",
         "fontfaceobserver": "^2.1.0",
         "html-loader": "^0.5.5",
-        "less": "^3.9.0",
-        "less-loader": "^4.1.0",
         "mini-css-extract-plugin": "^0.5.0",
+        "node-sass": "^4.13.0",
         "phylocanvas": "^2.8.1",
         "proxy-polyfill": "^0.3.0",
+        "sass-loader": "^8.0.0",
         "style-loader": "^0.23.1",
         "svg-inline-loader": "^0.8.0",
         "uglifyjs-webpack-plugin": "^2.0.1",

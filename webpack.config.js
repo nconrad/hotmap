@@ -37,11 +37,11 @@ module.exports = {
                 interpolate: true
             }
         }, {
-            test: /\.(less)$/,
+            test: /\.(scss)$/,
             use: [
                 devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
                 'css-loader',
-                'less-loader'
+                'sass-loader'
             ]
         }, {
             test: /\.svg$/,

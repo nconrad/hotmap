@@ -3,7 +3,7 @@
 <img src="demo/logo.png" width="400">
 
 
-A WebGL/Canvas Heatmap for Bioinformatics and Big Data, written in vanilla JS and built with [pixi.js](http://www.pixijs.com/).
+A WebGL Heatmap Viewer for Bioinformatics and Big Data, written in vanilla JS and built with [pixi.js](http://www.pixijs.com/).
 
 [demo](https://nconrad.github.io/hotmap/demo/)
 

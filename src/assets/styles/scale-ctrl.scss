@@ -1,5 +1,5 @@
 
-@border-radius: 20px;
+$border-radius: 20px;
 
 /**
  * scale control components
@@ -33,16 +33,16 @@
   appearance: none;
   width: 17px;
   height: 17px;
-  border-radius: @border-radius;
-  background: @highlight-color;
+  border-radius: $border-radius;
+  background: $highlight-color;
   cursor: pointer;
 }
 
 .slider::-moz-range-thumb {
   width: 17px;
   height: 17px;
-  border-radius: @border-radius;
-  background: @highlight-color;
+  border-radius: $border-radius;
+  background: $highlight-color;
   cursor: pointer;
 }
 

@@ -165,7 +165,6 @@ function pathwayExample({ele, data, newick}) {
 }
 
 
-
 function fakeDataDemo() {
     let ele = document.querySelector('#chart');
 
