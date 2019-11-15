@@ -148,19 +148,22 @@ function categoryColorsDep(categories) {
     return colorMatrix;
 }
 
-export function hexToHexColor(decimal) {
-    return decimal == 0 ? '#000000' : '#' + toHex(decimal);
+export function hexToHexColor(hex) {
+    hex = hex.toString(16);
+    const len = hex.length;
+    return '#' + ( len != 6 ? ('0'.repeat(6 - len) + hex) : hex );
 }
 
-export function toHex(c) {
+export function decToHex(c) {
     var hex = c.toString(16);
     if (hex === 0) return 0;
     return hex.length == 1 ? '0' + hex : hex;
 }
 
 export function rgbToHex(rgb) {
-    return '0x' + toHex(rgb[0]) + toHex(rgb[1]) + toHex(rgb[2]);
+    return '0x' + decToHex(rgb[0]) + decToHex(rgb[1]) + decToHex(rgb[2]);
 }
+
 /*
  * colorMatrix
  * @param {[[]]} matrix matrix of values
