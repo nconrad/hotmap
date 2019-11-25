@@ -167,7 +167,7 @@ export default class Hotmap {
         if (yMetaLabels !== null && !yMetaLabels && 'meta' in rows[0]) {
             console.warn(
                 `${NAME}: No labels were provided for row categories.
-                Use "yMetaLabels: null" to dismiss`
+                Use "rowMetaLabels: null" to dismiss`
             );
         }
 
@@ -175,7 +175,7 @@ export default class Hotmap {
         if (xMetaLabels !== null && !xMetaLabels && 'meta' in rows[0]) {
             console.warn(
                 `${NAME}: No labels were provided for column categories.
-                Use "xMetaLabels: null" to dismiss`
+                Use "colMetaLabels: null" to dismiss`
             );
         }
 
