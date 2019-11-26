@@ -85,6 +85,8 @@ export default class Hotmap {
         this.rows = params.rows;
         this.cols = params.cols;
         this.matrix = params.matrix;
+        this.rows = params.rows || Hotmap.generateLabels('row', this.matrix[0].length);
+        this.cols = params.cols || Hotmap.generateLabels('column', this.matrix.length);
         this.newick = params.newick;
 
         this.defaults = params.defaults || {};
@@ -104,8 +106,8 @@ export default class Hotmap {
             return;
         }
 
-        this.yMeta = Hotmap.getMeta(params.rows);
-        this.xMeta = Hotmap.getMeta(params.cols);
+        this.yMeta = Hotmap.getMeta(this.rows);
+        this.xMeta = Hotmap.getMeta(this.cols);
 
         // meta labels
         this.yMetaLabels = params.rowMetaLabels || [];
@@ -163,25 +165,9 @@ export default class Hotmap {
         else if (!rows) alert(`${NAME}: Must provide some sort of row labels.`);
         else if (!cols) alert(`${NAME}: Must provide some sort of column labels.`);
 
-        let yMetaLabels = params.rowMetaLabels;
-        if (yMetaLabels !== null && !yMetaLabels && 'meta' in rows[0]) {
-            console.warn(
-                `${NAME}: No labels were provided for row categories.
-                Use "rowMetaLabels: null" to dismiss`
-            );
-        }
-
-        let xMetaLabels = params.colMetaLabels;
-        if (xMetaLabels !== null && !xMetaLabels && 'meta' in rows[0]) {
-            console.warn(
-                `${NAME}: No labels were provided for column categories.
-                Use "colMetaLabels: null" to dismiss`
-            );
-        }
-
         // validate data
         let validMat = matrix.filter(r => r.length !== matrix[0].length).length == 0;
-        if (!validMat) alert('Must provide matrix with same number of columns.');
+        if (!validMat) alert('Must provide matrix with same number of elements in each row.');
     }
 
     init() {
