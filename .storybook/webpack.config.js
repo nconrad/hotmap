@@ -1,6 +1,3 @@
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const devMode = process.env.NODE_ENV !== 'production';
-
 module.exports = function({ config }) {
 
   // remove svg from existing rule
@@ -34,7 +31,7 @@ module.exports = function({ config }) {
     {
       test: /\.(scss)$/,
       use: [
-          devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
+          'style-loader',
           'css-loader',
           'sass-loader'
       ]

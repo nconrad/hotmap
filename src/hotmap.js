@@ -222,9 +222,8 @@ export default class Hotmap {
         this.scrollBox;
         this.mouseTracker;
 
-
-        // let style = window.getComputedStyle(this.ele.querySelector('.hotmap'));
-        this.font = 'Times'; // style.fontFamily.split(',')[0].replace(/"/g, '');
+        let style = window.getComputedStyle(this.ele.querySelector('.hotmap'));
+        this.font = style.fontFamily.split(',')[0].replace(/"/g, '');
 
         // wait for font if needed
         if (this.opts.waitForFont) {
