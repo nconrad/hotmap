@@ -67,3 +67,4 @@ export function trimData(data) {
     return {rows, cols, matrix: data.mat};
 }
 
+

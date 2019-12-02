@@ -10,6 +10,8 @@ import Hotmap from '../src/hotmap';
 import axios from 'axios';
 import { getMockData } from './utils';
 
+console.log('hotmap', Hotmap);
+
 const SHOW_TREE = false;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -18,12 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function demo() {
     let ele = document.querySelector('#chart');
-    let dataPath = ele.getAttribute('data-path');
 
     ele.innerHTML = `<br>loading...`;
 
     let hotmap;
-    axios.get(dataPath)
+    axios.get('./data/med.json')
         .then(res => {
             let data = res.data;
             console.log('data provided to heatmap:', data);

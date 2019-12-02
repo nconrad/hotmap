@@ -8,9 +8,9 @@ module.exports = {
         "codeFrame": false
     },
     "rules": {
-        "semi": ["error", "always"],
+        "semi": ["off"],
         "space-before-function-paren": ["error", "never"],
-        "indent": ["error", 4],
+        "indent": ["off", 4],
         "one-var": 0,
         "object-curly-spacing": 0,
         "no-unused-expressions": 0,

@@ -1,0 +1,30 @@
+{
+  "id": 7,
+  "result": {
+    "map": {
+      "PATRIC.562.38809.RTLP01000191.CDS.5602.5724.fwd": {
+        "genome_name": "Escherichia coli strain 365361",
+        "feature_id": "PATRIC.562.38809.RTLP01000191.CDS.5602.5724.fwd",
+        "genome_id": "562.38809",
+        "patric_id": "fig|562.38809.peg.4971",
+        "aa_length": 40
+      },
+      "PATRIC.562.8470.LMBJ01000373.CDS.25689.25835.rev": {
+        "genome_name": "Escherichia coli strain 22207",
+        "feature_id": "PATRIC.562.8470.LMBJ01000373.CDS.25689.25835.rev",
+        "genome_id": "562.8470",
+        "patric_id": "fig|562.8470.peg.4373",
+        "aa_length": 48
+      },
+      "PATRIC.562.50611.VMTQ01000094.CDS.6797.6919.fwd": {
+        "genome_name": "Escherichia coli strain 19-0562-EIEC-0001",
+        "feature_id": "PATRIC.562.50611.VMTQ01000094.CDS.6797.6919.fwd",
+        "genome_id": "562.50611",
+        "patric_id": "fig|562.50611.peg.4949",
+        "aa_length": 40
+      }
+    },
+    "alignment": ">PATRIC.562.38809.RTLP01000191.CDS.5602.5724.fwd [562.38809]\n------MGTPRFTPEFKG--LLERLGHIPPAEAEKAYYAAIGNDDLAT\n>PATRIC.562.50611.VMTQ01000094.CDS.6797.6919.fwd [562.50611]\n------MGTPRFTPEFKG--LLERLGHIPPAEAEKAYYAAIGNDDLAT\n>PATRIC.562.8470.LMBJ01000373.CDS.25689.25835.rev [562.8470]\nNRAEVELATLTWMEWYNNLRLLGRLGHTPPAEAEKAYYAAIGNDDLAA\n",
+    "tree": "((PATRIC.562.38809.RTLP01000191.CDS.5602.5724.fwd:0.0,PATRIC.562.50611.VMTQ01000094.CDS.6797.6919.fwd:0.0):0.51962,PATRIC.562.8470.LMBJ01000373.CDS.25689.25835.rev:0.51962);\n"
+  }
+}

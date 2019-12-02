@@ -82,8 +82,6 @@ export default class Hotmap {
         this.ele = params.ele;
         this.parent = this.ele.parentNode;
 
-        this.rows = params.rows;
-        this.cols = params.cols;
         this.matrix = params.matrix;
         this.rows = params.rows || Hotmap.generateLabels('row', this.matrix[0].length);
         this.cols = params.cols || Hotmap.generateLabels('column', this.matrix.length);
@@ -145,9 +143,9 @@ export default class Hotmap {
         /**
          * END initialize Params
          **/
-
         this.ele.innerHTML = container;
-        this.headerSize = this.ele.querySelector('.header').clientHeight;
+        const header = this.ele.querySelector('.header');
+        this.headerSize = header ? header.clientHeight : 0;
 
         this.init().then(() => {
             this.start();
@@ -162,8 +160,6 @@ export default class Hotmap {
         // validate params
         if (!ele) alert(`${NAME}: Must provide an element to attach chart to.`);
         else if (!matrix || matrix.length == 0) alert(`${NAME}: Must provide an matrix of values.`);
-        else if (!rows) alert(`${NAME}: Must provide some sort of row labels.`);
-        else if (!cols) alert(`${NAME}: Must provide some sort of column labels.`);
 
         // validate data
         let validMat = matrix.filter(r => r.length !== matrix[0].length).length == 0;
@@ -226,8 +222,9 @@ export default class Hotmap {
         this.scrollBox;
         this.mouseTracker;
 
-        let style = window.getComputedStyle(this.ele.querySelector('.hotmap'));
-        this.font = style.fontFamily.split(',')[0].replace(/"/g, '');
+
+        // let style = window.getComputedStyle(this.ele.querySelector('.hotmap'));
+        this.font = 'Times'; // style.fontFamily.split(',')[0].replace(/"/g, '');
 
         // wait for font if needed
         if (this.opts.waitForFont) {
@@ -373,6 +370,7 @@ export default class Hotmap {
 
         let [_, height] = this.getContainerSize();
         let h = parseInt((height - margin.top - margin.bottom) / this.size.m);
+
         return h < cellMax ? (h || 1) : cellMax;
     }
 
@@ -1721,6 +1719,14 @@ export default class Hotmap {
             min: minMax.min,
             max: minMax.max
         };
+    }
+
+    static generateLabels(prefix, n) {
+        let labels = [];
+        for (let i = 0; i < n; i++) {
+            labels.push({name: `${prefix} ${i}`});
+        }
+        return labels;
     }
 
     snapshot(fullChart) {
