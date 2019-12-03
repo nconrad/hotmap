@@ -76,7 +76,10 @@ function pfExample({ele, data, newick}) {
             maxFontSize: 14,
             rowLabelEllipsisPos: 1
         },
-        color: 'gradient',
+        color: {
+            bins: ['=0', '=1', '=2', '=3', '>=4'],
+            colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff6b6b, 0xff0000]
+        },
         newick: newick,
         onHover: info => {
             let cs = info.rowMeta;

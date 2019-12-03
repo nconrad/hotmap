@@ -23,6 +23,10 @@ export const proteinFamilies = () => {
       options: {
           rowLabelEllipsisPos: 1
       },
+      color: {
+        bins: ['=0', '=1', '=2', '=3', '>=4'],
+        colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff6b6b, 0xff0000]
+      },
       onHover: info => {
           const meta = info.rowMeta;
           return `
