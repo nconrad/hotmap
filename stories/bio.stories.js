@@ -18,24 +18,25 @@ export const proteinFamilies = () => {
       matrix,
       rowsLabel: 'Genomes',
       colsLabel: 'Protein Families',
-      rowMetaLabels: rowMetaLabels,
+      rowMetaLabels,
       colMetaLabels: ['Protein Family ID'],
       options: {
           rowLabelEllipsisPos: 1
       },
-      color: {
-          bins: ['=0', '=1', '=2', '=3', '>=4'],
-          colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff6b6b, 0xff0000]
-      },
       onHover: info => {
-          const cs = info.rowMeta;
-          return `<div><b>Genome:</b> ${info.yLabel}</div><br>
+          const meta = info.rowMeta;
+          return `
+            <div><b>Genome:</b> ${info.yLabel}</div><br>
             <div><b>Protein Family:</b> ${info.xLabel}<div>
             <div><b>ID:</b> ${info.colMeta[0]}<div><br>
-            <div><b>${rowMetaLabels[0]}:</b> ${cs && cs[0] != 'undefined' ? cs[0] : 'N/A'}</div>
-            <div><b>${rowMetaLabels[1]}:</b> ${cs && cs[1] != 'undefined' ? cs[1] : 'N/A'}</div>
-            <div><b>${rowMetaLabels[2]}:</b> ${cs && cs[2] != 'undefined' ? cs[2] : 'N/A'}</div><br>
-            <div><b>Value:</b> ${info.value}</div>`;
+            ${
+              rowMetaLabels.map(
+               (label, i) => `<div><b>${label}:</b> ${meta && meta[i] != 'undefined' ? meta[i] : 'N/A'}</div>`
+              ).join('')
+            }
+            <br>
+            <div><b>Value:</b> ${info.value}</div>
+          `
       },
       onSelection: selection => {
           alert(`Selected ${selection.length} cell(s)\n\n` +

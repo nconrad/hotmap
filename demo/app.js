@@ -10,8 +10,6 @@ import Hotmap from '../src/hotmap';
 import axios from 'axios';
 import { getMockData } from './utils';
 
-console.log('hotmap', Hotmap);
-
 const SHOW_TREE = false;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -78,10 +76,7 @@ function pfExample({ele, data, newick}) {
             maxFontSize: 14,
             rowLabelEllipsisPos: 1
         },
-        color: {
-            bins: ['=0', '=1', '=2', '<20', '>=20'],
-            colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff6b6b, 0xff0000]
-        },
+        color: 'gradient',
         newick: newick,
         onHover: info => {
             let cs = info.rowMeta;

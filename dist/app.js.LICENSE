@@ -1,0 +1,190 @@
+/*!
+ * drag-tracker v1.0.0
+ * https://github.com/Sphinxxxx/drag-tracker#readme
+ *
+ * Copyright 2017-2018 Andreas Borgen
+ * Released under the MIT license.
+ */
+
+/*!
+ * @pixi/settings - v5.0.1
+ * Compiled Mon, 06 May 2019 04:23:34 UTC
+ *
+ * @pixi/settings is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/utils - v5.0.1
+ * Compiled Mon, 06 May 2019 04:23:34 UTC
+ *
+ * @pixi/utils is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/math - v5.0.0-rc.3
+ * Compiled Fri, 22 Mar 2019 16:33:44 UTC
+ *
+ * @pixi/math is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/display - v5.0.1
+ * Compiled Mon, 06 May 2019 04:23:34 UTC
+ *
+ * @pixi/display is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/runner - v5.0.0-rc.3
+ * Compiled Tue, 30 Apr 2019 02:21:00 UTC
+ *
+ * @pixi/runner is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/ticker - v5.0.1
+ * Compiled Mon, 06 May 2019 04:23:34 UTC
+ *
+ * @pixi/ticker is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/core - v5.0.2
+ * Compiled Tue, 07 May 2019 20:01:34 UTC
+ *
+ * @pixi/core is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/extract - v5.0.2
+ * Compiled Tue, 07 May 2019 20:01:34 UTC
+ *
+ * @pixi/extract is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/interaction - v5.0.2
+ * Compiled Tue, 07 May 2019 20:01:34 UTC
+ *
+ * @pixi/interaction is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/sprite - v5.0.2
+ * Compiled Tue, 07 May 2019 20:01:34 UTC
+ *
+ * @pixi/sprite is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/prepare - v5.0.2
+ * Compiled Tue, 07 May 2019 20:01:34 UTC
+ *
+ * @pixi/prepare is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/app - v5.0.2
+ * Compiled Tue, 07 May 2019 20:01:34 UTC
+ *
+ * @pixi/app is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/loaders - v5.0.2
+ * Compiled Tue, 07 May 2019 20:01:34 UTC
+ *
+ * @pixi/loaders is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/particles - v5.0.2
+ * Compiled Tue, 07 May 2019 20:01:34 UTC
+ *
+ * @pixi/particles is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/sprite-tiling - v5.0.2
+ * Compiled Tue, 07 May 2019 20:01:34 UTC
+ *
+ * @pixi/sprite-tiling is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/filter-displacement - v5.0.2
+ * Compiled Tue, 07 May 2019 20:01:34 UTC
+ *
+ * @pixi/filter-displacement is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/mixin-get-child-by-name - v5.0.1
+ * Compiled Mon, 06 May 2019 04:23:34 UTC
+ *
+ * @pixi/mixin-get-child-by-name is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/mixin-get-global-position - v5.0.1
+ * Compiled Mon, 06 May 2019 04:23:34 UTC
+ *
+ * @pixi/mixin-get-global-position is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/mesh - v5.0.2
+ * Compiled Tue, 07 May 2019 20:01:34 UTC
+ *
+ * @pixi/mesh is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*
+object-assign
+(c) Sindre Sorhus
+@license MIT
+*/
+
+/*!
+ * @sphinxxxx/color-conversion v2.2.1
+ * https://github.com/Sphinxxxx/color-conversion
+ *
+ * Copyright 2017-2019 Joudee (https://github.com/Joudee), Andreas Borgen (https://github.com/Sphinxxxx), Michael Jackson (https://github.com/mjackson)
+ * Released under the ISC license.
+ */
+
+/*!
+ * @pixi/polyfill - v5.0.0-rc.3
+ * Compiled Tue, 30 Apr 2019 02:21:00 UTC
+ *
+ * @pixi/polyfill is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*! https://mths.be/punycode v1.4.1 by @mathias */
+
+/*!
+ * Determine if an object is a Buffer
+ *
+ * @author   Feross Aboukhadijeh <https://feross.org>
+ * @license  MIT
+ */
