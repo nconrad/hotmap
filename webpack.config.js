@@ -1,10 +1,8 @@
 const path = require('path');
 const webpack = require('webpack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const WebpackAutoInject = require('webpack-auto-inject-version');
-// const HtmlWebpackInlineSVGPlugin = require('html-webpack-inline-svg-plugin');
-// const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const devMode = process.env.NODE_ENV !== 'production';
 
@@ -50,12 +48,11 @@ module.exports = {
     },
     optimization: {
         minimizer: [
-            new UglifyJSPlugin({
-                uglifyOptions: {
-                    compress: {
-                        drop_console: false
-                    }
-                }
+            new TerserPlugin({
+                parallel: true,
+                terserOptions: {
+                  ecma: 6,
+                },
             })
         ]
     },

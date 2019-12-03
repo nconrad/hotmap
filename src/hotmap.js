@@ -3,6 +3,9 @@
  *
  * Author: https://github.com/nconrad
  *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
  */
 import * as PIXI from 'pixi.js';
 import 'proxy-polyfill/proxy.min';
@@ -22,7 +25,7 @@ import { setAttributes } from './dom';
 import { sanitizeColors, colorMatrix, categoryColors, rgbToHex, hexToHexColor } from './color';
 import { transpose } from './matrix';
 
-// import Picker from 'vanilla-picker';
+import Picker from 'vanilla-picker';
 import { labelColor, labelHoverColor } from './consts';
 import './assets/styles/hotmap.scss';
 

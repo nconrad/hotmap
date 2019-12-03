@@ -1,6 +1,6 @@
 {
     "name": "hotmap",
-    "version": "0.2.24",
+    "version": "0.2.25",
     "description": "WebGL Based Heatmap Viewer for Big Data and Bioinformatics",
     "main": "dist/hotmap.js",
     "module": "src/hotmap.js",
@@ -52,7 +52,7 @@
         "storybook": "^5.1.11",
         "style-loader": "^0.23.1",
         "svg-inline-loader": "^0.8.0",
-        "uglifyjs-webpack-plugin": "^2.0.1",
+        "terser-webpack-plugin": "^2.2.1",
         "webpack": "^4.28.1",
         "webpack-auto-inject-version": "^1.2.2",
         "webpack-cli": "^3.1.2",
