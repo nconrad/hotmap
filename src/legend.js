@@ -18,13 +18,13 @@ export function legend(min, max, settings) {
 
 
 function binLegend(settings) {
-    let ele = document.createElement('div');
+    const ele = document.createElement('div');
 
-    let bins = parseColorBins(settings.bins),
+    const bins = parseColorBins(settings.bins),
         colors = settings.colors;
 
     bins.forEach((bin, i) => {
-        let op = bin.op,
+        const op = bin.op,
             val = bin.val,
             color = colors[i];
 
@@ -35,15 +35,15 @@ function binLegend(settings) {
         else if (op === '>=') text = '≥ ' + val;
         else if (op === '>') text = '> ' + val;
 
-        let item = document.createElement('div');
+        const item = document.createElement('div');
         item.classList.add('item');
 
-        let rectEl = document.createElement('div');
+        const rectEl = document.createElement('div');
         rectEl.classList.add('box');
         rectEl.style.backgroundColor = hexToHexColor(color);
         item.appendChild(rectEl);
 
-        let textEl = document.createElement('span');
+        const textEl = document.createElement('span');
         textEl.innerHTML = text;
         item.appendChild(textEl);
 
@@ -55,22 +55,22 @@ function binLegend(settings) {
 
 
 function gradientLegend(min, max) {
-    let ele = document.createElement('div');
+    const ele = document.createElement('div');
 
-    let w = 100,
-        h = 14;
+    const w = '100px',
+        h = '14px';
 
-    let gradient = document.createElement('div');
+    const gradient = document.createElement('div');
     gradient.style.backgroundImage = 'linear-gradient(to right, #ffffff, #ff0000)';
     gradient.style.width = w;
     gradient.style.height = h;
     gradient.classList.add('gradient');
 
-    let low = document.createElement('span');
+    const low = document.createElement('span');
     low.innerHTML = `${min} `;
     ele.appendChild(low);
 
-    let high = document.createElement('span');
+    const high = document.createElement('span');
     high.innerHTML = ` ${max}`;
 
     ele.appendChild(low);
