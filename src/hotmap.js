@@ -90,12 +90,16 @@ export default class Hotmap {
 
         this.defaults = params.defaults || {};
 
+        // the current color scheme
         this.color = params.color || 'gradient';
+
+        // stash original color settings if we need to revert
         this.origColorSettings = (typeof this.color === 'object')
             ? Object.assign(this.color, {
                 bins: this.color.bins,
                 colors: sanitizeColors(this.color.colors)
             }) : this.color;
+        this.useAltColorScheme = false;
 
         try {
             // convert values into colors
@@ -1059,20 +1063,8 @@ export default class Hotmap {
         return new Options({
             parentNode: this.parent,
             openBtn: document.querySelector('.opts-btn'),
-            color: this.color,
-            altColors: this.origColorSettings != 'gradient' &&
-             ('altColors' in this.origColorSettings),
-            onColorChange: (type) => {
-                this.color = type === 'gradient' ? type : this.origColorSettings;
-                this.colorMatrix = colorMatrix(this.matrix, this.color);
-
-                // change legend
-                this.updateLegend();
-                this.draw();
-            },
             onSnapshot: () => this.downloadSVG(),
             onFullSnapshot: () => this.downloadSVG({full: true})
-
         });
     }
 
@@ -1264,6 +1256,12 @@ export default class Hotmap {
         this.ele.querySelector('.legend').innerHTML =
             legend(this.size.min, this.size.max, this.color);
 
+        if (this.color.altColors) {
+            const colorBtn = this.ele.querySelector('.legend-container .color-btn')
+            colorBtn.classList.add('enabled')
+            colorBtn.onclick = () => this.onColorSchemeChange();
+        }
+
         // optional color picker
         if (typeof Picker !== 'undefined')
             this.updateColorPicker();
@@ -1287,6 +1285,25 @@ export default class Hotmap {
                 }
             });
         });
+    }
+
+    onColorSchemeChange() {
+        this.useAltColorScheme = !this.useAltColorScheme;
+
+        if (this.useAltColorScheme) {
+            const alt = this.origColorSettings.altColors[0]
+            this.color = Object.assign(alt, {
+                colors: sanitizeColors(alt.colors)
+            })
+        } else {
+            this.color = this.origColorSettings;
+        }
+
+        this.colorMatrix = colorMatrix(this.matrix, this.color);
+
+        // change legend
+        this.updateLegend();
+        this.draw();
     }
 
 

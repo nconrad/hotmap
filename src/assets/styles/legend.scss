@@ -2,17 +2,44 @@
  * legend
  */
 
+.legend-container {
+  padding-right: 30px;
+}
+
+.legend-container .color-btn {
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  background: $toolbar-color;
+  border: none;
+  display: none;
+  position: relative;
+}
+
+.legend-container:hover .color-btn.enabled  {
+  display: inline-block;
+}
+
+.legend-container .color-btn svg {
+  fill: #fff;
+}
+
+.header.light .legend-container .color-btn {
+  background: $toolbar-light-color;
+}
+
+.header.light .legend-container .color-btn svg {
+  fill: $toolbar-light-text-color;
+}
+
 .legend {
   display: inline-block;
   margin-top: 10px;
 }
 
-/*
-.legend-container .title {
-  font-size: .9em;
-  margin-bottom: 5px;
+.header.light .color-btn {
+  color: #333;
 }
-*/
 
 .legend > * {
   display: inline-block;
@@ -43,5 +70,5 @@
 }
 
 .header.light .legend .item .box {
-  border: 1px solid #666;
+  border: 1px solid #ccc;
 }

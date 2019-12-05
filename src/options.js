@@ -15,7 +15,7 @@ export default class Options {
         this.onSnapshot = args.onSnapshot;
         this.onFullSnapshot = args.onFullSnapshot;
 
-        this._altColors = args.altColors;
+        //this._altColors = args.altColors;
         this._color = args.color;
         this._viewerNode = this.openBtn.parentNode.parentNode;
         this._show = false;
@@ -47,13 +47,13 @@ export default class Options {
 
         ele.querySelector('.close-btn').onclick = () => this.hide();
 
+        /*
         if (this._altColors) {
             let el = ele.querySelector('.colors');
             el.classList.remove('hidden');
             el.onclick = () => this._onColor;
-        }
-
-        this.colorEventInit();
+        }*/
+        // this.colorEventInit();
 
         let snapshotBtn = ele.querySelector('.download [data-id="snapshot"]');
         snapshotBtn.onclick = () => {

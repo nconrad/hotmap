@@ -167,14 +167,14 @@ export function rgbToHex(rgb) {
 /*
  * colorMatrix
  * @param {[[]]} matrix matrix of values
- * @param {Object} settings {bins: string, colors}
+ * @param {Object} scheme {bins: string, colors}
  */
-export function colorMatrix(matrix, settings) {
-    if (settings == 'gradient') {
+export function colorMatrix(matrix, scheme) {
+    if (scheme == 'gradient') {
         return matGradient(matrix, [255, 0, 0], [255, 255, 255]);
     }
 
-    let {bins, colors} = settings;
+    let {bins, colors} = scheme;
 
     // parse bin list and create function to return color
     let binObjs = parseColorBins(bins);

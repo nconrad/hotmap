@@ -1,17 +1,21 @@
+$toolbar-color: #333;
+$toolbar-text-color: hsl(0, 0%, 85%);
 
+$toolbar-light-color: #fff;
+$toolbar-light-text-color: #333;
 
 > .header {
   display: flex;
   justify-content: left;
   align-items: center;
-  background: #333;
-  color: hsl(0, 0%, 85%);
-  height: $nav-bar-height;
+  background: $toolbar-color;
+  color: $toolbar-text-color;
+  height: $toolbar-height;
 }
 
 > .header.light {
-  background: #fff;
-  color: #333;
+  background: $toolbar-light-color;
+  color: $toolbar-light-text-color;
   border-bottom: 1px solid #ccc;
   // box-shadow: 0 3px 10px -6px rgba(0,0,0,0.3);
 }

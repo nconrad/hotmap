@@ -21,14 +21,21 @@ export const proteinFamilies = () => {
       rowMetaLabels,
       colMetaLabels: ['Protein Family ID'],
       options: {
-          rowLabelEllipsisPos: 1
+          rowLabelEllipsisPos: 1,
+          theme: 'light'
       },
       color: {
-        bins: ['=0', '=1', '=2', '=3', '>=4'],
-        colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff6b6b, 0xff0000],
-        labels: ['0', '1', '2', '3', '4+']
+        bins: ['=0', '=1', '=2', '>=3'],
+        colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff0000],
+        labels: ['0', '1', '2', '3+'],
+        altColors: [
+          {
+            bins: ['=0', '=1', '=2', '>=3'],
+            colors: [0x000000, 16440142, 16167991, 16737843],
+            labels: ['0', '1', '2', '3+']
+          }
+        ]
       },
-      legend: '⬆ red | black | green ⬇',
       onHover: info => {
           const meta = info.rowMeta;
           return `

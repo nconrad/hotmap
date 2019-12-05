@@ -1,6 +1,6 @@
 {
     "name": "hotmap",
-    "version": "0.2.26",
+    "version": "0.2.27",
     "description": "WebGL Based Heatmap Viewer for Big Data and Bioinformatics",
     "main": "dist/hotmap.js",
     "module": "src/hotmap.js",
