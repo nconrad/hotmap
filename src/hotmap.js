@@ -42,9 +42,7 @@ const cellMin = 1;      // min height/width for a cell
 const cellMax = 50;     // max height/width for a cell
 const zoomFactor = 0.1; // speed at which to zoom with mouse
 
-/*
- * margin defaults
- */
+// margin defaults
 const margin = {
     top: 185,
     bottom: 150,

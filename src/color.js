@@ -6,7 +6,7 @@
 
 import {matMinMax} from './utils';
 
-let schemeCategory20RGBs = [
+const schemeCategory20RGBs = [
     'rgb(31, 119, 180)',
     'rgb(174, 199, 232)',
     'rgb(255, 127, 14)',

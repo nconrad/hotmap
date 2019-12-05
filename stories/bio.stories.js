@@ -25,8 +25,10 @@ export const proteinFamilies = () => {
       },
       color: {
         bins: ['=0', '=1', '=2', '=3', '>=4'],
-        colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff6b6b, 0xff0000]
+        colors: ['#ffffff', '#fbe6e2', 0xffadad, 0xff6b6b, 0xff0000],
+        labels: ['0', '1', '2', '3', '4+']
       },
+      legend: '⬆ red | black | green ⬇',
       onHover: info => {
           const meta = info.rowMeta;
           return `

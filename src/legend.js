@@ -18,18 +18,22 @@ export function legend(min, max, settings) {
 
 
 function binLegend(settings) {
+    const bins = parseColorBins(settings.bins);
+    const {colors, labels} = settings;
+
+    if (labels && labels.length !== colors.length)
+        throw 'The color.labels array must have same legnth as color.colors';
+
     const ele = document.createElement('div');
-
-    const bins = parseColorBins(settings.bins),
-        colors = settings.colors;
-
     bins.forEach((bin, i) => {
         const op = bin.op,
             val = bin.val,
             color = colors[i];
 
+        // determine text for each legend item
         let text;
-        if (op === '=') text = val;
+        if (labels) text = labels[i]
+        else if (op === '=') text = val;
         else if (op === '<') text = '< ' + val;
         else if (op === '<=') text = '≤ ' + val;
         else if (op === '>=') text = '≥ ' + val;
