@@ -1414,7 +1414,7 @@ export default class Hotmap {
 
             let i = this.yMousePosToRowIdx(evt);
             let row = this.getRow(this.yStart + i);
-            this.onSelection(row);
+            this.onSelection(row.selection, row.rowIDs, row.colIDs);
         };
 
         dragBox.onmouseleave = () => this.hideHoverEffects();
@@ -1532,7 +1532,7 @@ export default class Hotmap {
 
             let j = this.xMousePosToColIdx(evt);
             let col = this.getCol(this.xStart + j);
-            this.onSelection(col);
+            this.onSelection(col.selection, col.rowIDs, col.colIDs);
         };
 
         dragBox.onmouseleave = () => this.hideHoverEffects();
@@ -1570,31 +1570,53 @@ export default class Hotmap {
     }
 
     getRow(i) {
-        return this.matrix[i].map((val, j) => {
+        let rowIDs = [this.rows[i].id];
+        let colIDs = [];
+
+        const selection = this.matrix[i].map((val, j) => {
             let rowID = this.rows[i].id,
                 colID = this.cols[j].id;
+
+            if (colID) colIDs.push(colID);
+
             return Object.assign({ name: this.cols[j].name, val }, { rowID, colID });
         });
+
+        return {selection, rowIDs, ...(colIDs.length && {colIDs})};
     }
 
     getCol(j) {
-        return this.matrix.map((val, i) => {
+        let rowIDs = [];
+        let colIDs = [this.cols[j].id];
+
+        const selection = this.matrix.map((val, i) => {
             let rowID = this.rows[i].id,
                 colID = this.cols[j].id;
+
+            if (rowID) rowIDs.push(rowID);
+
             return Object.assign({ name: this.rows[i].name, val: val[j] }, { colID, rowID });
         });
+
+        return {selection, colIDs, ...(rowIDs.length && {rowIDs})};
     }
 
     getSelection(i1, j1, i2, j2) {
-        let selected = [];
+        let rowIDs = [];
+        let colIDs = [];
+        let selection = [];
 
         for (let i = i1; i <= i2; i++) {
-            for (let j = j1; j <= j2; j++) {
-                let val = this.matrix[i][j];
-                let rowID = this.rows[i].id,
-                    colID = this.cols[j].id;
+            const rowID = this.rows[i].id;
+            if (rowID) rowIDs.push(rowID);
 
-                selected.push({
+            for (let j = j1; j <= j2; j++) {
+                const val = this.matrix[i][j];
+                const colID = this.cols[j].id;
+
+                if (colID && j == j1) colIDs.push(colID);
+
+                selection.push({
                     val: val,
                     rowName: this.rows[i].name,
                     colName: this.cols[j].name,
@@ -1606,7 +1628,11 @@ export default class Hotmap {
             }
         }
 
-        return selected;
+        return {
+            selection,
+            ...(rowIDs.length && {rowIDs}),
+            ...(colIDs.length && {colIDs})
+        };
     }
 
     selectable() {
@@ -1673,19 +1699,23 @@ export default class Hotmap {
             // if width is not set, then this is actually a 'click' event
             if (!box.h && box.h != 0 && this.onClick &&
                 ('x' in box && 'y' in box)) {
-                this.onClick(this.getSelection(i, j, i, j)[0]);
+                this.onClick(this.getSelection(i, j, i, j).selection[0]);
+                return;
             }
+
+            // was click event, but no onclick supplied
+            if (!box.h || !box.w) return;
 
             let i2 = i + box.h,
                 j2 = j + box.w;
 
-            let selection = this.getSelection(i, j, i2, j2);
+            let selObj = this.getSelection(i, j, i2, j2);
 
             // Fixme: this is a hack for scrollbar event triggering
-            if (selection.length == 0) return;
+            if (selObj.length == 0) return;
 
             if (this.onSelection) {
-                this.onSelection(selection);
+                this.onSelection(selObj.selection, selObj.rowIDs, selObj.colIDs);
             }
 
             box = {};

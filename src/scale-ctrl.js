@@ -93,7 +93,7 @@ export default class ScaleCtrl {
 
             fsBtn.innerHTML = this._isFullscreen
                 ? `Exit fullscreen` : fsIcon;
-            fsBtn.title = this._isFullscreen ? 'exit fullscreen' : 'make hotmap fullscreen';
+            fsBtn.title = this._isFullscreen ? 'exit fullscreen' : 'make chart fullscreen';
 
             if (this._isFullscreen) {
                 this._exitHandle = function(e) {
