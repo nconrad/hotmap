@@ -1413,8 +1413,8 @@ export default class Hotmap {
             if (!this.onSelection) return;
 
             let i = this.yMousePosToRowIdx(evt);
-            let row = this.getRow(this.yStart + i);
-            this.onSelection(row.selection, row.rowIDs, row.colIDs);
+            let {selection, rowIDs, colIDs} = this.getRow(this.yStart + i);
+            this.onSelection(selection, rowIDs, colIDs);
         };
 
         dragBox.onmouseleave = () => this.hideHoverEffects();
@@ -1531,8 +1531,8 @@ export default class Hotmap {
             if (!this.onSelection) return;
 
             let j = this.xMousePosToColIdx(evt);
-            let col = this.getCol(this.xStart + j);
-            this.onSelection(col.selection, col.rowIDs, col.colIDs);
+            let {selection, rowIDs, colIDs} = this.getCol(this.xStart + j);
+            this.onSelection(selection, rowIDs, colIDs);
         };
 
         dragBox.onmouseleave = () => this.hideHoverEffects();
@@ -1614,7 +1614,7 @@ export default class Hotmap {
                 const val = this.matrix[i][j];
                 const colID = this.cols[j].id;
 
-                if (colID && j == j1) colIDs.push(colID);
+                if (colID && i == i1) colIDs.push(colID);
 
                 selection.push({
                     val: val,
@@ -1709,13 +1709,13 @@ export default class Hotmap {
             let i2 = i + box.h,
                 j2 = j + box.w;
 
-            let selObj = this.getSelection(i, j, i2, j2);
+            let {selection, rowIDs, colIDs} = this.getSelection(i, j, i2, j2);
 
             // Fixme: this is a hack for scrollbar event triggering
-            if (selObj.length == 0) return;
+            if (selection.length == 0) return;
 
             if (this.onSelection) {
-                this.onSelection(selObj.selection, selObj.rowIDs, selObj.colIDs);
+                this.onSelection(selection, rowIDs, colIDs);
             }
 
             box = {};
