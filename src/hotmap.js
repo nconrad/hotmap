@@ -1703,9 +1703,6 @@ export default class Hotmap {
                 return;
             }
 
-            // was click event, but no onclick supplied
-            if (!box.h || !box.w) return;
-
             let i2 = i + box.h,
                 j2 = j + box.w;
 
