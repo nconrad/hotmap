@@ -1,33 +1,9 @@
 import Hotmap from '../src/hotmap';
 import { start } from './start-demo';
-
+import { getMockLabels } from './mock-data';
 
 export default {title: 'Getting Started'}
 
-
-const generateRows = (n) => {
-  const rows = []
-  for (let i = 0; i < n; i++) {
-    rows.push({
-      name: `some row ${i}`,
-      id: `some id ${i}`
-    })
-  }
-
-  return rows
-}
-
-const generateCols = (n) => {
-  const rows = []
-  for (let i = 0; i < n; i++) {
-    rows.push({
-      name: `some col ${i}`,
-      id: `some id ${i}`
-    })
-  }
-
-  return rows
-}
 
 export const basicConfig = () => {
   const demo = () => {
@@ -62,10 +38,12 @@ export const events = () => {
   const matrix = [[1, 2, 3, 4], [0.8, 6, 4, 5], [2, 10, 1.5, 1.4], [1.9, 3, 4, 5]]
 
   const demo = () => {
+    const {rows, cols} = getMockLabels(4, 4)
+
     new Hotmap({
       ele: document.getElementById('chart'),
-      rows: generateRows(matrix.length),
-      cols: generateCols(matrix.length),
+      rows,
+      cols,
       matrix,
       onSelection: (selection, rowIDs, colIDs) => {
         console.log('colIDs:', colIDs)

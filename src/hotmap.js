@@ -22,7 +22,7 @@ import { legend } from './legend';
 import { matMinMax } from './utils';
 import { svgNS, svgG, createSVG, svgRect, svgText, svgLine } from './svg';
 import { setAttributes } from './dom';
-import { sanitizeColors, colorMatrix, categoryColors, rgbToHex, hexToHexColor } from './color';
+import { sanitizeColor, colorMatrix, categoryColors, rgbToHex, hexToHexColor } from './color';
 import { transpose } from './matrix';
 
 import Picker from 'vanilla-picker';
@@ -92,18 +92,19 @@ export default class Hotmap {
 
         // the current color scheme
         this.color = params.color || 'gradient';
+        this.customColors = params.customColors;
 
         // stash original color settings if we need to revert
         this.origColorSettings = (typeof this.color === 'object')
             ? Object.assign(this.color, {
                 bins: this.color.bins,
-                colors: sanitizeColors(this.color.colors)
+                colors: sanitizeColor(this.color.colors)
             }) : this.color;
         this.useAltColorScheme = false;
 
         try {
             // convert values into colors
-            this.colorMatrix = colorMatrix(this.matrix, this.color);
+            this.colorMatrix = colorMatrix(this.matrix, this.color, this.customColors);
         } catch (error) {
             alert(error);
             return;
@@ -1249,7 +1250,7 @@ export default class Hotmap {
         }
 
         // update colors
-        this.colorMatrix = colorMatrix(this.matrix, this.color);
+        this.colorMatrix = colorMatrix(this.matrix, this.color, this.customColors);
     }
 
     updateLegend() {
@@ -1279,7 +1280,7 @@ export default class Hotmap {
 
                     let hexD = parseInt( rgbToHex(color._rgba) );
                     this.color.colors[i] = hexD;
-                    this.colorMatrix = colorMatrix(this.matrix, this.color);
+                    this.colorMatrix = colorMatrix(this.matrix, this.color, this.customColors);
                     el.querySelector('.box').style.backgroundColor = hexToHexColor(hexD);
                     this.draw();
                 }
@@ -1293,13 +1294,13 @@ export default class Hotmap {
         if (this.useAltColorScheme) {
             const alt = this.origColorSettings.altColors[0]
             this.color = Object.assign(alt, {
-                colors: sanitizeColors(alt.colors)
+                colors: sanitizeColor(alt.colors)
             })
         } else {
             this.color = this.origColorSettings;
         }
 
-        this.colorMatrix = colorMatrix(this.matrix, this.color);
+        this.colorMatrix = colorMatrix(this.matrix, this.color, this._colorByIndex);
 
         // change legend
         this.updateLegend();
@@ -1703,9 +1704,6 @@ export default class Hotmap {
                 return;
             }
 
-            // was click event, but no onclick supplied
-            if (!box.h || !box.w) return;
-
             let i2 = i + box.h,
                 j2 = j + box.w;
 
@@ -1871,12 +1869,12 @@ export default class Hotmap {
     /**
      * API methods
      */
-    update(data) {
-        this.cols = data.cols || this.cols;
-        this.rows = data.rows || this.rows;
-        this.matrix = data.matrix || this.matrix;
-        this.xLabel = data.colsLabel || this.xLabel;
-        this.yLabel = data.rowsLabel || this.yLabel;
+    update({cols, rows, matrix, colsLabel, rowsLabel} = {}) {
+        this.cols = cols || this.cols;
+        this.rows = rows || this.rows;
+        this.matrix = matrix || this.matrix;
+        this.xLabel = colsLabel || this.xLabel;
+        this.yLabel = rowsLabel || this.yLabel;
 
         this.size = Hotmap.getMatrixStats(this.matrix);
 
@@ -1959,6 +1957,14 @@ export default class Hotmap {
 
         this.updateData();
         this.initChart();
+    }
+
+    // experimental api
+    colorByIndex({color, indexes}) {
+        this.customColors = {color, indexes};
+
+        // wait for initial render
+        setTimeout(() => { this.update() })
     }
 }
 

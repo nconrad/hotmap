@@ -75,7 +75,9 @@ const schemeCategory20 = [
     0xc5b0d5,
 ];
 
-export function sanitizeColors(colors) {
+export function sanitizeColor(colors) {
+    colors = [].concat(colors || []);
+
     let sanitized = colors.map(color => {
         if (isNaN(color) && color[0] == '#') {
             return parseInt('0x' + color.slice(1));
@@ -169,9 +171,11 @@ export function rgbToHex(rgb) {
  * @param {[[]]} matrix matrix of values
  * @param {Object} scheme {bins: string, colors}
  */
-export function colorMatrix(matrix, scheme) {
+export function colorMatrix(matrix, scheme, customColors) {
     if (scheme == 'gradient') {
-        return matGradient(matrix, [255, 0, 0], [255, 255, 255]);
+        let cMatrix = matGradient(matrix, [255, 0, 0], [255, 255, 255]);
+        if (customColors) cMatrix = _mixinCustomColors(cMatrix, customColors);
+        return cMatrix
     }
 
     let {bins, colors} = scheme;
@@ -204,7 +208,22 @@ export function colorMatrix(matrix, scheme) {
         cMatrix.push(row);
     }
 
+    if (customColors)
+        cMatrix = _mixinCustomColors(cMatrix, customColors);
+
     return cMatrix;
+}
+
+function _mixinCustomColors(colorMatrix, customColors) {
+    const {color, indexes} = customColors;
+
+    const len = indexes.length;
+    for (let k = 0; k < len; k++) {
+        const [i, j] = indexes[k];
+        colorMatrix[i][j] = sanitizeColor(color);
+    }
+
+    return colorMatrix;
 }
 
 export function parseColorBins(bins) {
@@ -272,17 +291,3 @@ function matGradient(matrix, rgb1, rgb2) {
     matrix = matrix.map(r => r.map(val => rgbToHex( pickHex(rgb1, rgb2, val / max)) ) );
     return matrix;
 }
-
-function getRandomColorMatrix(m, n) {
-    let colors = [];
-    for (let i = 0; i < n; i++) {
-        let row = [];
-        for (let j = 0; j < m; j++) {
-            let color = '0x' + (Math.random() * 0xFFFFFF << 0).toString(16);
-            row.push(color);
-        }
-        colors.push(row);
-    }
-    return colors;
-}
-
