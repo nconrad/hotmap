@@ -119,37 +119,6 @@ export function categoryColors(categories) {
     return colorMatrix;
 }
 
-function categoryColorsDep(categories) {
-    // assume length of all categories is same
-    let indexes = categories[0].map(cat => 0);
-    let mappings = categories[0].map(cat => { return {}; });
-    let colorMatrix = [];
-
-    categories.forEach((set, i) => {
-        let row = [];
-        set.forEach((cat, j) => {
-            if (cat in mappings[j]) {
-                row.push( mappings[j][cat] );
-            } else {
-                // alternate colors starting from start/end of list
-                let index = j % 2
-                    ? indexes[j] % 20
-                    : Math.abs(schemeCategory20.length - 1 - indexes[j]) % 20;
-
-                let color = schemeCategory20[index];
-                mappings[j][cat] = color;
-                row.push(color);
-
-                // increment each categories' color index
-                indexes[j]++;
-            }
-        });
-        colorMatrix.push(row);
-    });
-
-    return colorMatrix;
-}
-
 export function hexToHexColor(hex) {
     hex = hex.toString(16);
     const len = hex.length;
@@ -171,16 +140,14 @@ export function rgbToHex(rgb) {
  * @param {[[]]} matrix matrix of values
  * @param {Object} scheme {bins: string, colors}
  */
-export function colorMatrix(matrix, scheme, customColors) {
+export function colorMatrix(matrix, scheme, colorFilter, rows, cols) {
     if (scheme == 'gradient') {
-        let cMatrix = matGradient(matrix, [255, 0, 0], [255, 255, 255]);
-        if (customColors) cMatrix = _mixinCustomColors(cMatrix, customColors);
-        return cMatrix
+        return matGradient(matrix, [255, 0, 0], [255, 255, 255], colorFilter, rows, cols);
     }
 
     let {bins, colors} = scheme;
 
-    // parse bin list and create function to return color
+    // parse bin list and create a function that returns colors
     let binObjs = parseColorBins(bins);
     let f = binColorFunction(binObjs, colors);
 
@@ -203,27 +170,20 @@ export function colorMatrix(matrix, scheme, customColors) {
                     `The bins provided were parsed as:\n ${JSON.stringify(binObjs)}`
                 );
 
+            // apply any color overrides
+            if (colorFilter) {
+                const rowID = rows[i].id;
+                const colID = cols[j].id;
+                let newColor = colorFilter({val, color, i, j, rowID, colID});
+                color = typeof newColor !== 'undefined' ? newColor : color;
+            }
+
             row.push(color);
         }
         cMatrix.push(row);
     }
 
-    if (customColors)
-        cMatrix = _mixinCustomColors(cMatrix, customColors);
-
     return cMatrix;
-}
-
-function _mixinCustomColors(colorMatrix, customColors) {
-    const {color, indexes} = customColors;
-
-    const len = indexes.length;
-    for (let k = 0; k < len; k++) {
-        const [i, j] = indexes[k];
-        colorMatrix[i][j] = sanitizeColor(color);
-    }
-
-    return colorMatrix;
 }
 
 export function parseColorBins(bins) {
@@ -285,9 +245,33 @@ function pickHex(color1, color2, weight) {
  * @param {*} matrix matrix to compute
  * @param {*} rgb1 [r, g, b]
  * @param {*} rgb2 [r, g, b]
+ * @param {*} colorFilter function that returns color to override default
  */
-function matGradient(matrix, rgb1, rgb2) {
-    let max = matMinMax(matrix).max;
-    matrix = matrix.map(r => r.map(val => rgbToHex( pickHex(rgb1, rgb2, val / max)) ) );
-    return matrix;
+function matGradient(matrix, rgb1, rgb2, colorFilter = null, rows, cols) {
+    const max = matMinMax(matrix).max,
+        m = matrix.length,
+        n = matrix[0].length;
+
+    const cMatrix = [];
+    for (let i = 0; i < m; i++) {
+        const row = [];
+        for (let j = 0; j < n; j++) {
+            const val = matrix[i][j];
+            let color = rgbToHex(pickHex(rgb1, rgb2, val / max));
+
+            // apply any color overrides
+            if (colorFilter) {
+                const rowID = rows[i].id;
+                const colID = cols[j].id;
+                const newColor = colorFilter({val, color, i, j, rowID, colID});
+                color = typeof newColor !== 'undefined' ? newColor : color;
+            }
+
+            row.push(parseInt(color));
+        }
+
+        cMatrix.push(row);
+    }
+
+    return cMatrix;
 }

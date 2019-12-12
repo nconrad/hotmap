@@ -92,7 +92,7 @@ export default class Hotmap {
 
         // the current color scheme
         this.color = params.color || 'gradient';
-        this.customColors = params.customColors;
+        this._colorFilter = params.colorFilter;
 
         // stash original color settings if we need to revert
         this.origColorSettings = (typeof this.color === 'object')
@@ -103,8 +103,11 @@ export default class Hotmap {
         this.useAltColorScheme = false;
 
         try {
-            // convert values into colors
-            this.colorMatrix = colorMatrix(this.matrix, this.color, this.customColors);
+            // convert matrix values into colors
+            this.colorMatrix = colorMatrix(
+                this.matrix, this.color, this._colorFilter,
+                this.rows, this.cols
+            );
         } catch (error) {
             alert(error);
             return;
@@ -319,7 +322,7 @@ export default class Hotmap {
 
     initStage() {
         this.isStaged = false;
-        this.draw(true, true);
+        this._draw(true, true);
         this.isStaged = true;
     }
 
@@ -359,7 +362,7 @@ export default class Hotmap {
             this.cellH = this.defaults.cellHeight || this.computeCellHeight();
         }
         this.scaleCtrl.setPos(this.cellW, this.cellH);
-        this.draw(true, true, true);
+        this._draw(true, true, true);
     }
 
     computeCellWidth() {
@@ -416,7 +419,7 @@ export default class Hotmap {
      * @param {bool} renderY should render y axis
      * @param {bool} scale should rescale (zoom / update cell dimensions)
      */
-    draw(renderX, renderY, scale) {
+    _draw(renderX, renderY, scale) {
         this.clearStage(renderX, renderY, scale);
 
         // we'll compute the "viewsize" based on current container size;
@@ -911,13 +914,13 @@ export default class Hotmap {
         if (xStart !== null && yStart !== null) {
             this.xStart = xStart;
             this.yStart = yStart;
-            this.draw(true, true);
+            this._draw(true, true);
         } else if (xStart !== null) {
             this.xStart = xStart;
-            this.draw(true);
+            this._draw(true);
         } else if (yStart !== null) {
             this.yStart = yStart;
-            this.draw(false, true);
+            this._draw(false, true);
         }
     }
 
@@ -930,9 +933,9 @@ export default class Hotmap {
                 this.cellW = val;
                 if (isLocked) {
                     this.cellH = val;
-                    this.draw(true, true, true);
+                    this._draw(true, true, true);
                 } else {
-                    this.draw(true, false, true);
+                    this._draw(true, false, true);
                 }
                 return {x: this.cellW, y: this.cellH};
             },
@@ -940,9 +943,9 @@ export default class Hotmap {
                 this.cellH = val;
                 if (isLocked) {
                     this.cellW = val;
-                    this.draw(true, true, true);
+                    this._draw(true, true, true);
                 } else {
-                    this.draw(false, true, true);
+                    this._draw(false, true, true);
                 }
                 return {x: this.cellW, y: this.cellH};
             },
@@ -955,7 +958,7 @@ export default class Hotmap {
                 else
                     this.cellH = x;
 
-                this.draw(true, true, true);
+                this._draw(true, true, true);
 
                 return {x: this.cellW, y: this.cellH};
             }
@@ -997,7 +1000,7 @@ export default class Hotmap {
                 this.cellW = newXDim < cellMin
                     ? cellMin : (newXDim > cellMax ? cellMax : newXDim);
 
-                this.draw(true, null, true);
+                this._draw(true, null, true);
 
                 // update controls
                 this.scaleCtrl.setPos(this.cellW, this.cellH);
@@ -1048,7 +1051,7 @@ export default class Hotmap {
                 reset.classList.add('hidden');
             }
 
-            self.draw();
+            self._draw();
         };
 
         reset.onclick = function() {
@@ -1056,7 +1059,7 @@ export default class Hotmap {
             reset.classList.add('hidden');
             searchInput.value = '';
             searchCount.innerHTML = '';
-            self.draw();
+            self._draw();
         };
     }
 
@@ -1236,7 +1239,7 @@ export default class Hotmap {
 
         // update all data
         this.updateData();
-        this.draw(true, true, true);
+        this._draw(true, true, true);
     }
 
     // updates associated data models (such as meta data)
@@ -1250,7 +1253,10 @@ export default class Hotmap {
         }
 
         // update colors
-        this.colorMatrix = colorMatrix(this.matrix, this.color, this.customColors);
+        this.colorMatrix = colorMatrix(
+            this.matrix, this.color, this._colorFilter,
+            this.rows, this.cols
+        );
     }
 
     updateLegend() {
@@ -1280,9 +1286,12 @@ export default class Hotmap {
 
                     let hexD = parseInt( rgbToHex(color._rgba) );
                     this.color.colors[i] = hexD;
-                    this.colorMatrix = colorMatrix(this.matrix, this.color, this.customColors);
+                    this.colorMatrix = colorMatrix(
+                        this.matrix, this.color, this._colorFilter,
+                        this.rows, this.cols
+                    );
                     el.querySelector('.box').style.backgroundColor = hexToHexColor(hexD);
-                    this.draw();
+                    this._draw();
                 }
             });
         });
@@ -1300,11 +1309,14 @@ export default class Hotmap {
             this.color = this.origColorSettings;
         }
 
-        this.colorMatrix = colorMatrix(this.matrix, this.color, this._colorByIndex);
+        this.colorMatrix = colorMatrix(
+            this.matrix, this.color, this._colorFilter,
+            this.rows, this.cols
+        );
 
         // change legend
         this.updateLegend();
-        this.draw();
+        this._draw();
     }
 
 
@@ -1895,17 +1907,23 @@ export default class Hotmap {
         };
     }
 
-    flipAxis() {
-        this.isTransposed = !this.isTransposed;
-
+    flipScaling(draw = true) {
         // flip scaling
-        let ctrl = this.scaleCtrl;
+        const ctrl = this.scaleCtrl;
         ctrl.setPos(ctrl.y, ctrl.x);
         [this.cellW, this.cellH] = [this.cellH, this.cellW];
 
         // flip label ellipsis positions
         [this.xLabelEllipsisPos, this.yLabelEllipsisPos] =
             [this.yLabelEllipsisPos, this.xLabelEllipsisPos];
+
+        if (draw) this._draw(true, true, true);
+    }
+
+    flipAxis() {
+        this.isTransposed = !this.isTransposed;
+
+        this.flipScaling(false);
 
         // transpose all the things
         this.update({
@@ -1944,7 +1962,7 @@ export default class Hotmap {
     moveCol(col1, col2) {
         let colToMove = this.cols[col1];
 
-        // update rows
+        // update columns
         this.cols.splice(col1, 1);
         this.cols.splice(col2, 0, colToMove);
 
@@ -1960,12 +1978,13 @@ export default class Hotmap {
     }
 
     // experimental api
-    colorByIndex({color, indexes}) {
-        this.customColors = {color, indexes};
+    colorFilter(func) {
+        this._colorFilter = func;
 
-        // wait for initial render
+        // wait for initial render if needed
         setTimeout(() => { this.update() })
     }
+
 }
 
 

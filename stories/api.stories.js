@@ -11,7 +11,6 @@ const m = 5,
 const initHeatmap = () => {
 
   const {rows, cols, matrix} = getMockData(m, n)
-  console.log('matrix', matrix)
 
   return new Hotmap({
     ele: document.getElementById('chart'),
@@ -59,15 +58,15 @@ export const updating = () => {
 }
 
 
-export const colorByIndex = () => {
+export const colorFilter = () => {
   const demo = () => {
     const heatmap = initHeatmap()
 
-    // example of coloring by indexes
-    heatmap.colorByIndex({
-      color: 0x114411,
-      indexes: [[1, 1], [1, 2], [2, 1], [2, 2]]
-    });
+
+    // color the i, j cell black
+    heatmap.colorFilter(({i, j, color, val}) => {
+      if (i == 1 && j == 1) return 0x000000;
+    })
   }
 
   return start(demo)
@@ -85,9 +84,10 @@ export const advancedUpdate = () => {
 
       console.log('updating...')
       heatmap.update({rows, cols, matrix})
-      heatmap.colorByIndex({
-        color: 0x114411,
-        indexes: [[1, 1], [1, 2], [2, 1], [2, 2]]
+
+      // colors the cells black when its value is over .5
+      heatmap.colorFilter(({val}) => {
+        if (val > 0.5) return 0x000000;
       })
 
       timeout = setTimeout(update, 2000)
