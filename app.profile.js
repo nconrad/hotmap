@@ -19,6 +19,8 @@ var profile = {
 				/heatmap\/node_modules\/*/.test(filename) ||
 				/heatmap\/src\/*/.test(filename) ||
 				/heatmap\/tests\/*/.test(filename) ||
+				/heatmap\/stories\/*/.test(filename) ||
+				/heatmap\/storybook\/*/.test(filename) ||
 				mid in miniExcludes
 
 	  	return shouldExclude;
