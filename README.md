@@ -118,7 +118,7 @@ requirejs(['hotmap'], function(Hotmap) {
 | update      | update({rows, cols, matrix})                    | Given object with rows, columns, and matrix, updates chart |
 | getState    | getState()                                      | Returns current rows, columns and matrix                   |
 | flipAxis    | flipAxis()                                      | Swaps rows, cols, labels, and scaling                      |
-| downloadSVG | downloadSVG({{fileName = 'hotmap.svg', full}}) | Downloads chart as SVG.  "full" will include all data.     |
+| downloadSVG | downloadSVG({fileName = 'hotmap.svg', full: false}) | Downloads chart as SVG.  "full" will include all data.     |
 
 
 
